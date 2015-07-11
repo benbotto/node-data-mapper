@@ -1,0 +1,17 @@
+{
+  "name": "orm",
+  "version": "1.0.0",
+  "description": "A light weight object relational mapper using the data mapper pattern.",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "glob": "^5.0.13",
+    "grunt": "^0.4.5",
+    "grunt-contrib-jshint": "^0.11.2",
+    "grunt-jasmine-nodejs": "^1.4.2"
+  }
+}

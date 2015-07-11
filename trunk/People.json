@@ -1,0 +1,10 @@
+{
+  "name":"people",
+  "alias":"people",
+  "columns":
+  [
+    {"name":"personID", "alias":"personID"},
+    {"name":"firstName", "alias":"firstName"},
+    {"name":"lastName", "alias":"lastName"}
+  ]
+}
