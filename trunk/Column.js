@@ -1,15 +1,23 @@
 'use strict';
 
+var assert = require(__dirname + '/assert');
+
 /**
  * Represents a database column.
- * @param name The name of the database column.
- * @param alias An optional alias for the column, used for serializing.
- *        Defaults to the column name.
+ * @param column An object representing the column with the following properties.
+ * {
+ *   name:  string, // Required.  The name of the column.
+ *   alias: string  // Optional.  The column alias, used for serializing.
+ *                  // Defaults to name.
+ *                  
+ * }
  */
-function Column(name, alias)
+function Column(column)
 {
-  this._name  = name;
-  this._alias = alias || name;
+  assert(column.name, 'Column name is required.');
+
+  this._name  = column.name;
+  this._alias = column.alias || this._name;
 }
 
 /**

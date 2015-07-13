@@ -8,12 +8,12 @@ describe('Table test suite', function()
   // Checks the constructor.
   it('checks the constructor.', function()
   {
-    var table = new Table('Test', 'TestAlias');
+    var table = new Table({name: 'Test', alias: 'TestAlias'});
 
     expect(table.getName()).toBe('Test');
     expect(table.getAlias()).toBe('TestAlias');
 
-    var table2 = new Table('Test');
+    var table2 = new Table({name: 'Test'});
     expect(table2.getName()).toBe('Test');
     expect(table2.getAlias()).toBe('Test');
   });
@@ -25,11 +25,14 @@ describe('Table test suite', function()
     // Set up a dummy table.
     beforeEach(function()
     {
-      users = new Table('users');
+      users = new Table({name: 'users'});
 
-      users.addColumn(new Column('userID',    'ID'));
-      users.addColumn(new Column('firstName', 'first'));
-      users.addColumn(new Column('lastName',  'last'));
+      console.log('before');
+      console.log(users);
+
+      users.addColumn(new Column({name: 'userID',    alias: 'ID'}));
+      users.addColumn(new Column({name: 'firstName', alias: 'first'}));
+      users.addColumn(new Column({name: 'lastName',  alias: 'last'}));
     });
 
     // Checks that three columns exist.
@@ -46,7 +49,7 @@ describe('Table test suite', function()
     {
       expect(function()
       {
-        users.addColumn(new Column('userID'));
+        users.addColumn(new Column({name: 'userID'}));
       }).toThrowError('Column userID already exists in table users');
     });
 
