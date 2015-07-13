@@ -1,15 +1,22 @@
 'use strict';
 
+var assert = require(__dirname + '/assert');
+
 /**
  * Represents a database table.
- * @param name The name of the table.
- * @param alias An optional alias for the table, used for serializing.
- *        Defaults to the table name.
+ * @param table An object containing a table definition, in the following format.
+ * {
+ *   name:   string,        // Required.  The name of the table.
+ *   alias:  string         // An optional alias for the table, used for serializing.
+ *                          // Defaults to the table name.
+ * }
  */
-function Table(name, alias)
+function Table(table)
 {
-  this._name        = name;
-  this._alias       = alias || name;
+  assert(table.name, 'Table name is required.');
+
+  this._name        = table.name;
+  this._alias       = table.alias || this._name;
   this._columns     = [];
   this._nameLookup  = {};
   this._aliasLookup = {};
@@ -37,8 +44,8 @@ Table.prototype.getAlias = function()
  */
 Table.prototype.addColumn = function(column)
 {
-  if (this._nameLookup[column.getName()] !== undefined)
-    throw new Error('Column ' + column.getName() + ' already exists in table ' + this.getName());
+  assert(this._nameLookup[column.getName()] === undefined,
+    'Column ' + column.getName() + ' already exists in table ' + this.getName());
 
   this._columns.push(column);
   this._nameLookup[column.getName()]   = column;
