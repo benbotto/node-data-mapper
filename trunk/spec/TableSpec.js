@@ -27,9 +27,6 @@ describe('Table test suite', function()
     {
       users = new Table({name: 'users'});
 
-      console.log('before');
-      console.log(users);
-
       users.addColumn(new Column({name: 'userID',    alias: 'ID'}));
       users.addColumn(new Column({name: 'firstName', alias: 'first'}));
       users.addColumn(new Column({name: 'lastName',  alias: 'last'}));
@@ -50,7 +47,12 @@ describe('Table test suite', function()
       expect(function()
       {
         users.addColumn(new Column({name: 'userID'}));
-      }).toThrowError('Column userID already exists in table users');
+      }).toThrowError('Column userID already exists in table users.');
+
+      expect(function()
+      {
+        users.addColumn(new Column({name: 'foo', alias: 'ID'}));
+      }).toThrowError('Column alias ID already exists in table users.');
     });
 
     // Checks that columns can be retrieved by name.
@@ -81,6 +83,12 @@ describe('Table test suite', function()
       expect(firstName.getAlias()).toBe('first');
       expect(lastName.getName()).toBe('lastName');
       expect(lastName.getAlias()).toBe('last');
+    });
+
+    // Makes sure that addColumn returns this (the table)
+    it('makes sure that addColumn returns this (the table)', function()
+    {
+      expect(users.addColumn(new Column({name: 'surname'}))).toBe(users);
     });
   });
 });
