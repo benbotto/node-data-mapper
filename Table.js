@@ -45,11 +45,15 @@ Table.prototype.getAlias = function()
 Table.prototype.addColumn = function(column)
 {
   assert(this._nameLookup[column.getName()] === undefined,
-    'Column ' + column.getName() + ' already exists in table ' + this.getName());
+    'Column ' + column.getName() + ' already exists in table ' + this.getName() + '.');
+  assert(this._aliasLookup[column.getAlias()] === undefined,
+    'Column alias ' + column.getAlias() + ' already exists in table ' + this.getName() + '.');
 
   this._columns.push(column);
   this._nameLookup[column.getName()]   = column;
   this._aliasLookup[column.getAlias()] = column;
+
+  return this;
 };
 
 /**
