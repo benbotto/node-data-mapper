@@ -48,4 +48,22 @@ describe('Database test suite', function()
       db.addTable(foo);
     }).toThrowError('Table alias users already exists in database test.');
   });
+
+  // Tries to get an invalid table by name.
+  it('tries to get an invalid table by name.', function()
+  {
+    expect(function()
+    {
+      db.getTableByName('INVALID_NAME');
+    }).toThrowError('Table INVALID_NAME does not exist in database test.');
+  });
+
+  // Tries to get an invalid table by alias.
+  it('tries to get an invalid table by alias.', function()
+  {
+    expect(function()
+    {
+      db.getTableByAlias('INVALID_ALIAS');
+    }).toThrowError('Table alias INVALID_ALIAS does not exist in database test.');
+  });
 });
