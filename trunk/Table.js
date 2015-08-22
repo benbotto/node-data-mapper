@@ -62,6 +62,9 @@ Table.prototype.addColumn = function(column)
  */
 Table.prototype.getColumnByName = function(name)
 {
+  assert(this._nameLookup[name],
+    'Column ' + name + ' does not exist in table ' + this.getName() + '.');
+
   return this._nameLookup[name];
 };
 
@@ -71,6 +74,9 @@ Table.prototype.getColumnByName = function(name)
  */
 Table.prototype.getColumnByAlias = function(alias)
 {
+  assert(this._aliasLookup[alias],
+    'Column alias ' + alias + ' does not exist in table ' + this.getName() + '.');
+
   return this._aliasLookup[alias];
 };
 

@@ -70,6 +70,15 @@ describe('Table test suite', function()
       expect(lastName.getAlias()).toBe('last');
     });
 
+    // Tries to retrieve an invalid column by name.
+    it('tries to retrieve an invalid column by name.', function()
+    {
+      expect(function()
+      {
+        users.getColumnByName('INVALID_NAME');
+      }).toThrowError('Column INVALID_NAME does not exist in table users.');
+    });
+
     // Checks that columns can be retrieved by alias.
     it('checks that columns can be retrieved by alias.', function()
     {
@@ -83,6 +92,15 @@ describe('Table test suite', function()
       expect(firstName.getAlias()).toBe('first');
       expect(lastName.getName()).toBe('lastName');
       expect(lastName.getAlias()).toBe('last');
+    });
+
+    // Tries to retrieve an invalid column by alias.
+    it('tries to retrieve an invalid column by alias.', function()
+    {
+      expect(function()
+      {
+        users.getColumnByAlias('INVALID_ALIAS');
+      }).toThrowError('Column alias INVALID_ALIAS does not exist in table users.');
     });
 
     // Makes sure that addColumn returns this (the table)

@@ -7,7 +7,6 @@ var assert = require(__dirname + '/assert');
  * @param database An object in the following format.
  * {
  *   name: string // Required - the name of the database.
- *
  * }
  */
 function Database(database)
@@ -52,9 +51,11 @@ Database.prototype.addTable = function(table)
  */
 Database.prototype.getTableByName = function(name)
 {
+  assert(this._nameLookup[name],
+    'Table ' + name + ' does not exist in database ' + this.getName() + '.');
+
   return this._nameLookup[name];
 };
-
 
 /**
  * Get a table by alias.
@@ -62,7 +63,11 @@ Database.prototype.getTableByName = function(name)
  */
 Database.prototype.getTableByAlias = function(alias)
 {
+  assert(this._aliasLookup[alias],
+    'Table alias ' + alias + ' does not exist in database ' + this.getName() + '.');
+
   return this._aliasLookup[alias];
 };
 
 module.exports = Database;
+
