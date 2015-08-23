@@ -11,6 +11,6 @@ module.exports = function(grunt)
     watch:          require('./grunt/watch')(grunt, scripts)
   });
 
-  grunt.registerTask('default', ['jshint', 'jasmine_nodejs', 'watch']);
+  grunt.registerTask('default', ['jshint', 'jasmine_nodejs']);
 };
 
