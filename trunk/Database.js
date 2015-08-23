@@ -1,22 +1,30 @@
 'use strict';
 
 var assert = require(__dirname + '/assert');
+var Table  = require(__dirname + '/Table');
 
 /**
  * Class for representing a database.
  * @param database An object in the following format.
  * {
- *   name: string // Required - the name of the database.
+ *   name:   string,      // Required.  The name of the database.
+ *
+ *   tables: array<Table> // Optional.  An array of Tables (or objects suitable for
+ *                        // the Table constructor).
+ *                        // See the Table constructor for property details.
  * }
  */
 function Database(database)
 {
-  assert(database.name, 'database name is required.');
+  assert(database.name, 'Database name is required.');
 
   this._name        = database.name;
   this._tables      = [];
   this._nameLookup  = {};
   this._aliasLookup = {};
+
+  if (database.tables)
+    database.tables.forEach(this.addTable.bind(this));
 }
 
 /**
@@ -28,11 +36,22 @@ Database.prototype.getName = function()
 };
 
 /**
+ * Get the array of tables.
+ */
+Database.prototype.getTables = function()
+{
+  return this._tables;
+};
+
+/**
  * Add a Table to the database.
  * @param table The new table, which must have a unique name.
  */
 Database.prototype.addTable = function(table)
 {
+  if (!(table instanceof Table))
+    table = new Table(table);
+
   assert(this._nameLookup[table.getName()] === undefined,
     'Table ' + table.getName() + ' already exists in database ' + this.getName() + '.');
   assert(this._aliasLookup[table.getAlias()] === undefined,
