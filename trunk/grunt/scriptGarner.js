@@ -1,29 +1,35 @@
 'use strict';
 
-var files    = {};
-var glob     = require('glob');
-var globOpts = {cwd: __dirname + '/../'};
-
-// Application files.
-files.app = glob.sync('**/*.js', globOpts).filter(function(script)
+module.exports = function(verbose)
 {
-  return !script.match(/node_modules/) &&
-         !script.match(/grunt/i) &&
-         !script.match(/spec/);
-});
+  var files    = {};
+  var glob     = require('glob');
+  var globOpts = {cwd: __dirname + '/../'};
 
-// Grunt files.
-files.grunt = glob.sync('**/*.js', globOpts).filter(function(script)
-{
-  return !script.match(/node_modules/) &&
-         script.match(/grunt/i);
-});
+  // Application files.
+  files.app = glob.sync('**/*.js', globOpts).filter(function(script)
+  {
+    return !script.match(/node_modules/) &&
+           !script.match(/grunt/i) &&
+           !script.match(/spec/);
+  });
 
-// Specs.
-files.spec = glob.sync('spec/**/*.js', globOpts);
+  // Grunt files.
+  files.grunt = glob.sync('**/*.js', globOpts).filter(function(script)
+  {
+    return !script.match(/node_modules/) &&
+           script.match(/grunt/i);
+  });
 
-console.log('Script garner gathered the following files.');
-console.dir(files);
+  // Specs.
+  files.spec = glob.sync('spec/**/*.js', globOpts);
 
-module.exports = files;
+  if (verbose)
+  {
+    console.log('Script garner gathered the following files.');
+    console.dir(files);
+  }
+
+  return files;
+};
 
