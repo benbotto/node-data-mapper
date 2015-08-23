@@ -4,66 +4,85 @@ describe('Database test suite', function()
 
   var Database = require(__dirname + '/../Database');
   var Table    = require(__dirname + '/../Table');
-  var db;
+  var testDB   = require(__dirname + '/resource/testDB.json');
 
-  beforeEach(function()
+  describe('Database constructor test suite.', function()
   {
-    db = new Database({name: 'test'});
-  });
-
-  // Checks the constructor.
-  it('checks the constructor.', function()
-  {
-    expect(db.getName()).toBe('test');
-  });
-
-  // Adds some tables.
-  it('adds some tables.', function()
-  {
-    var users        = new Table({name: 'users'});
-    var phoneNumbers = new Table({name: 'phone_numbers', alias: 'phoneNumbers'});
-
-    expect(db.addTable(users).addTable(phoneNumbers)).toBe(db);
-
-    expect(db.getTableByName('users')).toBe(users);
-    expect(db.getTableByName('phone_numbers')).toBe(phoneNumbers);
-    expect(db.getTableByAlias('phoneNumbers')).toBe(phoneNumbers);
-  });
-
-  // Adds a duplicate table.
-  it('adds a duplicate table.', function()
-  {
-    var users = new Table({name: 'users'});
-    var foo   = new Table({name: 'foo', alias: 'users'});
-
-    db.addTable(users);
-
-    expect(function()
+    // Checks the minimal constructor.
+    it('checks the minimal constructor.', function()
     {
-      db.addTable(users);
-    }).toThrowError('Table users already exists in database test.');
+      var db = new Database({name: 'test'});
+      expect(db.getName()).toBe('test');
+      expect(db.getTables().length).toBe(0);
+    });
 
-    expect(function()
+    // Checks the constructor with an array of tables.
+    it('checks the constructor with an array of tables.', function()
     {
-      db.addTable(foo);
-    }).toThrowError('Table alias users already exists in database test.');
+      var db = new Database(testDB);
+
+      expect(db.getName()).toBe('testDB');
+      expect(db.getTables().length).toBe(2);
+      expect(db.getTables()[0].getName()).toBe('users');
+      expect(db.getTables()[1].getName()).toBe('phone_numbers');
+    });
   });
 
-  // Tries to get an invalid table by name.
-  it('tries to get an invalid table by name.', function()
+  describe('Database tables test suite.', function()
   {
-    expect(function()
-    {
-      db.getTableByName('INVALID_NAME');
-    }).toThrowError('Table INVALID_NAME does not exist in database test.');
-  });
+    var db;
 
-  // Tries to get an invalid table by alias.
-  it('tries to get an invalid table by alias.', function()
-  {
-    expect(function()
+    beforeEach(function()
     {
-      db.getTableByAlias('INVALID_ALIAS');
-    }).toThrowError('Table alias INVALID_ALIAS does not exist in database test.');
+      db = new Database(testDB);
+    });
+
+    // Makes sure the tables exist.
+    it('makes sure the tables exist.', function()
+    {
+      expect(db.getTableByName('users').getName()).toBe('users');
+      expect(db.getTableByName('phone_numbers').getAlias()).toBe('phoneNumbers');
+      expect(db.getTableByAlias('phoneNumbers').getName()).toBe('phone_numbers');
+      expect(db.getTableByAlias('phoneNumbers')).toBe(db.getTableByName('phone_numbers'));
+    });
+
+    // Adds a duplicate table.
+    it('adds a duplicate table.', function()
+    {
+      expect(function()
+      {
+        db.addTable(testDB.tables[0]);
+      }).toThrowError('Table users already exists in database testDB.');
+
+      expect(function()
+      {
+        db.addTable({name: 'foo', alias: 'users', columns: testDB.tables[0].columns});
+      }).toThrowError('Table alias users already exists in database testDB.');
+    });
+
+    // Tries to get an invalid table by name.
+    it('tries to get an invalid table by name.', function()
+    {
+      expect(function()
+      {
+        db.getTableByName('INVALID_NAME');
+      }).toThrowError('Table INVALID_NAME does not exist in database testDB.');
+    });
+
+    // Tries to get an invalid table by alias.
+    it('tries to get an invalid table by alias.', function()
+    {
+      expect(function()
+      {
+        db.getTableByAlias('INVALID_ALIAS');
+      }).toThrowError('Table alias INVALID_ALIAS does not exist in database testDB.');
+    });
+
+    // Makes sure that a table can be added as a Table instance.
+    it('makes sure that a table can be added as a Table instance.', function()
+    {
+      var tbl = new Table({name: 'foo', columns: [{name: 'bar', isPrimary: true}]});
+      expect(db.addTable(tbl)).toBe(db);
+    });
   });
 });
