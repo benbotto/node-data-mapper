@@ -33,7 +33,9 @@ module.exports = function(grunt, scripts)
         globals:
         {
           describe:   true,
+          xdescribe:  true,
           it:         true,
+          xit:        true,
           expect:     true,
           beforeEach: true,
           afterEach:  true,
