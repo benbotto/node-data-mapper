@@ -2,7 +2,7 @@ module.exports = function(grunt)
 {
   'use strict';
 
-  var scripts = require(__dirname + '/grunt/scriptGarner.js');
+  var scripts = (require(__dirname + '/grunt/scriptGarner.js'))();
 
   grunt.initConfig
   ({
