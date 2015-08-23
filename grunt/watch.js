@@ -6,8 +6,12 @@ module.exports = function(grunt, scripts)
   {
     test:
     {
+      options:
+      {
+        atBegin: true
+      },
       files: scripts.app.concat(scripts.spec),
-      tasks: ['jasmine_nodejs']
+      tasks: ['jshint', 'jasmine_nodejs']
     }
   };
 
