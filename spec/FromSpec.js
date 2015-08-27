@@ -25,7 +25,7 @@ describe('From (SELECT query) test suite', function()
   {
     var query = new From(db, 'users');
 
-    expect(query.getSQL()).toBe
+    expect(query.toString()).toBe
     (
       'SELECT  `users`.`userID` AS `users.userID`, `users`.`firstName` AS `users.firstName`, `users`.`lastName` AS `users.lastName`\n' +
       'FROM    `users` AS `users`'
@@ -39,7 +39,7 @@ describe('From (SELECT query) test suite', function()
       .select(['users.firstName', 'users.lastName']);
 
     // Note that the primary key is implicitly added.
-    expect(query.getSQL()).toBe
+    expect(query.toString()).toBe
     (
       'SELECT  `users`.`firstName` AS `users.firstName`, `users`.`lastName` AS `users.lastName`, `users`.`userID` AS `users.userID`\n' +
       'FROM    `users` AS `users`'
