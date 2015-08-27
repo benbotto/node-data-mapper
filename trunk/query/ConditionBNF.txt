@@ -1,0 +1,9 @@
+<pair>                   ::= <pair-comparison> | <in-comparison> | <condition-list>
+<pair-comparison>        ::= "{" <comparison-operator> ":" "{" <string> ":" <value> "}" "}"
+<in-comparison>          ::= "{" <in-comparison-operator> ":" "{" <string> ":" [ <value> {"," <value>} "]" "}" "}"
+<condition-list>         ::= "{" <boolean-operator> ":" [ <pair> {, <pair>} "]" "}"
+<comparison-operator>    ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte"
+<in-comparison-operator> ::= "$in"
+<boolean-operator>       ::= "$and" | "$or"
+<value>                  ::= <string> | <number>
+
