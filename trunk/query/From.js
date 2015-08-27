@@ -23,7 +23,7 @@ function From(database, tableName, tableAlias)
 /**
  * Get the SQL that represents the query.
  */
-From.prototype.getSQL = function()
+From.prototype.toString = function()
 {
   var sql  = 'SELECT  ';
   var cols = this._selectCols;
