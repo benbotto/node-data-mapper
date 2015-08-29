@@ -13,23 +13,15 @@ function ConditionLexer() {}
  */
 ConditionLexer.prototype.parse = function(condStr)
 {
+  // Make sure condStr is actually a string.  If it's an object, stringify it.
+  if (typeof(condStr) === 'object')
+    condStr = JSON.stringify(condStr);
+
   var len     = condStr.length;
   var tokens  = [];
   var curChar = '';
-  var boolOps =
-  {
-    $and: 'AND',
-    $or:  'OR'
-  };
-  var compOps =
-  {
-    $eq:  '=',
-    $neq: '<>',
-    $lt:  '<',
-    $lte: '<=',
-    $gt:  '>',
-    $gte: '>='
-  };
+  var boolOps = ['$and', '$or'];
+  var compOps = ['$eq', '$neq', '$lt', '$lte', '$gt', '$gte'];
   var str, nextQuote, nonNum;
 
   // Helper to add a token to the tokens array.
@@ -74,9 +66,9 @@ ConditionLexer.prototype.parse = function(condStr)
         i  += nextQuote;
 
         // Store the appropriate token.
-        if (boolOps[str] !== undefined)
+        if (boolOps.indexOf(str) !== -1)
           addToken(false, 'boolean-operator', str);
-        else if (compOps[str] !== undefined)
+        else if (compOps.indexOf(str) !== -1)
           addToken(false, 'comparison-operator', str);
         else if (str === '$in')
           addToken(false, 'in-comparison-operator', str);
