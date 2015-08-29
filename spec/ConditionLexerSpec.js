@@ -24,7 +24,7 @@ describe('ConditionLexer test suite.', function()
     {
       terminals.forEach(function(term)
       {
-        expect(cl.parse(term)).toEqual([{terminal: true, type: term, value: term}]);
+        expect(cl.parse(term)).toEqual([{terminal: true, type: 'char', value: term}]);
       });
     });
 
@@ -40,7 +40,7 @@ describe('ConditionLexer test suite.', function()
       {
         randInd   = Math.floor(Math.random() * terminals.length);
         sentence += terminals[randInd];
-        tokens.push({terminal: true, type: terminals[randInd], value: terminals[randInd]});
+        tokens.push({terminal: true, type: 'char', value: terminals[randInd]});
       }
 
       expect(cl.parse(sentence)).toEqual(tokens);
@@ -67,11 +67,11 @@ describe('ConditionLexer test suite.', function()
     {
       expect(cl.parse(JSON.stringify({name: 'JOE'}))).toEqual
       ([
-        {terminal: true, type: '{', value: '{'},
+        {terminal: true, type: 'char', value: '{'},
         {terminal: true, type: 'string', value: 'name'},
-        {terminal: true, type: ':', value: ':'},
+        {terminal: true, type: 'char', value: ':'},
         {terminal: true, type: 'string', value: 'JOE'},
-        {terminal: true, type: '}', value: '}'}
+        {terminal: true, type: 'char', value: '}'}
       ]);
     });
 
@@ -120,9 +120,9 @@ describe('ConditionLexer test suite.', function()
       expect(cl.parse('1,-10,14.5')).toEqual
       ([
         {terminal: true, type: 'number', value: 1},
-        {terminal: true, type: ',', value: ','},
+        {terminal: true, type: 'char', value: ','},
         {terminal: true, type: 'number', value: -10},
-        {terminal: true, type: ',', value: ','},
+        {terminal: true, type: 'char', value: ','},
         {terminal: true, type: 'number', value: 14.5}
       ]);
     });
@@ -132,15 +132,15 @@ describe('ConditionLexer test suite.', function()
     {
       expect((cl.parse(JSON.stringify({$gt: {age: 60}})))).toEqual
       ([
-        {terminal: true, type: '{', value: '{'},
+        {terminal: true, type: 'char', value: '{'},
         {terminal: false, type: 'comparison-operator', value: '$gt'},
-        {terminal: true, type: ':', value: ':'},
-        {terminal: true, type: '{', value: '{'},
+        {terminal: true, type: 'char', value: ':'},
+        {terminal: true, type: 'char', value: '{'},
         {terminal: true, type: 'string', value: 'age'},
-        {terminal: true, type: ':', value: ':'},
+        {terminal: true, type: 'char', value: ':'},
         {terminal: true, type: 'number', value: 60},
-        {terminal: true, type: '}', value: '}'},
-        {terminal: true, type: '}', value: '}'}
+        {terminal: true, type: 'char', value: '}'},
+        {terminal: true, type: 'char', value: '}'}
       ]);
     });
   });
@@ -175,31 +175,31 @@ describe('ConditionLexer test suite.', function()
 
       expect(cl.parse(JSON.stringify(cond))).toEqual
       ([
-        {terminal: true,  type: '{', value: '{'},
+        {terminal: true,  type: 'char', value: '{'},
         {terminal: false, type: 'boolean-operator', value: '$and'},
-        {terminal: true,  type: ':', value: ':'},
-        {terminal: true,  type: '[', value: '['},
-        {terminal: true,  type: '{', value: '{'},
+        {terminal: true,  type: 'char', value: ':'},
+        {terminal: true,  type: 'char', value: '['},
+        {terminal: true,  type: 'char', value: '{'},
         {terminal: false, type: 'comparison-operator', value: '$eq'},
-        {terminal: true,  type: ':', value: ':'},
-        {terminal: true,  type: '{', value: '{'},
+        {terminal: true,  type: 'char', value: ':'},
+        {terminal: true,  type: 'char', value: '{'},
         {terminal: true,  type: 'string', value: 'name'},
-        {terminal: true,  type: ':', value: ':'},
+        {terminal: true,  type: 'char', value: ':'},
         {terminal: true,  type: 'string', value: 'Joe'},
-        {terminal: true,  type: '}', value: '}'},
-        {terminal: true,  type: '}', value: '}'},
-        {terminal: true,  type: ',', value: ','},
-        {terminal: true,  type: '{', value: '{'},
+        {terminal: true,  type: 'char', value: '}'},
+        {terminal: true,  type: 'char', value: '}'},
+        {terminal: true,  type: 'char', value: ','},
+        {terminal: true,  type: 'char', value: '{'},
         {terminal: false, type: 'comparison-operator', value: '$gt'},
-        {terminal: true,  type: ':', value: ':'},
-        {terminal: true,  type: '{', value: '{'},
+        {terminal: true,  type: 'char', value: ':'},
+        {terminal: true,  type: 'char', value: '{'},
         {terminal: true,  type: 'string', value: 'age'},
-        {terminal: true,  type: ':', value: ':'},
+        {terminal: true,  type: 'char', value: ':'},
         {terminal: true,  type: 'number', value: 21},
-        {terminal: true,  type: '}', value: '}'},
-        {terminal: true,  type: '}', value: '}'},
-        {terminal: true,  type: ']', value: ']'},
-        {terminal: true,  type: '}', value: '}'}
+        {terminal: true,  type: 'char', value: '}'},
+        {terminal: true,  type: 'char', value: '}'},
+        {terminal: true,  type: 'char', value: ']'},
+        {terminal: true,  type: 'char', value: '}'}
       ]);
     });
   });

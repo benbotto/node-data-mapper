@@ -48,7 +48,7 @@ ConditionLexer.prototype.parse = function(condStr)
       case ']':
       case ':':
       case ',':
-        addToken(true, curChar, curChar);
+        addToken(true, 'char', curChar);
         break;
       case '"':
         // Move past the quote.
