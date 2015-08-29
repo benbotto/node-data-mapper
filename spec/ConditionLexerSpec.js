@@ -6,6 +6,17 @@ describe('ConditionLexer test suite.', function()
   var cl             = new ConditionLexer();
   var terminals      = ['{', '}', '[', ']', ':', ','];
 
+  describe('ConditionLexer parse test suite.', function()
+  {
+    // Checks that the lexer can take an object or a string.
+    it('checks that the lexer can take an object or a string.', function()
+    {
+      var cond = {$eq: {name: 'Joe'}};
+
+      expect(cl.parse(cond)).toEqual(cl.parse(JSON.stringify(cond)));
+    });
+  });
+
   describe('ConditionLexer terminal test suite.', function()
   {
     // Checks the basic terminals.
