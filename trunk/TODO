@@ -1,17 +1,1 @@
 Use escaper in From.
-
-// Hold - these are the operators.
-  var boolOps =
-  {
-    $and: 'AND',
-    $or:  'OR'
-  };
-  var compOps =
-  {
-    $eq:  '=',
-    $neq: '<>',
-    $lt:  '<',
-    $lte: '<=',
-    $gt:  '>',
-    $gte: '>='
-  };
