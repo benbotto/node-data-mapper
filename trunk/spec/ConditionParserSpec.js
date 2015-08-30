@@ -23,6 +23,20 @@ describe('ConditionParser test suite.', function()
       }).not.toThrow();
     });
 
+    // Checks a valid null-comparison.
+    it('checks a valid null-comparison.', function()
+    {
+      expect(function()
+      {
+        parser.parse(lexer.parse({$is: {name: null}}));
+      }).not.toThrow();
+
+      expect(function()
+      {
+        parser.parse(lexer.parse({$isnt: {name: null}}));
+      }).not.toThrow();
+    });
+
     // Checks a valid in-comparison.
     it('checks a valid in-comparison.', function()
     {
@@ -107,14 +121,14 @@ describe('ConditionParser test suite.', function()
         // Must start with a comparison.
         var tokens = lexer.parse({name: 'Joe'});
         parser.parse(tokens);
-      }).toThrowError('At index 1.  Expected [comparison-operator | in-comparison-operator | boolean-operator] but found type string with value name.');
+      }).toThrowError('At index 1.  Expected [comparison-operator | null-comparison-operator | in-comparison-operator | boolean-operator] but found type string with value name.');
 
       expect(function()
       {
         // Missing closing brace.
         var tokens = lexer.parse('{"$eq":{"name":"Joe"}');
         parser.parse(tokens);
-      }).toThrowError('At index 8.  Expected } but found type null with value null.');
+      }).toThrowError('At index 8.  Expected } but found type EOL with value EOL.');
     });
 
     // Checks the pair-comparison non-terminal.
@@ -167,11 +181,85 @@ describe('ConditionParser test suite.', function()
         // Mising closing brace.
         var tokens = lexer.parse('{"$eq":{"name":"Joe"');
         parser.parse(tokens);
-      }).toThrowError('At index 7.  Expected } but found type null with value null.');
+      }).toThrowError('At index 7.  Expected } but found type EOL with value EOL.');
+    });
+
+    // Checks the null-comparison non-terminal.
+    it('checks the null-comparison non-terminal.', function()
+    {
+      expect(function()
+      {
+        // Valid {"$is":{"name":null}}
+        var tokens = lexer.parse({$is: {name: null}});
+        parser.parse(tokens);
+      }).not.toThrow();
+
+      expect(function()
+      {
+        // Missing colon.
+        var tokens = lexer.parse('{"$is"{"name":null}}');
+        parser.parse(tokens);
+      }).toThrowError('At index 2.  Expected : but found type char with value {.');
+
+      expect(function()
+      {
+        // Missing opening brace.
+        var tokens = lexer.parse('{"$is":"name":null}}');
+        parser.parse(tokens);
+      }).toThrowError('At index 3.  Expected { but found type string with value name.');
+
+      expect(function()
+      {
+        // Missing string.
+        var tokens = lexer.parse('{"$is":{:null}}');
+        parser.parse(tokens);
+      }).toThrowError('At index 4.  Expected <string> but found type char with value :.');
+
+      expect(function()
+      {
+        // 123 is not a string.
+        var tokens = lexer.parse('{"$is":{123:null}}');
+        parser.parse(tokens);
+      }).toThrowError('At index 4.  Expected <string> but found type number with value 123.');
+
+      expect(function()
+      {
+        // Missing colon.
+        var tokens = lexer.parse('{"$is":{"name"null}}');
+        parser.parse(tokens);
+      }).toThrowError('At index 5.  Expected : but found type null with value null.');
+
+      expect(function()
+      {
+        // Missing null.
+        var tokens = lexer.parse('{"$is":{"name":}}');
+        parser.parse(tokens);
+      }).toThrowError('At index 6.  Expected null but found type char with value }.');
+
+      expect(function()
+      {
+        // String is not null.
+        var tokens = lexer.parse('{"$is":{"name":"Joe"}}');
+        parser.parse(tokens);
+      }).toThrowError('At index 6.  Expected null but found type string with value Joe.');
+
+      expect(function()
+      {
+        // 123 is not null.
+        var tokens = lexer.parse('{"$is":{"name":123}}');
+        parser.parse(tokens);
+      }).toThrowError('At index 6.  Expected null but found type number with value 123.');
+
+      expect(function()
+      {
+        // Missing closing brace.
+        var tokens = lexer.parse('{"$is":{"name":null}');
+        parser.parse(tokens);
+      }).toThrowError('At index 8.  Expected } but found type EOL with value EOL.');
     });
 
     // Checks the in-comparison non-terminal.
-    it('checks the in-comparison nonterminal.', function()
+    it('checks the in-comparison non-terminal.', function()
     {
       expect(function()
       {
@@ -241,7 +329,7 @@ describe('ConditionParser test suite.', function()
         // Missing closing brace.
         var tokens = lexer.parse('{"$in":{"age":[1,2,3]');
         parser.parse(tokens);
-      }).toThrowError('At index 13.  Expected } but found type null with value null.');
+      }).toThrowError('At index 13.  Expected } but found type EOL with value EOL.');
     });
 
     // Checks the condition-lista non-terminal.
@@ -280,7 +368,7 @@ describe('ConditionParser test suite.', function()
         // 123 is not a comparison operator.
         var tokens = lexer.parse('{"$and":[{123:{"name":"Joe"}},{"$gt":{"age":30}}]}');
         parser.parse(tokens);
-      }).toThrowError('At index 5.  Expected [comparison-operator | in-comparison-operator | boolean-operator] but found type number with value 123.');
+      }).toThrowError('At index 5.  Expected [comparison-operator | null-comparison-operator | in-comparison-operator | boolean-operator] but found type number with value 123.');
 
       expect(function()
       {
@@ -363,6 +451,22 @@ describe('ConditionParser test suite.', function()
       expect(tree.children.length).toBe(2);
       expect(tree.children[0].token.value).toBe('name');
       expect(tree.children[1].token.value).toBe('Joe');
+    });
+
+    // Checks the parse tree from a null comparison.
+    it('checks the parse tree from a null comparison.', function()
+    {
+      var cond   = {$isnt: {spouse: null}};
+      var tokens = lexer.parse(cond);
+      var tree   = parser.parse(tokens);
+
+      //    _$isnt_
+      //   /       \
+      // 'spouse'  null
+      expect(tree.token.value).toBe('$isnt');
+      expect(tree.children.length).toBe(2);
+      expect(tree.children[0].token.value).toBe('spouse');
+      expect(tree.children[1].token.value).toBe(null);
     });
 
     // Checks the tree from an in comparison.

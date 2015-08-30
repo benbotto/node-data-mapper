@@ -1,9 +1,11 @@
-<pair>                   ::= "{" <pair-comparison> | <in-comparison> | <condition-list> "}"
-<pair-comparison>        ::= <comparison-operator> ":" "{" <string> ":" <value> "}"
-<in-comparison>          ::= <in-comparison-operator> ":" "{" <string> ":" "[" <value> {"," <value>} "]" "}"
-<condition-list>         ::= <boolean-operator> ":" "[" <pair> {"," <pair>} "]"
-<comparison-operator>    ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte"
-<in-comparison-operator> ::= "$in"
-<boolean-operator>       ::= "$and" | "$or"
-<value>                  ::= <string> | <number>
+<pair>                     ::= "{" <pair-comparison> | <null-comparison> | <in-comparison> | <condition-list> "}"
+<pair-comparison>          ::= <comparison-operator> ":" "{" <string> ":" <value> "}"
+<null-comparison>          ::= <null-comparison-operator> ":" "{" <string> ":" null "}"
+<in-comparison>            ::= <in-comparison-operator> ":" "{" <string> ":" "[" <value> {"," <value>} "]" "}"
+<condition-list>           ::= <boolean-operator> ":" "[" <pair> {"," <pair>} "]"
+<comparison-operator>      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte"
+<in-comparison-operator>   ::= "$in"
+<null-comparison-operator> ::= "$is" | "$isnt"
+<boolean-operator>         ::= "$and" | "$or"
+<value>                    ::= <string> | <number>
 

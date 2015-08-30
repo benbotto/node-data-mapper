@@ -4,7 +4,6 @@ describe('ConditionLexer test suite.', function()
 
   var ConditionLexer = require(__dirname + '/../query/ConditionLexer');
   var cl             = new ConditionLexer();
-  var terminals      = ['{', '}', '[', ']', ':', ','];
 
   describe('ConditionLexer parse test suite.', function()
   {
@@ -19,6 +18,8 @@ describe('ConditionLexer test suite.', function()
 
   describe('ConditionLexer terminal test suite.', function()
   {
+    var terminals = ['{', '}', '[', ']', ':', ','];
+
     // Checks the basic terminals.
     it('checks the basic terminals.', function()
     {
@@ -145,6 +146,37 @@ describe('ConditionLexer test suite.', function()
     });
   });
 
+  describe('ConditionLexer null test suite.', function()
+  {
+    // Checks the null terminal.
+    it('checks the null terminal.', function()
+    {
+      expect(cl.parse('null')).toEqual([{terminal: true, type: 'null', value: null}]);
+      expect(cl.parse('nullnull')).toEqual
+      ([
+        {terminal: true, type: 'null', value: null},
+        {terminal: true, type: 'null', value: null}
+      ]);
+    });
+
+    // Checks the null terminal in a string.
+    it('checks the null terminal in a string.', function()
+    {
+      expect(cl.parse('{"$is":{"name":null}}')).toEqual
+      ([
+        {terminal: true,  type: 'char', value: '{'},
+        {terminal: false, type: 'null-comparison-operator', value: '$is'},
+        {terminal: true,  type: 'char', value: ':'},
+        {terminal: true,  type: 'char', value: '{'},
+        {terminal: true , type: 'string', value: 'name'},
+        {terminal: true,  type: 'char', value: ':'},
+        {terminal: true,  type: 'null', value: null},
+        {terminal: true,  type: 'char', value: '}'},
+        {terminal: true,  type: 'char', value: '}'}
+      ]);
+    });
+  });
+
   describe('ConditionLexer operator test suite.', function()
   {
     // Checks the basic operators.
@@ -159,6 +191,8 @@ describe('ConditionLexer test suite.', function()
       expect(cl.parse('"$gt"')).toEqual([{terminal: false, type: 'comparison-operator', value: '$gt'}]);
       expect(cl.parse('"$gte"')).toEqual([{terminal: false, type: 'comparison-operator', value: '$gte'}]);
       expect(cl.parse('"$in"')).toEqual([{terminal: false, type: 'in-comparison-operator', value: '$in'}]);
+      expect(cl.parse('"$is"')).toEqual([{terminal: false, type: 'null-comparison-operator', value: '$is'}]);
+      expect(cl.parse('"$isnt"')).toEqual([{terminal: false, type: 'null-comparison-operator', value: '$isnt'}]);
     });
 
     // Checks operators in a sentence.
