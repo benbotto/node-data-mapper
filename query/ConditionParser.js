@@ -20,9 +20,12 @@ ConditionParser.prototype.parse = function(tokens)
 {
   var tokenInd = 0;
   var token    = tokens[tokenInd];
+  var tree     = null;
+  var curNode  = null;
 
-  // Parse the program.
+  // Parse the program, and return the resulting parse tree.
   clause();
+  return tree;
 
   // A clause (the full sentence/program) is a pair.  After the pair the token
   // should be null.
@@ -91,10 +94,14 @@ ConditionParser.prototype.parse = function(tokens)
     charTerminal(':');
     charTerminal('[');
     pair();
+    // <boolean-operator> is preceded by an array of <pair>.  After adding each
+    // <pair> node make the <boolean-operator> the current node.
+    curNode = curNode.parent;
     while (token.value === ',')
     {
       charTerminal(',');
       pair();
+      curNode = curNode.parent;
     }
     charTerminal(']');
   }
@@ -102,19 +109,19 @@ ConditionParser.prototype.parse = function(tokens)
   // <comparison-operator> ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte"
   function comparisonOperator()
   {
-    terminalType('comparison-operator');
+    matchType('comparison-operator');
   }
 
   // <in-comparison-operator> ::= "$in"
   function inComparisonOperator()
   {
-    terminalType('in-comparison-operator');
+    matchType('in-comparison-operator');
   }
 
   // <boolean-operator> ::= "$and" | "$or"
   function booleanOperator()
   {
-    terminalType('boolean-operator');
+    matchType('boolean-operator');
   }
 
   // <value> ::= <string> | <number>
@@ -132,19 +139,22 @@ ConditionParser.prototype.parse = function(tokens)
   // String terminal.
   function string()
   {
-    terminalType('string');
+    matchType('string');
   }
 
   // Number terminal.
   function number()
   {
-    terminalType('number');
+    matchType('number');
   }
 
-  // Handles non-character terminals (boolean-operator, string, number, etc.).
-  function terminalType(type)
+  // Handles non-characters.  Verifies that the current token's type matches
+  // the passed-in type.  If not, an exception is raised.  If so, the token is
+  // advanced.
+  function matchType(type)
   {
     assert(token !== null && token.type === type, errorString('<' + type + '>'));
+    addNode();
     advance();
   }
 
@@ -186,6 +196,36 @@ ConditionParser.prototype.parse = function(tokens)
 
     return 'At index ' + tokenInd + '.  Expected ' + expected +
       ' but found type ' + type + ' with value ' + value + '.';
+  }
+
+  // Helper function to add a node to the parse tree.
+  function addNode()
+  {
+    var node =
+    {
+      children: [],
+      parent:   curNode,
+      token:    token
+    };
+
+    // If there is no tree, this is the root node.
+    if (tree === null)
+    {
+      tree = curNode = node;
+      return;
+    }
+
+    // This node is a child of the current node.
+    curNode.children.push(node);
+
+    // If the current token is a non-terminal then make the new node the
+    // current node.  The tree is structued with non-terminals having terminal
+    // children.
+    //          $eq
+    //       /      \
+    //    'name'   'Joe'
+    if (!token.terminal)
+      curNode = node;
   }
 };
 
