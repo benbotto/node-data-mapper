@@ -22,6 +22,7 @@ ConditionLexer.prototype.parse = function(condStr)
   var curChar = '';
   var boolOps = ['$and', '$or'];
   var compOps = ['$eq', '$neq', '$lt', '$lte', '$gt', '$gte'];
+  var nullOps = ['$is', '$isnt'];
   var str, nextQuote, nonNum;
 
   // Helper to add a token to the tokens array.
@@ -72,9 +73,13 @@ ConditionLexer.prototype.parse = function(condStr)
           addToken(false, 'comparison-operator', str);
         else if (str === '$in')
           addToken(false, 'in-comparison-operator', str);
+        else if (nullOps.indexOf(str) !== -1)
+          addToken(false, 'null-comparison-operator', str);
         else
           addToken(true, 'string', str);
         break;
+
+      // Number.
       case '0':
       case '1':
       case '2':
@@ -103,6 +108,16 @@ ConditionLexer.prototype.parse = function(condStr)
         assert(!isNaN(Number(str)), 'Expected number but found ' + str);
         addToken(true, 'number', Number(str));
         break;
+
+      // Null.
+      case 'n':
+        str = condStr.substr(i, 4);
+        assert(str === 'null', 'Expected null but found ' + str);
+        addToken(true, 'null', null);
+        i += 3;
+        break;
+
+      // Anything else is invalid.
       default:
         throw new Error('Unexpected character found ' + curChar);
     }

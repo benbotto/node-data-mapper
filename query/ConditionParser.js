@@ -35,19 +35,21 @@ ConditionParser.prototype.parse = function(tokens)
     assert(token === null, errorString('EOL'));
   }
 
-  // <pair>            ::= "{" <pair-comparison> | <in-comparison> | <condition-list> "}"
+  // <pair>            ::= "{" <pair-comparison> | <null-comparison> | <in-comparison> | <condition-list> "}"
   // <pair-comparison> ::= <comparison-operator> ":" "{" <string> ":" <value> "}"
+  // <null-comparison> ::= <null-comparison-operator> ":" "{" <string> ":" null "}"
   // <in-comparison>   ::= <in-comparison-operator> ":" "{" <string> ":" "[" <value> {"," <value>} "]" "}"
-  // <condition-list>  ::= <boolean-operator> ":" "[" <pair> {"," <pair>} "]"
   function pair()
   {
-    var pairParts = ['comparison-operator', 'in-comparison-operator', 'boolean-operator'];
+    var pairParts = ['comparison-operator', 'null-comparison-operator', 'in-comparison-operator', 'boolean-operator'];
 
     charTerminal('{');
     assert(tokenIn(pairParts), errorString('[' + pairParts.join(' | ') + ']'));
 
     if (token.type === 'comparison-operator')
       pairComparison();
+    else if (token.type === 'null-comparison-operator')
+      nullComparison();
     else if (token.type === 'in-comparison-operator')
       inComparison();
     else
@@ -87,6 +89,18 @@ ConditionParser.prototype.parse = function(tokens)
     charTerminal('}');
   }
 
+  // <null-comparison> ::= <null-comparison-operator> ":" "{" <string> ":" null "}"
+  function nullComparison()
+  {
+    nullComparisonOperator();
+    charTerminal(':');
+    charTerminal('{');
+    string();
+    charTerminal(':');
+    nullTerminal();
+    charTerminal('}');
+  }
+
   // <condition-list> ::= <boolean-operator> ":" "[" <pair> {"," <pair>} "]"
   function conditionList()
   {
@@ -116,6 +130,12 @@ ConditionParser.prototype.parse = function(tokens)
   function inComparisonOperator()
   {
     matchType('in-comparison-operator');
+  }
+
+  // <null-comparison-operator> ::= "$is" | "$isnt"
+  function nullComparisonOperator()
+  {
+    matchType('null-comparison-operator');
   }
 
   // <boolean-operator> ::= "$and" | "$or"
@@ -167,6 +187,14 @@ ConditionParser.prototype.parse = function(tokens)
     advance();
   }
 
+  // Checks that the current token is a null terminal.
+  function nullTerminal()
+  {
+    assert(token !== null && token.type === 'null', errorString('null'));
+    addNode();
+    advance();
+  }
+
   // Move to the next token, or set token to null if the end of the sentence is
   // encountered.
   function advance()
@@ -191,8 +219,8 @@ ConditionParser.prototype.parse = function(tokens)
   // Helper to create an error string.
   function errorString(expected)
   {
-    var type  = token ? token.type  : 'null';
-    var value = token ? token.value : 'null';
+    var type  = token ? token.type  : 'EOL';
+    var value = token ? token.value : 'EOL';
 
     return 'At index ' + tokenInd + '.  Expected ' + expected +
       ' but found type ' + type + ' with value ' + value + '.';
