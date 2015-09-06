@@ -91,5 +91,47 @@ ConditionCompiler.prototype.compile = function(parseTree)
   return traverse(parseTree);
 };
 
+/**
+ * Get all the columns referenced in the parse tree and return them as an array.
+ * @param parseTree The parse tree, as created by a ConditionParser.
+ */
+ConditionCompiler.prototype.getColumns = function(parseTree)
+{
+  var columns = [];
+
+  // Recursively traverse tree.
+  (function traverse(tree, columns)
+  {
+    switch (tree.token.type)
+    {
+      case 'comparison-operator':
+      case 'null-comparison-operator':
+      case 'in-comparison-operator':
+        // <column> <comparison-operator> <property> (ex. `name` = 'Joe').
+        // <column> <null-operator> NULL (ex. `occupation` IS NULL).
+        // <column> IN (<value> {, <value}) (ex. `shoeSize` IN (10, 10.5, 11)).
+        // The column is always on the left--child[0], and the array of columns
+        // is unique.
+        if (columns.indexOf(tree.children[0].token.value) === -1)
+          columns.push(tree.children[0].token.value);
+        break;
+
+      case 'boolean-operator':
+        // Each of the children is a <pair>.  Put each <pair> in an array.
+        for (var i = 0; i < tree.children.length; ++i)
+          traverse(tree.children[i], columns);
+        break;
+
+      default:
+        // The only way this can fire is if the input parse tree did not come
+        // from the ConditoinParser.  Trees from the ConditionParser are
+        // guaranteed to be syntactically correct.
+        throw new Error('Unknown type: ' + tree.token.type);
+    }
+  })(parseTree, columns);
+
+  return columns;
+};
+
 module.exports = ConditionCompiler;
 
