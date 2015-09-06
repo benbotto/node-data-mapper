@@ -162,5 +162,54 @@ describe('ConditionCompiler test suite.', function()
     expect(compiler.compile(tree))
       .toBe('((`gender` = \'M\' AND `age` > 23) OR (`gender` = \'F\' AND `age` > 21))');
   });
+
+  describe('ConditionCompiler parseColumns test suite', function()
+  {
+    // Parses the columns from trivial queries.
+    it('parses the columns from trivial queries.', function()
+    {
+      var cond, tokens, tree;
+
+      cond   = {$eq: {name: 'Joe'}};
+      tokens = lexer.parse(cond);
+      tree   = parser.parse(tokens);
+      expect(compiler.getColumns(tree)).toEqual(['name']);
+
+      cond   = {$lt: {age: 30}};
+      tokens = lexer.parse(cond);
+      tree   = parser.parse(tokens);
+      expect(compiler.getColumns(tree)).toEqual(['age']);
+
+      cond   = {$is: {occupation: null}};
+      tokens = lexer.parse(cond);
+      tree   = parser.parse(tokens);
+      expect(compiler.getColumns(tree)).toEqual(['occupation']);
+
+      cond   = {$in: {showSize: [11, 12]}};
+      tokens = lexer.parse(cond);
+      tree   = parser.parse(tokens);
+      expect(compiler.getColumns(tree)).toEqual(['showSize']);
+    });
+
+    // Checks that the returned list of columns is distinct.
+    it('checks that the returned list of columns is distinct.', function()
+    {
+      var cond, tokens, tree;
+      cond =
+      {
+        $or:
+        [
+          {$and: [ {$eq: {gender: 'M'}}, {$gt: {age: 23}} ]},
+          {$and: [ {$eq: {gender: 'F'}}, {$gt: {age: 21}} ]},
+          {$and: [ {$eq: {gender: 'F'}}, {$in: {occupation: ['doctor', 'lawyer']}} ]}
+        ]
+      };
+      tokens = lexer.parse(cond);
+      tree   = parser.parse(tokens);
+
+      // The set is distinct.
+      expect(compiler.getColumns(tree)).toEqual(['gender', 'age', 'occupation']);
+    });
+  });
 });
 
