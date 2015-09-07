@@ -1,1 +1,1 @@
-Use escaper in From.
+As more types of queries are added a query class should be created.  The parser/lexer/compiler should be in this class.
