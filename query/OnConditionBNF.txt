@@ -1,4 +1,4 @@
 <pair>            ::= "{" <pair-comparison> | <condition-list> "}"
 <pair-comparison> ::= $eq ":" "{" <string> ":" <string> "}"
-<condition-list>  ::= $and ":" "[" <pair> {"," <pair>} "]"
+<condition-list>  ::= $and ":" "[" "{" <pair-comparison> "}" {"," "{" <pair-comparison> "}"} "]"
 

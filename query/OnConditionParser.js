@@ -44,20 +44,25 @@ OnConditionParser.prototype._pairComparison = function()
   this._charTerminal('}');
 };
 
-// <condition-list> ::= $and ":" "[" <pair> {"," <pair>} "]"
+// <condition-list> ::= $and ":" "[" "{" <pair-comparison> "}" {"," "{" <pair-comparison> "}"} "]"
 OnConditionParser.prototype._conditionList = function()
 {
   this._matchValue('$and');
   this._charTerminal(':');
   this._charTerminal('[');
-  this._pair();
-  // <boolean-operator> is preceded by an array of <pair>.  After adding each
-  // <pair> node make the <boolean-operator> the current node.
+  this._charTerminal('{');
+  this._pairComparison();
+  this._charTerminal('}');
+  // <boolean-operator> is preceded by an array of <pair-comparison>.  After
+  // adding each <pair-comparison> node make the <boolean-operator> the current
+  // node.
   this._curNode = this._curNode.parent;
   while (this._token.value === ',')
   {
     this._charTerminal(',');
-    this._pair();
+    this._charTerminal('{');
+    this._pairComparison();
+    this._charTerminal('}');
     this._curNode = this._curNode.parent;
   }
   this._charTerminal(']');
