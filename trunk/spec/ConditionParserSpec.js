@@ -332,8 +332,8 @@ describe('ConditionParser test suite.', function()
       }).toThrowError('At index 13.  Expected } but found type EOL with value EOL.');
     });
 
-    // Checks the condition-lista non-terminal.
-    it('checks the condition-lista non-terminal.', function()
+    // Checks the condition-list non-terminal.
+    it('checks the condition-list non-terminal.', function()
     {
       expect(function()
       {
