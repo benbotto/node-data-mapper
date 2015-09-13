@@ -14,7 +14,7 @@ describe('OnConditionParser test suite.', function()
     {
       expect(function()
       {
-        parser.parse(lexer.parse({$eq: {'u.userID': 'pn.userID'}}));
+        parser.parse(lexer.parse({'u.userID': 'pn.userID'}));
       }).not.toThrow();
     });
 
@@ -23,60 +23,21 @@ describe('OnConditionParser test suite.', function()
     {
       expect(function()
       {
-        var cond = 
-        {
-          $and:
-          [
-            {$eq: {'u.userID': 'pn.userID'}}
-          ]
-        };
-        parser.parse(lexer.parse(cond));
-      }).not.toThrow();
-
-      expect(function()
-      {
-        var cond = 
-        {
-          $and:
-          [
-            {$eq: {'u.userID': 'pn.userID'}},
-            {$eq: {'u.phoneType':  'pn.phoneType'}}
-          ]
-        };
-        parser.parse(lexer.parse(cond));
+        var tokens = lexer.parse([{'u.userID':'pn.userID'},{'u.phoneType':'pn.phoneType'}]);
+        parser.parse(tokens);
       }).not.toThrow();
     });
   });
 
   describe('OnConditionParser invalid condition test suite.', function()
   {
-    // Fails in initial pair.
-    it('fails in initial pair.', function()
+    // Fails in initial condition.
+    it('fails in initial condition.', function()
     {
       expect(function()
       {
-        parser.parse(lexer.parse([1,2,3]));
-      }).toThrowError('At index 0.  Expected { but found type char with value [.');
-
-      expect(function()
-      {
-        // A pair must be an object.
-        parser.parse(lexer.parse(JSON.stringify('name')));
-      }).toThrowError('At index 0.  Expected { but found type string with value name.');
-
-      expect(function()
-      {
-        // Must start with a comparison.
-        var tokens = lexer.parse({name: 'Joe'});
-        parser.parse(tokens);
-      }).toThrowError('At index 1.  Expected [comparison-operator | boolean-operator] but found type string with value name.');
-
-      expect(function()
-      {
-        // Missing closing brace.
-        var tokens = lexer.parse('{"$eq":{"name":"Joe"}');
-        parser.parse(tokens);
-      }).toThrowError('At index 8.  Expected } but found type EOL with value EOL.');
+        parser.parse(lexer.parse('"foo"'));
+      }).toThrowError('At index 0.  Expected [ <pair-comparison> | <condition-list> ] but found type string with value foo.');
     });
 
     // Checks the pair-comparison non-terminal.
@@ -84,52 +45,38 @@ describe('OnConditionParser test suite.', function()
     {
       expect(function()
       {
-        // Valid.
-        var tokens = lexer.parse({$eq: {name: 'Joe'}});
+        // Valid {"u.userID":"pn.userID"}
+        var tokens = lexer.parse({'u.userID':'pn.userID'});
         parser.parse(tokens);
       }).not.toThrow();
 
       expect(function()
       {
-        // Mising colon.
-        var tokens = lexer.parse('{"$eq"{"name":"Joe"}}');
+        // Mising string.
+        var tokens = lexer.parse('{123:"pn.userID"}');
         parser.parse(tokens);
-      }).toThrowError('At index 2.  Expected : but found type char with value {.');
-
-      expect(function()
-      {
-        // Mising brace.
-        var tokens = lexer.parse('{"$eq":"name":"Joe"}}');
-        parser.parse(tokens);
-      }).toThrowError('At index 3.  Expected { but found type string with value name.');
-
-      expect(function()
-      {
-        // 123 is not a string.
-        var tokens = lexer.parse('{"$eq":{123:"Joe"}}');
-        parser.parse(tokens);
-      }).toThrowError('At index 4.  Expected <string> but found type number with value 123.');
+      }).toThrowError('At index 1.  Expected <string> but found type number with value 123.');
 
       expect(function()
       {
         // Mising colon.
-        var tokens = lexer.parse('{"$eq":{"name""Joe"}}');
+        var tokens = lexer.parse('{"u.userID""pn.userID"}');
         parser.parse(tokens);
-      }).toThrowError('At index 5.  Expected : but found type string with value Joe.');
+      }).toThrowError('At index 2.  Expected : but found type string with value pn.userID.');
 
       expect(function()
       {
-        // name must match a value.
-        var tokens = lexer.parse('{"$eq":{"name":{"age":"Joe"}}}');
+        // Missing string.
+        var tokens = lexer.parse('{"u.userID":123}');
         parser.parse(tokens);
-      }).toThrowError('At index 6.  Expected <string> but found type char with value {.');
+      }).toThrowError('At index 3.  Expected <string> but found type number with value 123.');
 
       expect(function()
       {
         // Mising closing brace.
-        var tokens = lexer.parse('{"$eq":{"name":"Joe"');
+        var tokens = lexer.parse('{"u.userID":"pn.userID"');
         parser.parse(tokens);
-      }).toThrowError('At index 7.  Expected } but found type EOL with value EOL.');
+      }).toThrowError('At index 4.  Expected } but found type EOL with value EOL.');
     });
 
     // Checks the condition-list non-terminal.
@@ -137,101 +84,31 @@ describe('OnConditionParser test suite.', function()
     {
       expect(function()
       {
-        // Valid '{"$and":[{"$eq":{"name":"Joe"}},{"$eq":{"foo":"bar"}}]}'
-        var tokens = lexer.parse('{"$and":[{"$eq":{"name":"Joe"}},{"$eq":{"foo":"bar"}}]}');
+        // Valid [{"u.userID":"pn.userID"},{"u.phoneType":"pn.phoneType"}]
+        var tokens = lexer.parse([{'u.userID':'pn.userID'},{'u.phoneType':'pn.phoneType'}]);
         parser.parse(tokens);
       }).not.toThrow();
 
       expect(function()
       {
-        // Missing colon.
-        var tokens = lexer.parse('{"$and"[{"$eq":{"name":"Joe"}},{"$eq":{"foo":"bar"}}]}');
+        // Missing opening bracket (interpreted as a pair-comparison, but trailing comma.
+        var tokens = lexer.parse('{"u.userID":"pn.userID"},{"u.phoneType":"pn.phoneType"}]');
         parser.parse(tokens);
-      }).toThrowError('At index 2.  Expected : but found type char with value [.');
+      }).toThrowError('At index 5.  Expected EOL but found type char with value ,.');
 
       expect(function()
       {
-        // Missing opening bracket.
-        var tokens = lexer.parse('{"$and":{"$eq":{"name":"Joe"}},{"$eq":{"foo":"bar"}}]}');
+        // Missing comma bracket.
+        var tokens = lexer.parse('[{"u.userID":"pn.userID"}{"u.phoneType":"pn.phoneType"}]');
         parser.parse(tokens);
-      }).toThrowError('At index 3.  Expected [ but found type char with value {.');
+      }).toThrowError('At index 6.  Expected ] but found type char with value {.');
 
       expect(function()
       {
-        // Missing opening brace.
-        var tokens = lexer.parse('{"$and":["$eq":{"name":"Joe"}},{"$eq":{"foo":"bar"}}]}');
+        // Missing closing bracket.
+        var tokens = lexer.parse('[{"u.userID":"pn.userID"},{"u.phoneType":"pn.phoneType"}');
         parser.parse(tokens);
-      }).toThrowError('At index 4.  Expected { but found type comparison-operator with value $eq.');
-
-      expect(function()
-      {
-        // 123 is not a comparison operator.
-        var tokens = lexer.parse('{"$and":[{123:{"name":"Joe"}},{"$eq":{"foo":"bar"}}]}');
-        parser.parse(tokens);
-      }).toThrowError('At index 5.  Expected $eq but found type number with value 123.');
-
-      expect(function()
-      {
-        // Missing colon.
-        var tokens = lexer.parse('{"$and":[{"$eq"{"name":"Joe"}},{"$eq":{"foo":"bar"}}]}');
-        parser.parse(tokens);
-      }).toThrowError('At index 6.  Expected : but found type char with value {.');
-
-      expect(function()
-      {
-        // Missing brace.
-        var tokens = lexer.parse('{"$and":[{"$eq":"name":"Joe"}},{"$eq":{"foo":"bar"}}]}');
-        parser.parse(tokens);
-      }).toThrowError('At index 7.  Expected { but found type string with value name.');
-
-      expect(function()
-      {
-        // 123 is not a string.
-        var tokens = lexer.parse('{"$and":[{"$eq":{123:"Joe"}},{"$eq":{"foo":"bar"}}]}');
-        parser.parse(tokens);
-      }).toThrowError('At index 8.  Expected <string> but found type number with value 123.');
-
-      expect(function()
-      {
-        // Missing colon.
-        var tokens = lexer.parse('{"$and":[{"$eq":{"name""Joe"}},{"$eq":{"foo":"bar"}}]}');
-        parser.parse(tokens);
-      }).toThrowError('At index 9.  Expected : but found type string with value Joe.');
-
-      expect(function()
-      {
-        // name must match a value.
-        var tokens = lexer.parse('{"$and":[{"$eq":{"name":{}}},{"$eq":{"foo":"bar"}}]}');
-        parser.parse(tokens);
-      }).toThrowError('At index 10.  Expected <string> but found type char with value {.');
-
-      expect(function()
-      {
-        // Missing closing brace.
-        var tokens = lexer.parse('{"$and":[{"$eq":{"name":"Joe"},{"$eq":{"foo":"bar"}}]}');
-        parser.parse(tokens);
-      }).toThrowError('At index 12.  Expected } but found type char with value ,.');
-
-      expect(function()
-      {
-        // Missing comma.
-        var tokens = lexer.parse('{"$and":[{"$eq":{"name":"Joe"}}{"$eq":{"foo":"bar"}}]}');
-        parser.parse(tokens);
-      }).toThrowError('At index 13.  Expected ] but found type char with value {.');
-
-      expect(function()
-      {
-        // Unterminated array.
-        var tokens = lexer.parse('{"$and":[{"$eq":{"name":"Joe"}},]}');
-        parser.parse(tokens);
-      }).toThrowError('At index 14.  Expected { but found type char with value ].');
-
-      expect(function()
-      {
-        // Array not closed.
-        var tokens = lexer.parse('{"$and":[{"$eq":{"name":"Joe"}}}');
-        parser.parse(tokens);
-      }).toThrowError('At index 13.  Expected ] but found type char with value }.');
+      }).toThrowError('At index 12.  Expected ] but found type EOL with value EOL.');
     });
   });
 
@@ -240,60 +117,26 @@ describe('OnConditionParser test suite.', function()
     // Checks the tree from a pair comparison.
     it('checks the tree from a pair comparison.', function()
     {
-      var cond   = {$eq: {name: 'Joe'}};
+      var cond   = {'u.userID':'pn.userID'};
       var tokens = lexer.parse(cond);
       var tree   = parser.parse(tokens);
 
-      //     _$eq_
-      //    /     \
-      // 'name'  'Joe'
-      expect(tree.token.value).toBe('$eq');
-      expect(tree.children.length).toBe(2);
-      expect(tree.children[0].token.value).toBe('name');
-      expect(tree.children[1].token.value).toBe('Joe');
+      expect(tree.length).toBe(2);
+      expect(tree[0].value).toBe('u.userID');
+      expect(tree[1].value).toBe('pn.userID');
     });
 
     // Checks the tree from a comparison list.
     it('checks the tree from a comparison list.', function()
     {
-      var cond =
-      {
-        $and:
-        [
-          {$eq: {name: 'Joe'}},
-          {$eq: {foo:  'bar'}},
-          {$eq: {bang: 'boom'}}
-        ]
-      };
-
-      var tokens = lexer.parse(cond);
+      var tokens = lexer.parse([{'u.userID':'pn.userID'},{'u.phoneType':'pn.phoneType'}]);
       var tree   = parser.parse(tokens);
 
-      //        __________$and_____________
-      //       /            |              \
-      //    _$eq_          $and            $and
-      //   /     \        /   \           /   \
-      // 'name' 'Joe'   'foo' 'bar'   'bang'  'boom'
-      expect(tree.token.value).toBe('$and');
-      expect(tree.children.length).toBe(3);
-
-      var eq = tree.children[0];
-      expect(eq.token.value).toBe('$eq');
-      expect(eq.children.length).toBe(2);
-      expect(eq.children[0].token.value).toBe('name');
-      expect(eq.children[1].token.value).toBe('Joe');
-
-      eq = tree.children[1];
-      expect(eq.token.value).toBe('$eq');
-      expect(eq.children.length).toBe(2);
-      expect(eq.children[0].token.value).toBe('foo');
-      expect(eq.children[1].token.value).toBe('bar');
-
-      eq = tree.children[2];
-      expect(eq.token.value).toBe('$eq');
-      expect(eq.children.length).toBe(2);
-      expect(eq.children[0].token.value).toBe('bang');
-      expect(eq.children[1].token.value).toBe('boom');
+      expect(tree.length).toBe(4);
+      expect(tree[0].value).toBe('u.userID');
+      expect(tree[1].value).toBe('pn.userID');
+      expect(tree[2].value).toBe('u.phoneType');
+      expect(tree[3].value).toBe('pn.phoneType');
     });
   });
 });

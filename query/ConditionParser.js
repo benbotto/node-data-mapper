@@ -112,7 +112,7 @@ ConditionParser.prototype._conditionList = function()
   // <boolean-operator> is preceded by an array of <pair>.  After adding each
   // <pair> node make the <boolean-operator> the current node.
   this._curNode = this._curNode.parent;
-  while (this._token.value === ',')
+  while (this._token && this._token.value === ',')
   {
     this._charTerminal(',');
     this._pair();

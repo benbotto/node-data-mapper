@@ -16,27 +16,29 @@ function OnConditionParser() {}
 OnConditionParser.prototype = Object.create(ConditionParser.prototype);
 OnConditionParser.prototype.constructor = OnConditionParser;
 
-// <pair> ::= "{" <pair-comparison> | <condition-list> "}"
-OnConditionParser.prototype._pair = function()
+// A clause (the full sentence/program) is a condition.  After the condition
+// the token should be null.
+OnConditionParser.prototype._clause = function()
 {
-  var pairParts = ['comparison-operator', 'boolean-operator'];
+  this._condition();
+  assert(this._token === null, this._errorString('EOL'));
+};
 
-  this._charTerminal('{');
-  assert(this._tokenIn(pairParts), this._errorString('[' + pairParts.join(' | ') + ']'));
+// <condition> ::= <pair-comparison> | <condition-list>
+OnConditionParser.prototype._condition = function()
+{
+  assert(this._token.value === '{' || this._token.value === '[',
+    this._errorString('[ <pair-comparison> | <condition-list> ]'));
 
-  if (this._token.type === 'comparison-operator')
+  if (this._token.value === '{')
     this._pairComparison();
   else
     this._conditionList();
-
-  this._charTerminal('}');
 };
 
-// <pair-comparison> ::= $eq ":" "{" <string> ":" <string> "}"
+// <pair-comparison> ::= "{" <string> ":" <string> "}"
 OnConditionParser.prototype._pairComparison = function()
 {
-  this._matchValue('$eq');
-  this._charTerminal(':');
   this._charTerminal('{');
   this._string();
   this._charTerminal(':');
@@ -44,28 +46,29 @@ OnConditionParser.prototype._pairComparison = function()
   this._charTerminal('}');
 };
 
-// <condition-list> ::= $and ":" "[" "{" <pair-comparison> "}" {"," "{" <pair-comparison> "}"} "]"
+// <condition-list> ::= "[" <pair-comparison> {"," <pair-comparison>} "]"
 OnConditionParser.prototype._conditionList = function()
 {
-  this._matchValue('$and');
-  this._charTerminal(':');
   this._charTerminal('[');
-  this._charTerminal('{');
   this._pairComparison();
-  this._charTerminal('}');
-  // <boolean-operator> is preceded by an array of <pair-comparison>.  After
-  // adding each <pair-comparison> node make the <boolean-operator> the current
-  // node.
-  this._curNode = this._curNode.parent;
-  while (this._token.value === ',')
+  //this._curNode = this._curNode.parent;
+  while (this._token && this._token.value === ',')
   {
     this._charTerminal(',');
-    this._charTerminal('{');
     this._pairComparison();
-    this._charTerminal('}');
-    this._curNode = this._curNode.parent;
+    //this._curNode = this._curNode.parent;
   }
+  console.log('checking last terminal');
   this._charTerminal(']');
+};
+
+// Helper function to add a node to the parse tree.
+OnConditionParser.prototype._addNode = function()
+{
+  // The "tree" is just a flat array for ON conditions.
+  if (this._tree === null)
+    this._tree = [];
+  this._tree.push(this._token);
 };
 
 module.exports = OnConditionParser;
