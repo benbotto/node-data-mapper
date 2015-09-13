@@ -168,7 +168,7 @@ describe('OnConditionParser test suite.', function()
         // 123 is not a comparison operator.
         var tokens = lexer.parse('{"$and":[{123:{"name":"Joe"}},{"$eq":{"foo":"bar"}}]}');
         parser.parse(tokens);
-      }).toThrowError('At index 5.  Expected [comparison-operator | boolean-operator] but found type number with value 123.');
+      }).toThrowError('At index 5.  Expected $eq but found type number with value 123.');
 
       expect(function()
       {
