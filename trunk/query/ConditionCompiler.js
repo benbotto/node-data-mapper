@@ -82,7 +82,7 @@ ConditionCompiler.prototype.compile = function(parseTree)
 
       default:
         // The only way this can fire is if the input parse tree did not come
-        // from the ConditoinParser.  Trees from the ConditionParser are
+        // from the ConditionParser.  Trees from the ConditionParser are
         // guaranteed to be syntactically correct.
         throw new Error('Unknown type: ' + tree.token.type);
     }
@@ -117,14 +117,14 @@ ConditionCompiler.prototype.getColumns = function(parseTree)
         break;
 
       case 'boolean-operator':
-        // Each of the children is a <pair>.  Put each <pair> in an array.
+        // Each of the children is a <pair-comparison>.
         for (var i = 0; i < tree.children.length; ++i)
           traverse(tree.children[i], columns);
         break;
 
       default:
         // The only way this can fire is if the input parse tree did not come
-        // from the ConditoinParser.  Trees from the ConditionParser are
+        // from the ConditionParser.  Trees from the ConditionParser are
         // guaranteed to be syntactically correct.
         throw new Error('Unknown type: ' + tree.token.type);
     }
