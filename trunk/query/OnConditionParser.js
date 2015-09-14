@@ -51,14 +51,11 @@ OnConditionParser.prototype._conditionList = function()
 {
   this._charTerminal('[');
   this._pairComparison();
-  //this._curNode = this._curNode.parent;
   while (this._token && this._token.value === ',')
   {
     this._charTerminal(',');
     this._pairComparison();
-    //this._curNode = this._curNode.parent;
   }
-  console.log('checking last terminal');
   this._charTerminal(']');
 };
 
