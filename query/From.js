@@ -22,14 +22,8 @@ function From(database, tableName, tableAlias)
 
   // These are the tables that are being queried due to FROM our JOINs.  There's
   // also a lookup of table alias to table.
-  this._tables =
-  [{
-    alias: tableAlias || tableName,
-    table: database.getTableByName(tableName)
-  }];
-
+  this._tables           = [];
   this._tableAliasLookup = {};
-  this._tableAliasLookup[this._tables[0].alias] = this._tables[0].table;
 
   // This is an array of all the available column aliases.  These are the
   // columns that are available for selecting, or performing WHERE or ON
@@ -37,7 +31,6 @@ function From(database, tableName, tableAlias)
   // by alias, unescaped in <table-alias>.<column-name> form.
   this._availableCols       = [];
   this._availableColsLookup = {};
-  this._makeColumnsAvailable(this._tables[0].table, this._tables[0].alias);
 
   // These are for parsing/lexing/compiling conditions.
   this._condParser   = new ConditionParser();
@@ -46,7 +39,18 @@ function From(database, tableName, tableAlias)
 
   // This is the query's where clause.
   this._where = null;
+
+  // Add the FROM table.
+  this._addTable(database.getTableByName(tableName),
+    tableAlias || tableName, null, null);
 }
+
+From.JOIN_TYPE =
+{
+  INNER:       'INNER JOIN',
+  LEFT_OUTER:  'LEFT  OUTER JOIN',
+  RIGHT_OUTER: 'RIGHT OUTER JOIN'
+};
 
 /**
  * Create an alias for a column.
@@ -64,20 +68,36 @@ From.prototype.createColumnAlias = function(tableAlias, colName)
 };
 
 /**
- * Private helper function to put all columns in table in the _availableCols
- * array.
+ * Private helper function to add a table to the query.  This adds the table to
+ * the _tables array, adds a lookup for the table in _tableAliasLookup, and
+ * makes all the columns available in the _availableCols array.
  * @param table The table from which all columns will be added.
  * @param tableAlias The table's alias (what is selected AS).
+ * @param joinType The type of join for the table, or null if this is the
+ *        FROM table.
+ * @param on The join condition, or null if this is the FROM table.
  */
-From.prototype._makeColumnsAvailable = function(table, tableAlias)
+From.prototype._addTable = function(table, tableAlias, joinType, on)
 {
+  var tblMeta =
+  {
+    alias:    tableAlias,
+    table:    table,
+    joinType: joinType,
+    on:       on
+  };
+
+  // Add the table to the list of tables, and add a lookup of alias->table.
+  this._tables.push(tblMeta);
+  this._tableAliasLookup[tblMeta.alias] = table;
+
+  // Make each column available for selection or conditions.
   table.getColumns().forEach(function(col)
   {
     var colAlias = this.createColumnAlias(tableAlias, col.getName());
 
     this._availableCols.push
     ({
-      table:      table,
       tableAlias: tableAlias,
       column:     col,
       colAlias:   this.createColumnAlias(tableAlias, col.getName())
@@ -176,6 +196,37 @@ From.prototype.where = function(cond)
 };
 
 /**
+ * Join a table.
+ * @param joinType The From.JOIN_TYPE of the join.
+ * @param tableName The table name to join.
+ * @param tableAlias The alias for the table (used in conditions).
+ * @param on A key-value pair with the join columns.  Alternatively an array of
+ *        key-value pairs can be passed in if the join is on a composite key.
+ */
+From.prototype._join = function(joinType, tableName, tableAlias, on)
+{
+  // On can be a single key-value pair.  Convert it to an array if that's the case.
+  if (!(on instanceof Array))
+    on = [on];
+
+  // Add the FROM table.
+  this._addTable(this._database.getTableByName(tableName), tableAlias, joinType, on);
+  return this;
+};
+
+/**
+ * Inner join a table.
+ * @param tableName The table name to join.
+ * @param tableAlias The alias for the table (used in conditions).
+ * @param on A key-value pair with the join columns.  Alternatively an array of
+ *        key-value pairs can be passed in if the join is on a composite key.
+ */
+From.prototype.innerJoin = function(tableName, tableAlias, on)
+{
+  return this._join(From.JOIN_TYPE.INNER, tableName, tableAlias, on);
+};
+
+/**
  * Get the SQL that represents the query.
  */
 From.prototype.toString = function()
@@ -184,14 +235,13 @@ From.prototype.toString = function()
   var cols      = this._selectCols;
   var fromName  = escaper.escapeProperty(this._tables[0].table.getName());
   var fromAlias = escaper.escapeProperty(this._tables[0].alias);
+  //var i, j, tblMeta, conds, on, thisCol, thatCol;
 
   // No columns specified.  Get all columns.
   if (cols.length === 0)
-  {
     cols = this._availableCols;
-  }
 
-  // Escape each column and add it to the query.
+  // Escape each selected column and add it to the query.
   sql += cols.map(function(col)
   {
     var colName  = escaper.escapeProperty(col.column.getName());
@@ -205,6 +255,27 @@ From.prototype.toString = function()
 
   // Add the FROM portion.
   sql += 'FROM    ' + fromName + ' AS ' + fromAlias;
+
+  // Add any JOINs.
+  /*for (i = 1; i < this._tables.length; ++i)
+  {
+    tblMeta = this._tables[i];
+    conds   = [];
+
+    sql += '\n';
+    sql += tblMeta.joinType + ' ';
+    sql += escaper.escapeProperty(tblMeta.table.getName());
+    sql += ' ON';
+
+    for (j = 0; j < tblMeta.on.length; ++j)
+    {
+      on = tblMeta.on[j];
+
+      // Each 
+
+      conds.push(escaper.escapeProperty(Object.keys(on)[0], on
+    }
+  }*/
 
   if (this._where !== null)
   {

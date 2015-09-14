@@ -128,5 +128,23 @@ describe('From (SELECT query) test suite', function()
       }).toThrowError('The column alias userID is not available for a where condition.');
     });
   });
+
+  describe('From join test suite', function()
+  {
+    // Inner joins on primary key.
+    xit('inner joins on primary key.', function()
+    {
+      var query = new From(db, 'users', 'u')
+        .innerJoin('phone_numbers', 'pn', {'u.userID': 'pn.userID'})
+        .select('u.userID', 'pn.phoneNumberID');
+
+      expect(query.toString()).toBe
+      (
+        'SELECT  `users`.`userID` AS `u.userID`, `pn`.`phoneNumberID` AS `pn.phonenumberID`\n' +
+        'FROM    `users` AS `u`\n' +
+        'INNER JOIN `phoneNumbers` AS `pn` ON `u.userID` = `pn.userID`'
+      );
+    });
+  });
 });
 
