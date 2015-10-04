@@ -24,23 +24,23 @@ ConditionParser.prototype.parse = function(tokens)
   this._curNode  = null;
 
   // Parse the program, and return the resulting parse tree.
-  this._clause();
+  this._condition();
+  assert(this._token === null, this._errorString('EOL'));
   return this._tree;
 };
 
-// A clause (the full sentence/program) is a pair.  After the pair the token
-// should be null.
-ConditionParser.prototype._clause = function()
-{
-  this._pair();
-  assert(this._token === null, this._errorString('EOL'));
-};
-
-// <pair>            ::= "{" <pair-comparison> | <null-comparison> | <in-comparison> | <condition-list> "}"
-// <pair-comparison> ::= <comparison-operator> ":" "{" <string> ":" <value> "}"
-// <null-comparison> ::= <null-comparison-operator> ":" "{" <string> ":" null "}"
-// <in-comparison>   ::= <in-comparison-operator> ":" "{" <string> ":" "[" <value> {"," <value>} "]" "}"
-ConditionParser.prototype._pair = function()
+// Entry point, the entire condition sentence.  BNF follows.
+// <condition>                ::= "{" <comparison> | <null-comparison> | <in-comparison> | <logical-condition> "}"
+// <comparison>               ::= <comparison-operator> ":" "{" <string> ":" <value> "}"
+// <null-comparison>          ::= <null-comparison-operator> ":" "{" <string> ":" null "}"
+// <in-comparison>            ::= <in-comparison-operator> ":" "{" <string> ":" "[" <value> {"," <value>} "]" "}"
+// <logical-condition>        ::= <boolean-operator> ":" "[" <condition> {"," <condition>} "]"
+// <comparison-operator>      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte"
+// <in-comparison-operator>   ::= "$in"
+// <null-comparison-operator> ::= "$is" | "$isnt"
+// <boolean-operator>         ::= "$and" | "$or"
+// <value>                    ::= <string> | <number>
+ConditionParser.prototype._condition = function()
 {
   var pairParts = ['comparison-operator', 'null-comparison-operator', 'in-comparison-operator', 'boolean-operator'];
 
@@ -48,19 +48,19 @@ ConditionParser.prototype._pair = function()
   assert(this._tokenIn(pairParts), this._errorString('[' + pairParts.join(' | ') + ']'));
 
   if (this._token.type === 'comparison-operator')
-    this._pairComparison();
+    this._comparison();
   else if (this._token.type === 'null-comparison-operator')
     this._nullComparison();
   else if (this._token.type === 'in-comparison-operator')
     this._inComparison();
   else
-    this._conditionList();
+    this._logicalCondition();
 
   this._charTerminal('}');
 };
 
-// <pair-comparison> ::= <comparison-operator> ":" "{" <string> ":" <value> "}"
-ConditionParser.prototype._pairComparison = function()
+// <comparison> ::= <comparison-operator> ":" "{" <string> ":" <value> "}"
+ConditionParser.prototype._comparison = function()
 {
   this._comparisonOperator();
   this._charTerminal(':');
@@ -102,20 +102,20 @@ ConditionParser.prototype._nullComparison = function()
   this._charTerminal('}');
 };
 
-// <condition-list> ::= <boolean-operator> ":" "[" <pair> {"," <pair>} "]"
-ConditionParser.prototype._conditionList = function()
+// <logical-condition> ::= <boolean-operator> ":" "[" <condition> {"," <condition>} "]"
+ConditionParser.prototype._logicalCondition = function()
 {
   this._booleanOperator();
   this._charTerminal(':');
   this._charTerminal('[');
-  this._pair();
-  // <boolean-operator> is preceded by an array of <pair>.  After adding each
-  // <pair> node make the <boolean-operator> the current node.
+  this._condition();
+  // <boolean-operator> is preceded by an array of <condition>.  After adding each
+  // <condition> node make the <boolean-operator> the current node.
   this._curNode = this._curNode.parent;
   while (this._token && this._token.value === ',')
   {
     this._charTerminal(',');
-    this._pair();
+    this._condition();
     this._curNode = this._curNode.parent;
   }
   this._charTerminal(']');
