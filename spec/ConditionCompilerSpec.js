@@ -15,16 +15,16 @@ describe('ConditionCompiler test suite.', function()
     var cond, tokens, tree;
 
     // $eq.
-    cond   = {$eq: {name: 'Joe'}};
+    cond   = {$eq: {name: ':name'}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`name` = \'Joe\'');
+    expect(compiler.compile(tree)).toBe('`name` = :name');
 
     // $neq.
-    cond   = {$neq: {name: 'Joe'}};
+    cond   = {$neq: {name: ':name'}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`name` <> \'Joe\'');
+    expect(compiler.compile(tree)).toBe('`name` <> :name');
 
     // $lt.
     cond   = {$lt: {age: 30}};
@@ -49,6 +49,42 @@ describe('ConditionCompiler test suite.', function()
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
     expect(compiler.compile(tree)).toBe('`age` >= 30');
+
+    // $like.
+    cond   = {$like: {name: ':name'}};
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens);
+    expect(compiler.compile(tree)).toBe('`name` LIKE :name');
+
+    // $notLike.
+    cond   = {$notLike: {name: ':name'}};
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens);
+    expect(compiler.compile(tree)).toBe('`name` NOT LIKE :name');
+  });
+
+  // Checks the value types--column, parameter, and number.
+  it('checks the value types--column, parameter, and number.', function()
+  {
+    var cond, tokens, tree;
+
+    // Parameter.
+    cond   = {$eq: {name: ':name'}};
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens);
+    expect(compiler.compile(tree)).toBe('`name` = :name');
+
+    // Number.
+    cond   = {$eq: {age: 30}};
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens);
+    expect(compiler.compile(tree)).toBe('`age` = 30');
+
+    // Column
+    cond   = {$eq: {name: 'u.name'}};
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens);
+    expect(compiler.compile(tree)).toBe('`name` = `u`.`name`');
   });
 
   // Compiles a single null condition.
@@ -57,10 +93,10 @@ describe('ConditionCompiler test suite.', function()
     var cond, tokens, tree;
 
     // $is.
-    cond   = {$is: {occupation: null}};
+    cond   = {$is: {'j.occupation': null}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`occupation` IS NULL');
+    expect(compiler.compile(tree)).toBe('`j`.`occupation` IS NULL');
 
     // $isnt.
     cond   = {$isnt: {occupation: null}};
@@ -75,16 +111,22 @@ describe('ConditionCompiler test suite.', function()
     var cond, tokens, tree;
 
     // Numbers.
-    cond   = {$in: {shoeSize: [10, 10.5, 11]}};
+    cond   = {$in: {'p.shoeSize': [10, 10.5, 11]}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`shoeSize` IN (10, 10.5, 11)');
+    expect(compiler.compile(tree)).toBe('`p`.`shoeSize` IN (10, 10.5, 11)');
 
-    // Strings.
-    cond   = {$in: {employer: ['Jack\'s Bar', 'Coderz']}};
+    // Parameters.
+    cond   = {$in: {employer: [':emp1', ':emp2']}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`employer` IN (\'Jack\'\'s Bar\', \'Coderz\')');
+    expect(compiler.compile(tree)).toBe('`employer` IN (:emp1, :emp2)');
+
+    // Columns.
+    cond   = {$in: {'u.employer': ['mom.employer', 'dad.employer']}};
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens);
+    expect(compiler.compile(tree)).toBe('`u`.`employer` IN (`mom`.`employer`, `dad`.`employer`)');
 
     // Single condition.
     cond   = {$in: {shoeSize: [10]}};
@@ -99,28 +141,28 @@ describe('ConditionCompiler test suite.', function()
     var cond, tokens, tree;
 
     // Single condition AND'd.
-    cond   = {$and: [{$eq: {name: 'Joe'}}]};
+    cond   = {$and: [{$eq: {'u.name': 'pn.name'}}]};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('(`name` = \'Joe\')');
+    expect(compiler.compile(tree)).toBe('(`u`.`name` = `pn`.`name`)');
 
     // Two conditions AND'd.
-    cond   = {$and: [{$eq: {name: 'Joe'}}, {$gt: {age: 21}}]};
+    cond   = {$and: [{$eq: {'u.name': ':name'}}, {$gt: {'u.age': 21}}]};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('(`name` = \'Joe\' AND `age` > 21)');
+    expect(compiler.compile(tree)).toBe('(`u`.`name` = :name AND `u`.`age` > 21)');
 
     // Single condition OR'd.
-    cond   = {$or: [{$eq: {name: 'Joe'}}]};
+    cond   = {$or: [{$eq: {name: 'pn.name'}}]};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('(`name` = \'Joe\')');
+    expect(compiler.compile(tree)).toBe('(`name` = `pn`.`name`)');
 
     // Two conditions OR'd.
-    cond   = {$or: [{$eq: {name: 'Joe'}}, {$gt: {age: 21}}]};
+    cond   = {$or: [{$eq: {name: ':name'}}, {$gt: {age: 21}}]};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('(`name` = \'Joe\' OR `age` > 21)');
+    expect(compiler.compile(tree)).toBe('(`name` = :name OR `age` > 21)');
   });
 
   // Compiles some more complicated conditions.
@@ -133,7 +175,7 @@ describe('ConditionCompiler test suite.', function()
     {
       $and:
       [
-        {$eq: {gender: 'M'}},
+        {$eq: {gender: ':gender'}},
         {
           $or:
           [
@@ -146,21 +188,21 @@ describe('ConditionCompiler test suite.', function()
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
     expect(compiler.compile(tree))
-      .toBe('(`gender` = \'M\' AND (`occupation` IS NULL OR `salary` <= 11000))');
+      .toBe('(`gender` = :gender AND (`occupation` IS NULL OR `salary` <= 11000))');
 
     // ((`gender` = 'M' AND `age` > 23) OR (`gender` = 'F' AND `age` > 21))
     cond =
     {
       $or:
       [
-        {$and: [ {$eq: {gender: 'M'}}, {$gt: {age: 23}} ]},
-        {$and: [ {$eq: {gender: 'F'}}, {$gt: {age: 21}} ]}
+        {$and: [ {$eq: {gender: ':male'}}, {$gt: {age: 23}} ]},
+        {$and: [ {$eq: {gender: ':female'}}, {$gt: {age: 21}} ]}
       ]
     };
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
     expect(compiler.compile(tree))
-      .toBe('((`gender` = \'M\' AND `age` > 23) OR (`gender` = \'F\' AND `age` > 21))');
+      .toBe('((`gender` = :male AND `age` > 23) OR (`gender` = :female AND `age` > 21))');
   });
 
   describe('ConditionCompiler parseColumns test suite', function()
@@ -170,7 +212,7 @@ describe('ConditionCompiler test suite.', function()
     {
       var cond, tokens, tree;
 
-      cond   = {$eq: {name: 'Joe'}};
+      cond   = {$eq: {name: ':name'}};
       tokens = lexer.parse(cond);
       tree   = parser.parse(tokens);
       expect(compiler.getColumns(tree)).toEqual(['name']);
@@ -185,10 +227,15 @@ describe('ConditionCompiler test suite.', function()
       tree   = parser.parse(tokens);
       expect(compiler.getColumns(tree)).toEqual(['occupation']);
 
-      cond   = {$in: {showSize: [11, 12]}};
+      cond   = {$in: {'u.shoeSize': [11, 12]}};
       tokens = lexer.parse(cond);
       tree   = parser.parse(tokens);
-      expect(compiler.getColumns(tree)).toEqual(['showSize']);
+      expect(compiler.getColumns(tree)).toEqual(['u.shoeSize']);
+
+      cond   = {$eq: {'cousin.name': 'brother.name'}};
+      tokens = lexer.parse(cond);
+      tree   = parser.parse(tokens);
+      expect(compiler.getColumns(tree)).toEqual(['cousin.name', 'brother.name']);
     });
 
     // Checks that the returned list of columns is distinct.
@@ -199,16 +246,17 @@ describe('ConditionCompiler test suite.', function()
       {
         $or:
         [
-          {$and: [ {$eq: {gender: 'M'}}, {$gt: {age: 23}} ]},
-          {$and: [ {$eq: {gender: 'F'}}, {$gt: {age: 21}} ]},
-          {$and: [ {$eq: {gender: 'F'}}, {$in: {occupation: ['doctor', 'lawyer']}} ]}
+          {$and: [ {$eq: {'p.gender': ':male'}}, {$gt: {'p.age': 23}} ]},
+          {$and: [ {$eq: {'c.gender': 'p.gender'}}, {$gt: {'c.age': 'p.age'}} ]},
+          {$and: [ {$eq: {'c.age': 21}}, {$in: {'c.occupation': [':doctor', 'p.occupation']}} ]}
         ]
       };
       tokens = lexer.parse(cond);
       tree   = parser.parse(tokens);
 
       // The set is distinct.
-      expect(compiler.getColumns(tree)).toEqual(['gender', 'age', 'occupation']);
+      expect(compiler.getColumns(tree)).toEqual(
+        ['p.gender', 'p.age', 'c.gender', 'c.age', 'c.occupation', 'p.occupation']);
     });
   });
 });
