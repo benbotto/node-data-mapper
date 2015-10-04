@@ -1,6 +1,0 @@
-<condition>           ::= "{" <comparison> | <logical-condition> "}"
-<comparison>          ::= <comparison-operator> ":" "{" <string> ":" <string> "}"
-<logical-condition>   ::= <boolean-operator> ":" "[" <condition> {"," <condition>} "]"
-<comparison-operator> ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte"
-<boolean-operator>    ::= "$and" | "$or"
-
