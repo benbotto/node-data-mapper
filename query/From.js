@@ -32,23 +32,23 @@ function From(database, tableName, tableAlias)
   this._availableCols       = [];
   this._availableColsLookup = {};
 
-  // These are for parsing/lexing/compiling conditions.
-  this._condParser   = new ConditionParser();
-  this._condLexer    = new ConditionLexer();
-  this._condCompiler = new ConditionCompiler();
-
   // This is the query's where clause.
   this._where = null;
 
   // Add the FROM table.
   this._addTable(database.getTableByName(tableName),
     tableAlias || tableName, null, null);
+
+  // These are for building conditions (WHERE and ON conditions).
+  this._condLexer    = new ConditionLexer();
+  this._condParser   = new ConditionParser();
+  this._condCompiler = new ConditionCompiler();
 }
 
 From.JOIN_TYPE =
 {
   INNER:       'INNER JOIN',
-  LEFT_OUTER:  'LEFT  OUTER JOIN',
+  LEFT_OUTER:  'LEFT OUTER JOIN',
   RIGHT_OUTER: 'RIGHT OUTER JOIN'
 };
 
@@ -87,6 +87,9 @@ From.prototype._addTable = function(table, tableAlias, joinType, on)
     on:       on
   };
 
+  // Aliases must be word characters.  They can't, for example, contain periods.
+  assert(tableAlias.match(/^\w+$/) !== null, 'Alises must only contain word characters.');
+
   // Add the table to the list of tables, and add a lookup of alias->table.
   this._tables.push(tblMeta);
   this._tableAliasLookup[tblMeta.alias] = table;
@@ -100,11 +103,13 @@ From.prototype._addTable = function(table, tableAlias, joinType, on)
     ({
       tableAlias: tableAlias,
       column:     col,
-      colAlias:   this.createColumnAlias(tableAlias, col.getName())
+      colAlias:   colAlias
     });
 
     this._availableColsLookup[colAlias] = this._availableCols[this._availableCols.length - 1];
   }.bind(this));
+
+  return tblMeta;
 };
 
 /**
@@ -178,13 +183,12 @@ From.prototype.where = function(cond)
 
   assert(this._where === null, 'where already performed on query.');
 
-  // Parse, lex, and compile the condition.
-  tokens = this._condLexer.parse(cond);
-  tree   = this._condParser.parse(tokens);
+  // Lex and parse the condition.
+  tokens  = this._condLexer.parse(cond);
+  tree    = this._condParser.parse(tokens);
 
   // Make sure that each column in the condition is available for selection.
   columns = this._condCompiler.getColumns(tree);
-
   for (var i = 0; i < columns.length; ++i)
   {
     assert(this.isColumnAvailable(columns[i]),
@@ -200,17 +204,28 @@ From.prototype.where = function(cond)
  * @param joinType The From.JOIN_TYPE of the join.
  * @param tableName The table name to join.
  * @param tableAlias The alias for the table (used in conditions).
- * @param on A key-value pair with the join columns.  Alternatively an array of
- *        key-value pairs can be passed in if the join is on a composite key.
+ * @param on An OnCondition.
  */
 From.prototype._join = function(joinType, tableName, tableAlias, on)
 {
-  // On can be a single key-value pair.  Convert it to an array if that's the case.
-  if (!(on instanceof Array))
-    on = [on];
+  // Lex, parse, and compile the condition.
+  var tokens = this._condLexer.parse(on);
+  var tree   = this._condParser.parse(tokens);
+  var onCond = this._condCompiler.compile(tree);
 
-  // Add the FROM table.
-  this._addTable(this._database.getTableByName(tableName), tableAlias, joinType, on);
+  // Add the JOIN table.
+  var table = this._database.getTableByName(tableName);
+  this._addTable(table, tableAlias, joinType, onCond);
+
+  // Make sure that each column used in the join is available (e.g. belongs to
+  // one of the tables in the query).
+  var columns  = this._condCompiler.getColumns(tree);
+  for (var i = 0; i < columns.length; ++i)
+  {
+    assert(this.isColumnAvailable(columns[i]),
+      'The column alias ' + columns[i] + ' is not available for an on condition.');
+  }
+
   return this;
 };
 
@@ -227,6 +242,30 @@ From.prototype.innerJoin = function(tableName, tableAlias, on)
 };
 
 /**
+ * Left outer join a table.
+ * @param tableName The table name to join.
+ * @param tableAlias The alias for the table (used in conditions).
+ * @param on A key-value pair with the join columns.  Alternatively an array of
+ *        key-value pairs can be passed in if the join is on a composite key.
+ */
+From.prototype.leftOuterJoin = function(tableName, tableAlias, on)
+{
+  return this._join(From.JOIN_TYPE.LEFT_OUTER, tableName, tableAlias, on);
+};
+
+/**
+ * Right outer join a table.
+ * @param tableName The table name to join.
+ * @param tableAlias The alias for the table (used in conditions).
+ * @param on A key-value pair with the join columns.  Alternatively an array of
+ *        key-value pairs can be passed in if the join is on a composite key.
+ */
+From.prototype.rightOuterJoin = function(tableName, tableAlias, on)
+{
+  return this._join(From.JOIN_TYPE.RIGHT_OUTER, tableName, tableAlias, on);
+};
+
+/**
  * Get the SQL that represents the query.
  */
 From.prototype.toString = function()
@@ -235,7 +274,7 @@ From.prototype.toString = function()
   var cols      = this._selectCols;
   var fromName  = escaper.escapeProperty(this._tables[0].table.getName());
   var fromAlias = escaper.escapeProperty(this._tables[0].alias);
-  //var i, j, tblMeta, conds, on, thisCol, thatCol;
+  var tblMeta, joinName, joinAlias;
 
   // No columns specified.  Get all columns.
   if (cols.length === 0)
@@ -251,31 +290,21 @@ From.prototype.toString = function()
     return tblAlias + '.' + colName + ' AS ' + colAlias;
   }.bind(this)).join(', ');
 
-  sql += '\n';
-
   // Add the FROM portion.
+  sql += '\n';
   sql += 'FROM    ' + fromName + ' AS ' + fromAlias;
 
-  // Add any JOINs.
-  /*for (i = 1; i < this._tables.length; ++i)
+  // Add any JOINs.  The first table is the FROM table, hence the loop starts
+  // at 1.
+  for (var i = 1; i < this._tables.length; ++i)
   {
-    tblMeta = this._tables[i];
-    conds   = [];
+    tblMeta   = this._tables[i];
+    joinName  = escaper.escapeProperty(tblMeta.table.getName());
+    joinAlias = escaper.escapeProperty(tblMeta.alias);
 
     sql += '\n';
-    sql += tblMeta.joinType + ' ';
-    sql += escaper.escapeProperty(tblMeta.table.getName());
-    sql += ' ON';
-
-    for (j = 0; j < tblMeta.on.length; ++j)
-    {
-      on = tblMeta.on[j];
-
-      // Each 
-
-      conds.push(escaper.escapeProperty(Object.keys(on)[0], on
-    }
-  }*/
+    sql += tblMeta.joinType + ' ' + joinName + ' AS ' + joinAlias + ' ON ' + tblMeta.on;
+  }
 
   if (this._where !== null)
   {
