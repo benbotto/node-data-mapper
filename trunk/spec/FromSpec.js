@@ -1,4 +1,4 @@
-describe('From (SELECT query) test suite', function()
+describe('From (SELECT query) test suite.', function()
 {
   'use strict';
 
@@ -20,7 +20,21 @@ describe('From (SELECT query) test suite', function()
     }).toThrowError('Table INVALID_NAME does not exist in database testDB.');
   });
 
-  describe('From select test suite', function()
+  // Checks that the table alias cannot have non-word character characters.
+  it('checks that the table alias cannot have non-word character characters.', function()
+  {
+    expect(function()
+    {
+      new From(db, 'users', 'users alias');
+    }).toThrowError('Alises must only contain word characters.');
+
+    expect(function()
+    {
+      new From(db, 'users', 'users.alias');
+    }).toThrowError('Alises must only contain word characters.');
+  });
+
+  describe('From select test suite.', function()
   {
     // Checks that a basic select without columns specified is correct.
     it('checks that a basic select without columns specified is correct.', function()
@@ -90,7 +104,7 @@ describe('From (SELECT query) test suite', function()
     });
   });
 
-  describe('From where test suite', function()
+  describe('From where test suite.', function()
   {
     // Makes sure that the where clause gets added correctly.
     it('makes sure that the where clause gets added correctly.', function()
@@ -103,7 +117,7 @@ describe('From (SELECT query) test suite', function()
       (
         'SELECT  `users`.`userID` AS `users.userID`\n' +
         'FROM    `users` AS `users`\n' +
-        'WHERE   `users.userID` = 4'
+        'WHERE   `users`.`userID` = 4'
       );
     });
 
@@ -129,20 +143,62 @@ describe('From (SELECT query) test suite', function()
     });
   });
 
-  describe('From join test suite', function()
+  describe('From join test suite.', function()
   {
     // Inner joins on primary key.
-    xit('inner joins on primary key.', function()
+    it('inner joins on primary key.', function()
     {
       var query = new From(db, 'users', 'u')
-        .innerJoin('phone_numbers', 'pn', {'u.userID': 'pn.userID'})
+        .innerJoin('phone_numbers', 'pn', {$eq: {'u.userID':'pn.userID'}})
         .select('u.userID', 'pn.phoneNumberID');
 
       expect(query.toString()).toBe
       (
-        'SELECT  `users`.`userID` AS `u.userID`, `pn`.`phoneNumberID` AS `pn.phonenumberID`\n' +
+        'SELECT  `u`.`userID` AS `u.userID`, `pn`.`phoneNumberID` AS `pn.phoneNumberID`\n' +
         'FROM    `users` AS `u`\n' +
-        'INNER JOIN `phoneNumbers` AS `pn` ON `u.userID` = `pn.userID`'
+        'INNER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`'
+      );
+    });
+
+    // Verifies that only available columns can be used in ON conditions.
+    it('verifies that only available columns can be used in ON conditions.', function()
+    {
+      expect(function()
+      {
+        new From(db, 'users', 'u')
+          .innerJoin('phone_numbers', 'pn', {$eq: {'u.INVALID':'pn.userID'}});
+      }).toThrowError('The column alias u.INVALID is not available for an on condition.');
+    });
+
+    // Checks a left outer join.
+    it('checks a left outer join.', function()
+    {
+      var query = new From(db, 'users', 'u')
+        .leftOuterJoin('phone_numbers', 'pn', {$eq: {'u.userID':'pn.userID'}})
+        .where({$is: {'pn.phoneNumberID':null}})
+        .select('u.userID', 'pn.phoneNumberID');
+
+      expect(query.toString()).toBe
+      (
+        'SELECT  `u`.`userID` AS `u.userID`, `pn`.`phoneNumberID` AS `pn.phoneNumberID`\n' +
+        'FROM    `users` AS `u`\n' +
+        'LEFT OUTER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`\n' +
+        'WHERE   `pn`.`phoneNumberID` IS NULL'
+      );
+    });
+
+    // Checks a right outer join.
+    it('checks a right outer join.', function()
+    {
+      var query = new From(db, 'users', 'u')
+        .rightOuterJoin('phone_numbers', 'pn', {$and: [{$eq: {'u.userID':'pn.userID'}},{$eq: {'pn.type':':mobile'}}]})
+        .select('u.userID', 'pn.phoneNumberID');
+
+      expect(query.toString()).toBe
+      (
+        'SELECT  `u`.`userID` AS `u.userID`, `pn`.`phoneNumberID` AS `pn.phoneNumberID`\n' +
+        'FROM    `users` AS `u`\n' +
+        'RIGHT OUTER JOIN `phone_numbers` AS `pn` ON (`u`.`userID` = `pn`.`userID` AND `pn`.`type` = :mobile)'
       );
     });
   });
