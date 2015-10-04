@@ -9,8 +9,8 @@ describe('ConditionParser test suite.', function()
 
   describe('ConditionParser language validation test suite.', function()
   {
-    // Checks a valid pair-comparison.
-    it('checks a valid pair-comparison.', function()
+    // Checks a valid comparison.
+    it('checks a valid comparison.', function()
     {
       expect(function()
       {
@@ -131,8 +131,8 @@ describe('ConditionParser test suite.', function()
       }).toThrowError('At index 8.  Expected } but found type EOL with value EOL.');
     });
 
-    // Checks the pair-comparison non-terminal.
-    it('checks the pair-comparison non-terminal.', function()
+    // Checks the comparison non-terminal.
+    it('checks the comparison non-terminal.', function()
     {
       expect(function()
       {
@@ -332,8 +332,8 @@ describe('ConditionParser test suite.', function()
       }).toThrowError('At index 13.  Expected } but found type EOL with value EOL.');
     });
 
-    // Checks the condition-list non-terminal.
-    it('checks the condition-list non-terminal.', function()
+    // Checks the logical-condition non-terminal.
+    it('checks the logical-condition non-terminal.', function()
     {
       expect(function()
       {
