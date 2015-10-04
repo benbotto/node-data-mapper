@@ -10,8 +10,7 @@ describe('ConditionLexer test suite.', function()
     // Checks that the lexer can take an object or a string.
     it('checks that the lexer can take an object or a string.', function()
     {
-      var cond = {$eq: {name: 'Joe'}};
-
+      var cond = {$eq: {name: ':name'}};
       expect(cl.parse(cond)).toEqual(cl.parse(JSON.stringify(cond)));
     });
   });
@@ -53,25 +52,25 @@ describe('ConditionLexer test suite.', function()
     // Checks a basic string.
     it('checks a basic string.', function()
     {
-      expect(cl.parse(JSON.stringify('JOE'))).toEqual([{terminal: true, type: 'string', value: 'JOE'}]);
-      expect(cl.parse('"JOE"')).toEqual([{terminal: true, type: 'string', value: 'JOE'}]);
-      expect(cl.parse('""')).toEqual([{terminal: true, type: 'string', value: ''}]);
+      expect(cl.parse(JSON.stringify('user.name'))).toEqual([{terminal: true, type: 'column', value: 'user.name'}]);
+      expect(cl.parse('"user.name"')).toEqual([{terminal: true, type: 'column', value: 'user.name'}]);
+      expect(cl.parse('""')).toEqual([{terminal: true, type: 'column', value: ''}]);
       expect(cl.parse('"str1""str2"')).toEqual
       ([
-        {terminal: true, type: 'string', value: 'str1'},
-        {terminal: true, type: 'string', value: 'str2'}
+        {terminal: true, type: 'column', value: 'str1'},
+        {terminal: true, type: 'column', value: 'str2'}
       ]);
     });
 
     // Checks a string in a sentence.
     it('checks a string in a sentence.', function()
     {
-      expect(cl.parse(JSON.stringify({name: 'JOE'}))).toEqual
+      expect(cl.parse(JSON.stringify({name: 'user.name'}))).toEqual
       ([
         {terminal: true, type: 'char', value: '{'},
-        {terminal: true, type: 'string', value: 'name'},
+        {terminal: true, type: 'column', value: 'name'},
         {terminal: true, type: 'char', value: ':'},
-        {terminal: true, type: 'string', value: 'JOE'},
+        {terminal: true, type: 'column', value: 'user.name'},
         {terminal: true, type: 'char', value: '}'}
       ]);
     });
@@ -137,7 +136,7 @@ describe('ConditionLexer test suite.', function()
         {terminal: false, type: 'comparison-operator', value: '$gt'},
         {terminal: true, type: 'char', value: ':'},
         {terminal: true, type: 'char', value: '{'},
-        {terminal: true, type: 'string', value: 'age'},
+        {terminal: true, type: 'column', value: 'age'},
         {terminal: true, type: 'char', value: ':'},
         {terminal: true, type: 'number', value: 60},
         {terminal: true, type: 'char', value: '}'},
@@ -168,7 +167,7 @@ describe('ConditionLexer test suite.', function()
         {terminal: false, type: 'null-comparison-operator', value: '$is'},
         {terminal: true,  type: 'char', value: ':'},
         {terminal: true,  type: 'char', value: '{'},
-        {terminal: true , type: 'string', value: 'name'},
+        {terminal: true , type: 'column', value: 'name'},
         {terminal: true,  type: 'char', value: ':'},
         {terminal: true,  type: 'null', value: null},
         {terminal: true,  type: 'char', value: '}'},
@@ -190,6 +189,8 @@ describe('ConditionLexer test suite.', function()
       expect(cl.parse('"$lte"')).toEqual([{terminal: false, type: 'comparison-operator', value: '$lte'}]);
       expect(cl.parse('"$gt"')).toEqual([{terminal: false, type: 'comparison-operator', value: '$gt'}]);
       expect(cl.parse('"$gte"')).toEqual([{terminal: false, type: 'comparison-operator', value: '$gte'}]);
+      expect(cl.parse('"$like"')).toEqual([{terminal: false, type: 'comparison-operator', value: '$like'}]);
+      expect(cl.parse('"$notLike"')).toEqual([{terminal: false, type: 'comparison-operator', value: '$notLike'}]);
       expect(cl.parse('"$in"')).toEqual([{terminal: false, type: 'in-comparison-operator', value: '$in'}]);
       expect(cl.parse('"$is"')).toEqual([{terminal: false, type: 'null-comparison-operator', value: '$is'}]);
       expect(cl.parse('"$isnt"')).toEqual([{terminal: false, type: 'null-comparison-operator', value: '$isnt'}]);
@@ -202,7 +203,7 @@ describe('ConditionLexer test suite.', function()
       {
         $and:
         [
-          {$eq: {name: 'Joe'}},
+          {$eq: {name: ':name'}},
           {$gt: {age: 21}}
         ]
       };
@@ -217,9 +218,9 @@ describe('ConditionLexer test suite.', function()
         {terminal: false, type: 'comparison-operator', value: '$eq'},
         {terminal: true,  type: 'char', value: ':'},
         {terminal: true,  type: 'char', value: '{'},
-        {terminal: true,  type: 'string', value: 'name'},
+        {terminal: true,  type: 'column', value: 'name'},
         {terminal: true,  type: 'char', value: ':'},
-        {terminal: true,  type: 'string', value: 'Joe'},
+        {terminal: true,  type: 'parameter', value: ':name'},
         {terminal: true,  type: 'char', value: '}'},
         {terminal: true,  type: 'char', value: '}'},
         {terminal: true,  type: 'char', value: ','},
@@ -227,13 +228,35 @@ describe('ConditionLexer test suite.', function()
         {terminal: false, type: 'comparison-operator', value: '$gt'},
         {terminal: true,  type: 'char', value: ':'},
         {terminal: true,  type: 'char', value: '{'},
-        {terminal: true,  type: 'string', value: 'age'},
+        {terminal: true,  type: 'column', value: 'age'},
         {terminal: true,  type: 'char', value: ':'},
         {terminal: true,  type: 'number', value: 21},
         {terminal: true,  type: 'char', value: '}'},
         {terminal: true,  type: 'char', value: '}'},
         {terminal: true,  type: 'char', value: ']'},
         {terminal: true,  type: 'char', value: '}'}
+      ]);
+    });
+  });
+
+  describe('ConditionLexer parameter test suite.', function()
+  {
+    // Checks a basic terminal.
+    it('checks a basic terminal.', function()
+    {
+      expect(cl.parse(JSON.stringify(':name'))).toEqual([{terminal: true, type: 'parameter', value: ':name'}]);
+    });
+
+    // Checks a parameter in a sentence.
+    it('checks a parameter in a sentence.', function()
+    {
+      expect(cl.parse(JSON.stringify({name: ':name'}))).toEqual
+      ([
+        {terminal: true, type: 'char', value: '{'},
+        {terminal: true, type: 'column', value: 'name'},
+        {terminal: true, type: 'char', value: ':'},
+        {terminal: true, type: 'parameter', value: ':name'},
+        {terminal: true, type: 'char', value: '}'}
       ]);
     });
   });

@@ -30,16 +30,20 @@ ConditionParser.prototype.parse = function(tokens)
 };
 
 // Entry point, the entire condition sentence.  BNF follows.
+//
 // <condition>                ::= "{" <comparison> | <null-comparison> | <in-comparison> | <logical-condition> "}"
-// <comparison>               ::= <comparison-operator> ":" "{" <string> ":" <value> "}"
-// <null-comparison>          ::= <null-comparison-operator> ":" "{" <string> ":" null "}"
-// <in-comparison>            ::= <in-comparison-operator> ":" "{" <string> ":" "[" <value> {"," <value>} "]" "}"
+// <comparison>               ::= <comparison-operator> ":" "{" <column> ":" <value> "}"
+// <null-comparison>          ::= <null-comparison-operator> ":" "{" <column> ":" null "}"
+// <in-comparison>            ::= <in-comparison-operator> ":" "{" <column> ":" "[" <value> {"," <value>} "]" "}"
 // <logical-condition>        ::= <boolean-operator> ":" "[" <condition> {"," <condition>} "]"
 // <comparison-operator>      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte"
 // <in-comparison-operator>   ::= "$in"
 // <null-comparison-operator> ::= "$is" | "$isnt"
 // <boolean-operator>         ::= "$and" | "$or"
-// <value>                    ::= <string> | <number>
+// <value>                    ::= <parameter> | <column> | <number>
+// <column>                   ::= <string>
+// <parameter>                ::= :<string>
+//
 ConditionParser.prototype._condition = function()
 {
   var pairParts = ['comparison-operator', 'null-comparison-operator', 'in-comparison-operator', 'boolean-operator'];
@@ -59,25 +63,25 @@ ConditionParser.prototype._condition = function()
   this._charTerminal('}');
 };
 
-// <comparison> ::= <comparison-operator> ":" "{" <string> ":" <value> "}"
+// <comparison> ::= <comparison-operator> ":" "{" <column> ":" <value> "}"
 ConditionParser.prototype._comparison = function()
 {
   this._comparisonOperator();
   this._charTerminal(':');
   this._charTerminal('{');
-  this._string();
+  this._column();
   this._charTerminal(':');
   this._value();
   this._charTerminal('}');
 };
 
-// <in-comparison> ::= <in-comparison-operator> ":" "{" <string> ":" "[" <value> {"," <value>} "]" "}"
+// <in-comparison> ::= <in-comparison-operator> ":" "{" <column> ":" "[" <value> {"," <value>} "]" "}"
 ConditionParser.prototype._inComparison = function()
 {
   this._inComparisonOperator();
   this._charTerminal(':');
   this._charTerminal('{');
-  this._string();
+  this._column();
   this._charTerminal(':');
   this._charTerminal('[');
   this._value();
@@ -90,13 +94,13 @@ ConditionParser.prototype._inComparison = function()
   this._charTerminal('}');
 };
 
-// <null-comparison> ::= <null-comparison-operator> ":" "{" <string> ":" null "}"
+// <null-comparison> ::= <null-comparison-operator> ":" "{" <column> ":" null "}"
 ConditionParser.prototype._nullComparison = function()
 {
   this._nullComparisonOperator();
   this._charTerminal(':');
   this._charTerminal('{');
-  this._string();
+  this._column();
   this._charTerminal(':');
   this._nullTerminal();
   this._charTerminal('}');
@@ -145,22 +149,30 @@ ConditionParser.prototype._booleanOperator = function()
   this._matchType('boolean-operator');
 };
 
-// <value> ::= <string> | <number>
+// <value> ::= <parameter> | <column> | <number>
 ConditionParser.prototype._value = function()
 {
-  var values = ['string', 'number'];
+  var values = ['parameter', 'column', 'number'];
   assert(this._tokenIn(values), this._errorString('[' + values.join(' | ') + ']'));
 
-  if (this._token.type === 'string')
-    this._string();
+  if (this._token.type === 'parameter')
+    this._parameter();
+  else if (this._token.type === 'column')
+    this._column();
   else
     this._number();
 };
 
-// String terminal.
-ConditionParser.prototype._string = function()
+// <parameter> ::= :<string>
+ConditionParser.prototype._parameter = function()
 {
-  this._matchType('string');
+  this._matchType('parameter');
+};
+
+// <column> ::= <string>
+ConditionParser.prototype._column = function()
+{
+  this._matchType('column');
 };
 
 // Number terminal.
@@ -260,9 +272,9 @@ ConditionParser.prototype._addNode = function()
   // If the current token is a non-terminal then make the new node the
   // current node.  The tree is structued with non-terminals having terminal
   // children.
-  //          $eq
-  //       /      \
-  //    'name'   'Joe'
+  //        __$eq__
+  //       /       \
+  //    'name'   ':name'
   if (!this._token.terminal)
     this._curNode = node;
 };

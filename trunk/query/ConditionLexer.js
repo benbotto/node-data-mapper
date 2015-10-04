@@ -21,7 +21,7 @@ ConditionLexer.prototype.parse = function(condStr)
   var tokens  = [];
   var curChar = '';
   var boolOps = ['$and', '$or'];
-  var compOps = ['$eq', '$neq', '$lt', '$lte', '$gt', '$gte'];
+  var compOps = ['$eq', '$neq', '$lt', '$lte', '$gt', '$gte', '$like', '$notLike'];
   var nullOps = ['$is', '$isnt'];
   var str, nextQuote, nonNum;
 
@@ -75,8 +75,10 @@ ConditionLexer.prototype.parse = function(condStr)
           addToken(false, 'in-comparison-operator', str);
         else if (nullOps.indexOf(str) !== -1)
           addToken(false, 'null-comparison-operator', str);
+        else if (str[0] === ':')
+          addToken(true, 'parameter', str);
         else
-          addToken(true, 'string', str);
+          addToken(true, 'column', str);
         break;
 
       // Number.
