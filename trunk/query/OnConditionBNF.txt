@@ -1,4 +1,6 @@
-<condition>       ::= <pair-comparison> | <condition-list>
-<pair-comparison> ::= "{" <string> ":" <string> "}"
-<condition-list>  ::= "[" <pair-comparison> {"," <pair-comparison>} "]"
+<condition>           ::= "{" <comparison> | <logical-condition> "}"
+<comparison>          ::= <comparison-operator> ":" "{" <string> ":" <string> "}"
+<logical-condition>   ::= <boolean-operator> ":" "[" <condition> {"," <condition>} "]"
+<comparison-operator> ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte"
+<boolean-operator>    ::= "$and" | "$or"
 

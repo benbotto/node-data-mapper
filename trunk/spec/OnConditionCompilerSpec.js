@@ -1,4 +1,4 @@
-describe('OnConditionCompiler test suite.', function()
+xdescribe('OnConditionCompiler test suite.', function()
 {
   'use strict';
 
