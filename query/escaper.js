@@ -60,6 +60,27 @@ Escaper.prototype.escapeLiteral = function(literal)
   }
 };
 
+/**
+ * Escape a fully-qualified column name, such as 'u.firstName' or
+ * 'phone_numbers.phoneNumber'.
+ * @param fqc The fully-qualified column.
+ */
+Escaper.prototype.escapeFullyQualifiedColumn = function(fqc)
+{
+  var firstDot = fqc.indexOf('.');
+  var tbl, col;
+  
+  // There is no dot, it's just a column name.
+  if (firstDot === -1)
+    return this.escapeProperty(fqc);
+
+  // Get the table and column parts and escape each individually.
+  tbl = fqc.substring(0, firstDot);
+  col = fqc.substring(firstDot + 1);
+
+  return this.escapeProperty(tbl) + '.' + this.escapeProperty(col);
+};
+
 // Single instance.
 module.exports = new Escaper();
 
