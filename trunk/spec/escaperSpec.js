@@ -1,4 +1,4 @@
-describe('escaper test suite', function()
+describe('escaper test suite.', function()
 {
   'use strict';
 
@@ -23,7 +23,7 @@ describe('escaper test suite', function()
     });
   });
 
-  describe('property escape test suite', function()
+  describe('property escape test suite.', function()
   {
     // Escapes a MYSQL property.
     it('escapes a MYSQL property.', function()
@@ -40,7 +40,7 @@ describe('escaper test suite', function()
     });
   });
 
-  describe('literal escape test suite', function()
+  describe('literal escape test suite.', function()
   {
     // Escapes a string.
     it('escapes strings.', function()
@@ -58,4 +58,18 @@ describe('escaper test suite', function()
       expect(escaper.escapeLiteral(0)).toBe(0);
     });
   });
+
+  describe('fully-qualified column escape test suite.', function()
+  {
+    // Escapes a fully-qualified column.
+    it('escapes a fully-qualified column.', function()
+    {
+      escaper.setDBType(escaper.DB_TYPE.MYSQL);
+      expect(escaper.escapeFullyQualifiedColumn('users.firstName')).toBe('`users`.`firstName`');
+      expect(escaper.escapeFullyQualifiedColumn('users.first.Name')).toBe('`users`.`first.Name`');
+      expect(escaper.escapeFullyQualifiedColumn('phone_numbers.phoneNumber')).toBe('`phone_numbers`.`phoneNumber`');
+      expect(escaper.escapeFullyQualifiedColumn('phoneNumber')).toBe('`phoneNumber`');
+    });
+  });
 });
+
