@@ -10,7 +10,7 @@ module.exports = function(grunt, scripts)
       strict:    true,
       eqeqeq:    true,
       indent:    2,
-      quotmark:  'single',
+      /*quotmark:  'single',*/
       undef:     true,
       unused:    true,
       node:      true
