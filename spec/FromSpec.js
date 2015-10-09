@@ -2,21 +2,23 @@ describe('From (SELECT query) test suite.', function()
 {
   'use strict';
 
-  var From     = require(__dirname + '/../query/From');
-  var Database = require(__dirname + '/../Database');
-  var db       = new Database(require(__dirname + '/resource/testDB.json'));
+  var From         = require(__dirname + '/../query/From');
+  var Database     = require(__dirname + '/../Database');
+  var MySQLEscaper = require(__dirname + '/../query/MySQLEscaper');
+  var db           = new Database(require(__dirname + '/resource/testDB.json'));
+  var escaper      = new MySQLEscaper();
 
   // Checks the constructor.
   it('checks the constructor.', function()
   {
     expect(function()
     {
-      new From(db, 'users');
+      new From(db, escaper, 'users');
     }).not.toThrow();
 
     expect(function()
     {
-      new From(db, 'INVALID_NAME');
+      new From(db, escaper, 'INVALID_NAME');
     }).toThrowError('Table INVALID_NAME does not exist in database testDB.');
   });
 
@@ -25,12 +27,12 @@ describe('From (SELECT query) test suite.', function()
   {
     expect(function()
     {
-      new From(db, 'users', 'users alias');
+      new From(db, escaper, 'users', 'users alias');
     }).toThrowError('Alises must only contain word characters.');
 
     expect(function()
     {
-      new From(db, 'users', 'users.alias');
+      new From(db, escaper, 'users', 'users.alias');
     }).toThrowError('Alises must only contain word characters.');
   });
 
@@ -39,7 +41,7 @@ describe('From (SELECT query) test suite.', function()
     // Checks that a basic select without columns specified is correct.
     it('checks that a basic select without columns specified is correct.', function()
     {
-      var query = new From(db, 'users');
+      var query = new From(db, escaper, 'users');
 
       expect(query.toString()).toBe
       (
@@ -51,7 +53,7 @@ describe('From (SELECT query) test suite.', function()
     // Checks that a basic select with columns specified is correct.
     it('checks that a basic select with columns specified is correct.', function()
     {
-      var query = new From(db, 'users')
+      var query = new From(db, escaper, 'users')
         .select(['users.userID', 'users.firstName', 'users.lastName']);
 
       expect(query.toString()).toBe
@@ -64,7 +66,7 @@ describe('From (SELECT query) test suite.', function()
     // Checks that select can be called variadicly.
     it('checks that select can be called variadicly.', function()
     {
-      var query = new From(db, 'users')
+      var query = new From(db, escaper, 'users')
         .select('users.userID', 'users.firstName', 'users.lastName');
 
       expect(query.toString()).toBe
@@ -79,7 +81,7 @@ describe('From (SELECT query) test suite.', function()
     {
       expect(function()
       {
-        new From(db, 'users')
+        new From(db, escaper, 'users')
           .select(['users.userID', 'users.firstName', 'users.lastName'])
           .select(['users.userID', 'users.firstName', 'users.lastName']);
       }).toThrowError('select already performed on query.');
@@ -90,7 +92,7 @@ describe('From (SELECT query) test suite.', function()
     {
       expect(function()
       {
-        new From(db, 'users').select('userID'); // Should be users.userID.
+        new From(db, escaper, 'users').select('userID'); // Should be users.userID.
       }).toThrowError('The column alias userID is not available for selection.');
     });
 
@@ -99,7 +101,7 @@ describe('From (SELECT query) test suite.', function()
     {
       expect(function()
       {
-        new From(db, 'users').select('users.firstName');
+        new From(db, escaper, 'users').select('users.firstName');
       }).toThrowError('The primary key of each table must be selected, but the primary key of table users is not present in the array of selected columns.');
     });
   });
@@ -109,7 +111,7 @@ describe('From (SELECT query) test suite.', function()
     // Makes sure that the where clause gets added correctly.
     it('makes sure that the where clause gets added correctly.', function()
     {
-      var query = new From(db, 'users')
+      var query = new From(db, escaper, 'users')
         .select('users.userID')
         .where({$eq: {'users.userID': 4}});
 
@@ -126,7 +128,7 @@ describe('From (SELECT query) test suite.', function()
     {
       expect(function()
       {
-        new From(db, 'users')
+        new From(db, escaper, 'users')
           .where({$eq: {'users.userID': 4}})
           .where({$eq: {'users.userID': 4}});
       }).toThrowError('where already performed on query.');
@@ -137,7 +139,7 @@ describe('From (SELECT query) test suite.', function()
     {
       expect(function()
       {
-        new From(db, 'users')
+        new From(db, escaper, 'users')
           .where({$eq: {userID: 4}}); // Should be users.userID.
       }).toThrowError('The column alias userID is not available for a where condition.');
     });
@@ -148,7 +150,7 @@ describe('From (SELECT query) test suite.', function()
     // Inner joins on primary key.
     it('inner joins on primary key.', function()
     {
-      var query = new From(db, 'users', 'u')
+      var query = new From(db, escaper, 'users', 'u')
         .innerJoin('phone_numbers', 'pn', {$eq: {'u.userID':'pn.userID'}})
         .select('u.userID', 'pn.phoneNumberID');
 
@@ -165,7 +167,7 @@ describe('From (SELECT query) test suite.', function()
     {
       expect(function()
       {
-        new From(db, 'users', 'u')
+        new From(db, escaper, 'users', 'u')
           .innerJoin('phone_numbers', 'pn', {$eq: {'u.INVALID':'pn.userID'}});
       }).toThrowError('The column alias u.INVALID is not available for an on condition.');
     });
@@ -173,7 +175,7 @@ describe('From (SELECT query) test suite.', function()
     // Checks a left outer join.
     it('checks a left outer join.', function()
     {
-      var query = new From(db, 'users', 'u')
+      var query = new From(db, escaper, 'users', 'u')
         .leftOuterJoin('phone_numbers', 'pn', {$eq: {'u.userID':'pn.userID'}})
         .where({$is: {'pn.phoneNumberID':null}})
         .select('u.userID', 'pn.phoneNumberID');
@@ -190,7 +192,7 @@ describe('From (SELECT query) test suite.', function()
     // Checks a right outer join.
     it('checks a right outer join.', function()
     {
-      var query = new From(db, 'users', 'u')
+      var query = new From(db, escaper, 'users', 'u')
         .rightOuterJoin('phone_numbers', 'pn', {$and: [{$eq: {'u.userID':'pn.userID'}},{$eq: {'pn.type':':mobile'}}]})
         .select('u.userID', 'pn.phoneNumberID');
 
@@ -200,6 +202,22 @@ describe('From (SELECT query) test suite.', function()
         'FROM    `users` AS `u`\n' +
         'RIGHT OUTER JOIN `phone_numbers` AS `pn` ON (`u`.`userID` = `pn`.`userID` AND `pn`.`type` = :mobile)'
       );
+    });
+
+    // Checks a join with no condition.
+    it('checks a join with no condition.', function()
+    {
+      var query = new From(db, escaper, 'users', 'u')
+        .innerJoin('phone_numbers', 'pn')
+        .select('u.userID', 'pn.phoneNumberID');
+
+      expect(query.toString()).toBe
+      (
+        'SELECT  `u`.`userID` AS `u.userID`, `pn`.`phoneNumberID` AS `pn.phoneNumberID`\n' +
+        'FROM    `users` AS `u`\n' +
+        'INNER JOIN `phone_numbers` AS `pn`'
+      );
+      
     });
   });
 });

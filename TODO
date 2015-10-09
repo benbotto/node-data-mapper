@@ -1,2 +1,3 @@
 As more types of queries are added a query class should be created.  The parser/lexer/compiler should be in this class.
-From is broken, and needs to use the new OnCondition* stuff.
+The joins in FROM are going to need a parentAlias parameter.  There isn't a way of determining the parent from the on condition. There might not even be an ON condition.
+Get rid of Table.alias.  The alias from the query should be used for serializing.  The same table may be joined twice.  For example, if People is queried the user may want people and parents (parents also being people).

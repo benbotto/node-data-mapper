@@ -1,12 +1,15 @@
 'use strict';
 
-var escaper = require(__dirname + '/escaper');
-
 /**
  * This class takes in a parse tree--as created by a ConditionParser--and
  * compiles the condition into SQL.
+ * @param escaper An instance of an Escaper that matches the database type
+ *        (i.e. MySQLEscaper or MSSQLEscaper).
  */
-function ConditionCompiler() {}
+function ConditionCompiler(escaper)
+{
+  this._escaper = escaper;
+}
 
 /**
  * Compile the parse tree.
@@ -39,13 +42,13 @@ ConditionCompiler.prototype.compile = function(parseTree)
   };
 
   // Function to recursively traverse the parse tree and compile it.
-  function traverse(tree)
+  function traverse(tree, escaper)
   {
     var sql, i, kids, column, op, value;
 
     // Helper to return a <value>, which may be a parameter, column, or number.
     // The return is escaped properly.
-    function getValue(token)
+    function getValue(token, escaper)
     {
       if (token.type === 'column')
         return escaper.escapeFullyQualifiedColumn(token.value);
@@ -60,7 +63,7 @@ ConditionCompiler.prototype.compile = function(parseTree)
         // where value is a parameter, column, or number.
         column = escaper.escapeFullyQualifiedColumn(tree.children[0].token.value);
         op     = compOps[tree.token.value];
-        value  = getValue(tree.children[1].token);
+        value  = getValue(tree.children[1].token, escaper);
 
         return column + ' ' + op + ' ' + value;
 
@@ -78,7 +81,7 @@ ConditionCompiler.prototype.compile = function(parseTree)
 
         // All the values.
         for (i = 1; i < tree.children.length; ++i)
-          kids.push(getValue(tree.children[i].token));
+          kids.push(getValue(tree.children[i].token, escaper));
 
         // Explode the values with a comma, and wrap them in parens.
         sql += '(' + kids.join(', ') + ')';
@@ -88,7 +91,7 @@ ConditionCompiler.prototype.compile = function(parseTree)
         // Each of the children is a <condition>.  Put each <condition> in an array.
         kids = tree.children.map(function(child)
         {
-          return traverse(child);
+          return traverse(child, escaper);
         });
 
         // Explode the conditions on the current boolean operator (AND or OR).
@@ -103,7 +106,7 @@ ConditionCompiler.prototype.compile = function(parseTree)
     }
   }
   
-  return traverse(parseTree);
+  return traverse(parseTree, this._escaper);
 };
 
 /**
