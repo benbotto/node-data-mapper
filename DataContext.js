@@ -33,11 +33,12 @@ DataContext.prototype.getEscaper = function()
 
 /**
  * Create a new SELECT query.
- * @param tableName The table to select from, by name, not by alias.
+ * @param meta A meta object describing the table to select from.  Se the From
+ *        constructor for details.
  */
-DataContext.prototype.from = function(table)
+DataContext.prototype.from = function(meta)
 {
-  return new From(this.getDatabase(), this._escaper, table);
+  return new From(this.getDatabase(), this._escaper, meta);
 };
 
 module.exports = DataContext;

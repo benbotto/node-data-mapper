@@ -22,7 +22,7 @@ describe('DataContext test suite', function()
   it('checks that a From query can be created.', function()
   {
     var dc   = new DataContext(db, escaper);
-    var from = dc.from('users');
+    var from = dc.from({table: 'users'});
 
     expect(from instanceof From).toBe(true);
   });
