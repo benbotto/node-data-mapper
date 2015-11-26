@@ -11,12 +11,15 @@ var ConditionCompiler = require(__dirname + '/../query/ConditionCompiler');
  * @param database The database to select from.
  * @param escaper An instance of Escaper matching the database type (i.e.
  *        MySQLEscaper or MSSQLEscaper).
- * @param tableName The table to select from, by name, not by alias.
- * @param tableAlias An optional alias for the table.  This is needed if, for
- *        example, the same table is joined in multple times.  Note that this
- *        is different than the Table's alias, which is used for serializing.
+ * @param meta Either the name of the table or a meta object describing the table:
+ * {
+ *   table:  string, // The name of the table to select from.
+ *   as:     string  // An alias for the table.  This is needed if, for example,
+ *                   // the same table is joined in multiple times.
+ *                   // This defaults to the table's alias.
+ * }
  */
-function From(database, escaper, tableName, tableAlias)
+function From(database, escaper, meta)
 {
   this._database   = database;
   this._escaper    = escaper;
@@ -34,9 +37,11 @@ function From(database, escaper, tableName, tableAlias)
   this._availableCols       = [];
   this._availableColsLookup = {};
 
-  // Add the FROM table.
-  this._addTable(database.getTableByName(tableName),
-    tableAlias || tableName, null, null);
+  // Add the FROM table.  
+  if (typeof meta === 'string')
+    this._addTable({table: meta});
+  else
+    this._addTable(meta);
 
   // These are for building conditions (WHERE and ON conditions).
   this._condLexer    = new ConditionLexer();
@@ -52,7 +57,7 @@ From.JOIN_TYPE =
 };
 
 /**
- * Create an alias for a column.
+ * Create a fully-qualified column name.
  * Column names must be unique, and the same column name could exist
  * multiple times (two tables could have the same column name, or the same
  * table could be joined multiple times).  Hence each column is aliased,
@@ -61,7 +66,7 @@ From.JOIN_TYPE =
  * @param tableAlias The alias for the table.
  * @param colName The column name.
  */
-From.prototype.createColumnAlias = function(tableAlias, colName)
+From.prototype.createFQColName = function(tableAlias, colName)
 {
   return tableAlias + '.' + colName;
 };
@@ -70,42 +75,57 @@ From.prototype.createColumnAlias = function(tableAlias, colName)
  * Private helper function to add a table to the query.  This adds the table to
  * the _tables array, adds a lookup for the table in _tableAliasLookup, and
  * makes all the columns available in the _availableCols array.
- * @param table The table from which all columns will be added.
- * @param tableAlias The table's alias (what is selected AS).
+ * @param meta An object containing the following:
+ * {
+ *   table:  string,   // The name of the table to select from.
+ *   as:     string,   // An alias for the table.  This is needed if, for example,
+ *                     // the same table is joined in multiple times.  This is
+ *                     // what the table will be serialized as, and defaults
+ *                     // to the table's alias.
+ *   cond:   Condition // The condition (WHERE or ON) associated with the table.
+ * }
  * @param joinType The type of join for the table, or null if this is the
  *        FROM table.
- * @param cond The condition (WHERE or ON) associated with the table.
  */
-From.prototype._addTable = function(table, tableAlias, joinType, cond)
+From.prototype._addTable = function(meta, joinType)
 {
-  var tblMeta =
-  {
-    alias:    tableAlias,
-    table:    table,
-    joinType: joinType,
-    cond:     cond
-  };
+  var tblMeta, table, tableAlias;
+
+  // The table name is required.
+  assert(meta.table !== undefined, 'table is required.');
+
+  // The name looks good - pull the table and set up the alias.
+  table      = this._database.getTableByName(meta.table);
+  tableAlias = meta.as || table.getAlias();
 
   // Aliases must be word characters.  They can't, for example, contain periods.
   assert(tableAlias.match(/^\w+$/) !== null, 'Alises must only contain word characters.');
 
+  tblMeta =
+  {
+    tableAlias: tableAlias,
+    table:      table,
+    cond:       meta.cond || null,
+    joinType:   joinType  || null
+  };
+
   // Add the table to the list of tables, and add a lookup of alias->table.
   this._tables.push(tblMeta);
-  this._tableAliasLookup[tblMeta.alias] = table;
+  this._tableAliasLookup[tblMeta.tableAlias] = table;
 
   // Make each column available for selection or conditions.
   table.getColumns().forEach(function(col)
   {
-    var colAlias = this.createColumnAlias(tableAlias, col.getName());
+    var fqColName = this.createFQColName(tableAlias, col.getName());
 
     this._availableCols.push
     ({
       tableAlias: tableAlias,
       column:     col,
-      colAlias:   colAlias
+      fqColName:  fqColName
     });
 
-    this._availableColsLookup[colAlias] = this._availableCols[this._availableCols.length - 1];
+    this._availableColsLookup[fqColName] = this._availableCols[this._availableCols.length - 1];
   }.bind(this));
 
   return tblMeta;
@@ -113,44 +133,81 @@ From.prototype._addTable = function(table, tableAlias, joinType, cond)
 
 /**
  * Check if the columns col is available (for selecting or for a condition).
- * @param colAlias The column to look for, by alias.  This is the unescaped
+ * @param fqColName The column to look for, by alias.  This is the unescaped
  *        alias of the column (<table-alias>.<column-name>) as created by the
- *        createColumnAlias function.
+ *        createFQColName function.
  */
-From.prototype.isColumnAvailable = function(colAlias)
+From.prototype.isColumnAvailable = function(fqColName)
 {
-  return this._availableColsLookup[colAlias] !== undefined;
+  return this._availableColsLookup[fqColName] !== undefined;
 };
 
 /**
  * Select columns manually.
- * @param colAliases The array of column aliases to select.  Each column must
- *        be in the form <table-alias>.<column-name>.  Alternatively a list of
- *        columns can be passed in--this function is variadic.
+ * @param cols An array of columns to select.  Each column can either be a
+ *        string in the form <table-alias>.<column-name>, or it can be an
+ *        object in the following form:
+ * {
+ *   column:   string, // The fully-qualified column name in the
+ *                     // form: <table-alias>.<column-name>
+ *   as:       string  // An alias for the column, used for serialization.
+ *                     // If not provided this defaults to the column's alias.
+ * }
  */
-From.prototype.select = function(colAliases)
+From.prototype.select = function(cols)
 {
   var i, pk, pkAlias;
-  var selColLookup = {};
+  var selColLookup    = {};
+  var colAliasLookup  = {};
 
   // Select may only be performed once on a query.
   assert(this._selectCols.length === 0, 'select already performed on query.');
 
-  // Make sure colAliases is an array.
-  if (!(colAliases instanceof Array))
-    colAliases = Array.prototype.slice.call(arguments);
+  // Make sure cols is an array.
+  if (!(cols instanceof Array))
+    cols = Array.prototype.slice.call(arguments);
 
-  colAliases.forEach(function(colAlias)
+  cols.forEach(function(userSelColMeta)
   {
-    // Make sure the column is legal for selection.
-    assert(this.isColumnAvailable(colAlias),
-      'The column alias ' + colAlias + ' is not available for selection.');
+    var fqColName, colAlias, fqColAlias, availColMeta, selColMeta;
 
-    this._selectCols.push(this._availableColsLookup[colAlias]);
-    selColLookup[colAlias] = this._availableColsLookup[colAlias];
+    // Each column is an object, but can be short-handed as a string.  If a
+    // a string is passed convert it to object format.
+    if (typeof userSelColMeta === 'string')
+      userSelColMeta = {column: userSelColMeta};
+
+    // Make sure the column is legal for selection.
+    fqColName = userSelColMeta.column;
+    assert(this.isColumnAvailable(fqColName),
+      'The column name ' + fqColName + ' is not available for selection.  ' +
+      'Column names must be fully-qualified (<table-alias>.<column-name>).');
+
+    // Store the necessary meta data about the column selection.
+    // This is what's needed for converting the query to a string, and
+    // for serialization.
+    availColMeta = this._availableColsLookup[fqColName];
+    colAlias     = userSelColMeta.as || availColMeta.column.getAlias();
+    fqColAlias   = this.createFQColName(availColMeta.tableAlias, colAlias);
+
+    selColMeta = 
+    {
+      tableAlias: availColMeta.tableAlias,
+      column:     availColMeta.column,
+      fqColAlias: fqColAlias
+    };
+
+    // Each alias must be unique.
+    assert(colAliasLookup[fqColAlias] === undefined,
+      'Column alias ' + fqColAlias + ' already selected.');
+    colAliasLookup[fqColAlias] = true;
+    
+    this._selectCols.push(selColMeta);
+    selColLookup[fqColName] = true;
   }.bind(this));
 
-  // The primary key from each table must be selected.
+  // The primary key from each table must be selected.  The serialization
+  // needs a way to uniquely identify each object; the primary key is used
+  // for this.
   for (var tblAlias in this._tableAliasLookup)
   {
     // This is the primary key of the table, which is an array.
@@ -160,7 +217,7 @@ From.prototype.select = function(colAliases)
     {
       // This is the alias of the column in the standard
       // <table-alias>.<column-name> format.
-      pkAlias = this.createColumnAlias(tblAlias, pk[i].getName());
+      pkAlias = this.createFQColName(tblAlias, pk[i].getName());
 
       assert(selColLookup[pkAlias] !== undefined,
         'The primary key of each table must be selected, but the primary key of table ' + 
@@ -200,30 +257,35 @@ From.prototype.where = function(cond)
 
 /**
  * Join a table.
+ * @param meta An object containing the following:
+ * {
+ *   table:  string,   // The name of the table to select from.
+ *   as:     string,   // An alias for the table.  This is needed if, for example,
+ *                     // the same table is joined in multiple times.  This is
+ *                     // what the table will be serialized as, and defaults
+ *                     // to the table's alias.
+ *   on:     Condition // The condition (ON) for the join.
+ * }
  * @param joinType The From.JOIN_TYPE of the join.
- * @param tableName The table name to join.
- * @param tableAlias The alias for the table (used in conditions).
- * @param on The ON condition.
  */
-From.prototype._join = function(joinType, tableName, tableAlias, on)
+From.prototype._join = function(meta, joinType)
 {
   var tokens, tree, onCond, columns;
 
-  if (on)
+  if (meta.on)
   {
     // Lex, parse, and compile the condition.
-    tokens = this._condLexer.parse(on);
+    tokens = this._condLexer.parse(meta.on);
     tree   = this._condParser.parse(tokens);
     onCond = this._condCompiler.compile(tree);
   }
 
   // Add the JOIN table.
-  var table = this._database.getTableByName(tableName);
-  this._addTable(table, tableAlias, joinType, onCond);
+  this._addTable({table: meta.table, as: meta.as, cond: onCond}, joinType);
 
   // Make sure that each column used in the join is available (e.g. belongs to
   // one of the tables in the query).
-  if (on)
+  if (meta.on)
   {
     columns  = this._condCompiler.getColumns(tree);
     for (var i = 0; i < columns.length; ++i)
@@ -238,38 +300,37 @@ From.prototype._join = function(joinType, tableName, tableAlias, on)
 
 /**
  * Inner join a table.
- * @param tableName The table name to join.
- * @param tableAlias The alias for the table (used in conditions).
- * @param on A key-value pair with the join columns.  Alternatively an array of
- *        key-value pairs can be passed in if the join is on a composite key.
+ * @param meta An object containing the following:
+ * {
+ *   table:  string,   // The name of the table to select from.
+ *   as:     string,   // An alias for the table.  This is needed if, for example,
+ *                     // the same table is joined in multiple times.  This is
+ *                     // what the table will be serialized as, and defaults
+ *                     // to the table's alias.
+ *   on:     Condition // The condition (ON) for the join.
+ * }
  */
-From.prototype.innerJoin = function(tableName, tableAlias, on)
+From.prototype.innerJoin = function(meta)
 {
-  return this._join(From.JOIN_TYPE.INNER, tableName, tableAlias, on);
+  return this._join(meta, From.JOIN_TYPE.INNER);
 };
 
 /**
  * Left outer join a table.
- * @param tableName The table name to join.
- * @param tableAlias The alias for the table (used in conditions).
- * @param on A key-value pair with the join columns.  Alternatively an array of
- *        key-value pairs can be passed in if the join is on a composite key.
+ * @param meta Refer to the innerJoin function for details.
  */
-From.prototype.leftOuterJoin = function(tableName, tableAlias, on)
+From.prototype.leftOuterJoin = function(meta)
 {
-  return this._join(From.JOIN_TYPE.LEFT_OUTER, tableName, tableAlias, on);
+  return this._join(meta, From.JOIN_TYPE.LEFT_OUTER);
 };
 
 /**
  * Right outer join a table.
- * @param tableName The table name to join.
- * @param tableAlias The alias for the table (used in conditions).
- * @param on A key-value pair with the join columns.  Alternatively an array of
- *        key-value pairs can be passed in if the join is on a composite key.
+ * @param meta Refer to the innerJoin function for details.
  */
-From.prototype.rightOuterJoin = function(tableName, tableAlias, on)
+From.prototype.rightOuterJoin = function(meta)
 {
-  return this._join(From.JOIN_TYPE.RIGHT_OUTER, tableName, tableAlias, on);
+  return this._join(meta, From.JOIN_TYPE.RIGHT_OUTER);
 };
 
 /**
@@ -280,18 +341,23 @@ From.prototype.toString = function()
   var sql       = 'SELECT  ';
   var cols      = this._selectCols;
   var fromName  = this._escaper.escapeProperty(this._tables[0].table.getName());
-  var fromAlias = this._escaper.escapeProperty(this._tables[0].alias);
+  var fromAlias = this._escaper.escapeProperty(this._tables[0].tableAlias);
   var tblMeta, joinName, joinAlias;
 
   // No columns specified.  Get all columns.
   if (cols.length === 0)
-    cols = this._availableCols;
+  {
+    this.select(this._availableCols.map(function(col)
+    {
+      return col.fqColName;
+    }));
+  }
 
   // Escape each selected column and add it to the query.
   sql += cols.map(function(col)
   {
     var colName  = this._escaper.escapeProperty(col.column.getName());
-    var colAlias = this._escaper.escapeProperty(col.colAlias);
+    var colAlias = this._escaper.escapeProperty(col.fqColAlias);
     var tblAlias = this._escaper.escapeProperty(col.tableAlias);
 
     return tblAlias + '.' + colName + ' AS ' + colAlias;
@@ -307,7 +373,7 @@ From.prototype.toString = function()
   {
     tblMeta   = this._tables[i];
     joinName  = this._escaper.escapeProperty(tblMeta.table.getName());
-    joinAlias = this._escaper.escapeProperty(tblMeta.alias);
+    joinAlias = this._escaper.escapeProperty(tblMeta.tableAlias);
 
     sql += '\n';
     sql += tblMeta.joinType + ' ' + joinName + ' AS ' + joinAlias;
