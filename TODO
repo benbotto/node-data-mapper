@@ -1,5 +1,5 @@
-Next step is to pass the query to the schema.
-The joins in FROM are going to need a parentAlias parameter.  There isn't a way of determining the parent from the on condition. There might not even be an ON condition.
+Schema is created by from.  Next need to execute the query and serialize the results.
 Both join and from need the serialization type (many/single).
 As more types of queries are added a query class should be created.  The parser/lexer/compiler should be in this class.
 Converters are going to be needed.  For example, to convert bits to booleans.  Each Column instance should have an array of converters, but the user should be able to override these on a per-query basis (in the select columns).
+Composite keys are not supported by the Schema and will not work.  Needs impl.
