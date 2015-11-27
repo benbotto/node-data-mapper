@@ -23,10 +23,9 @@ function From(database, escaper, meta)
 {
   this._database   = database;
   this._escaper    = escaper;
-  this._selectCols = [];
 
-  // These are the tables that are being queried due to FROM our JOINs.  There's
-  // also a lookup of table alias to table.
+  // These are the tables that are being queried due to FROM our JOINs.  There
+  // is also a lookup of alias->table.
   this._tables           = [];
   this._tableAliasLookup = {};
 
@@ -36,6 +35,11 @@ function From(database, escaper, meta)
   // by alias, unescaped in <table-alias>.<column-name> form.
   this._availableCols       = [];
   this._availableColsLookup = {};
+
+  // These are the columns that the user selected, with a lookup of
+  // fully-qualified column name to column meta.
+  this._selectCols      = [];
+  this._selectColLookup = {};
 
   // Add the FROM table.  
   if (typeof meta === 'string')
@@ -73,23 +77,24 @@ From.prototype.createFQColName = function(tableAlias, colName)
 
 /**
  * Private helper function to add a table to the query.  This adds the table to
- * the _tables array, adds a lookup for the table in _tableAliasLookup, and
- * makes all the columns available in the _availableCols array.
+ * the _tables array, and makes all the columns available in the _availableCols
+ * array.
  * @param meta An object containing the following:
  * {
- *   table:  string,   // The name of the table to select from.
- *   as:     string,   // An alias for the table.  This is needed if, for example,
- *                     // the same table is joined in multiple times.  This is
- *                     // what the table will be serialized as, and defaults
- *                     // to the table's alias.
- *   cond:   Condition // The condition (WHERE or ON) associated with the table.
+ *   table:  string,    // The name of the table to select from.
+ *   as:     string,    // An alias for the table.  This is needed if, for example,
+ *                      // the same table is joined in multiple times.  This is
+ *                      // what the table will be serialized as, and defaults
+ *                      // to the table's alias.
+ *   cond:   Condition, // The condition (WHERE or ON) associated with the table.
+ *   parent: string     // The alias of the parent table, if any.
  * }
  * @param joinType The type of join for the table, or null if this is the
  *        FROM table.
  */
 From.prototype._addTable = function(meta, joinType)
 {
-  var tblMeta, table, tableAlias;
+  var table, tableAlias, parent, tableMeta;
 
   // The table name is required.
   assert(meta.table !== undefined, 'table is required.');
@@ -101,17 +106,26 @@ From.prototype._addTable = function(meta, joinType)
   // Aliases must be word characters.  They can't, for example, contain periods.
   assert(tableAlias.match(/^\w+$/) !== null, 'Alises must only contain word characters.');
 
-  tblMeta =
+  // If a parent is specified, make sure it is a valid alias.
+  parent = meta.parent || null;
+
+  if (parent !== null)
+  {
+    assert(this._tableAliasLookup[parent] !== undefined,
+      'Parent table alias ' + parent + ' is not a valid table alias.');
+  }
+
+  // Add the table to the list of tables.
+  tableMeta =
   {
     tableAlias: tableAlias,
     table:      table,
-    cond:       meta.cond || null,
-    joinType:   joinType  || null
+    cond:       meta.cond   || null,
+    joinType:   joinType    || null,
+    parent:     meta.parent || null
   };
-
-  // Add the table to the list of tables, and add a lookup of alias->table.
-  this._tables.push(tblMeta);
-  this._tableAliasLookup[tblMeta.tableAlias] = table;
+  this._tables.push(tableMeta);
+  this._tableAliasLookup[tableAlias] = tableMeta;
 
   // Make each column available for selection or conditions.
   table.getColumns().forEach(function(col)
@@ -128,7 +142,7 @@ From.prototype._addTable = function(meta, joinType)
     this._availableColsLookup[fqColName] = this._availableCols[this._availableCols.length - 1];
   }.bind(this));
 
-  return tblMeta;
+  return this;
 };
 
 /**
@@ -156,9 +170,7 @@ From.prototype.isColumnAvailable = function(fqColName)
  */
 From.prototype.select = function(cols)
 {
-  var i, pk, pkAlias;
-  var selColLookup    = {};
-  var colAliasLookup  = {};
+  var colAliasLookup = {};
 
   // Select may only be performed once on a query.
   assert(this._selectCols.length === 0, 'select already performed on query.');
@@ -193,38 +205,60 @@ From.prototype.select = function(cols)
     {
       tableAlias: availColMeta.tableAlias,
       column:     availColMeta.column,
-      fqColAlias: fqColAlias
+      colAlias:   colAlias,
+      fqColAlias: fqColAlias,
+      fqColName:  fqColName
     };
 
     // Each alias must be unique.
     assert(colAliasLookup[fqColAlias] === undefined,
       'Column alias ' + fqColAlias + ' already selected.');
     colAliasLookup[fqColAlias] = true;
+
+    // Each column can only be selected once.  This is only a constraint because
+    // of the way that the primary key is found in execute.  If the primary key
+    // of a table was selected twice, there would not be a way to serialize
+    // the primary key correctly.
+    assert(this._selectColLookup[fqColName] === undefined,
+      'Column ' + fqColName + ' already selected.');
     
+    // Column is unique - save it in the list of selected columns with a lookup.
     this._selectCols.push(selColMeta);
-    selColLookup[fqColName] = true;
+    this._selectColLookup[fqColName] = selColMeta;
   }.bind(this));
 
   // The primary key from each table must be selected.  The serialization
   // needs a way to uniquely identify each object; the primary key is used
   // for this.
-  for (var tblAlias in this._tableAliasLookup)
+  this._tables.forEach(function(tblMeta)
   {
     // This is the primary key of the table, which is an array.
-    pk = this._tableAliasLookup[tblAlias].getPrimaryKey();
-
-    for (i = 0; i < pk.length; ++i)
+    tblMeta.table.getPrimaryKey().forEach(function(pkPart)
     {
       // This is the alias of the column in the standard
       // <table-alias>.<column-name> format.
-      pkAlias = this.createFQColName(tblAlias, pk[i].getName());
+      var pkAlias = this.createFQColName(tblMeta.tableAlias, pkPart.getName());
 
-      assert(selColLookup[pkAlias] !== undefined,
+      assert(this._selectColLookup[pkAlias] !== undefined,
         'The primary key of each table must be selected, but the primary key of table ' + 
-        this._tableAliasLookup[tblAlias].getName() +
+        tblMeta.table.getName() +
         ' is not present in the array of selected columns.');
-    }
-  }
+    }.bind(this));
+  }.bind(this));
+
+  return this;
+};
+
+/**
+ * Select all columns.  This is the default if no columns are specified.  This
+ * function gets called in execute and in toString if no columns are selected.
+ */
+From.prototype.selectAll = function()
+{
+  this.select(this._availableCols.map(function(col)
+  {
+    return col.fqColName;
+  }));
 
   return this;
 };
@@ -259,18 +293,19 @@ From.prototype.where = function(cond)
  * Join a table.
  * @param meta An object containing the following:
  * {
- *   table:  string,   // The name of the table to select from.
- *   as:     string,   // An alias for the table.  This is needed if, for example,
- *                     // the same table is joined in multiple times.  This is
- *                     // what the table will be serialized as, and defaults
- *                     // to the table's alias.
- *   on:     Condition // The condition (ON) for the join.
+ *   table:  string,    // The name of the table to select from.
+ *   as:     string,    // An alias for the table.  This is needed if, for example,
+ *                      // the same table is joined in multiple times.  This is
+ *                      // what the table will be serialized as, and defaults
+ *                      // to the table's alias.
+ *   on:     Condition, // The condition (ON) for the join.
+ *   parent: string     // The alias of the parent table, if any.
  * }
  * @param joinType The From.JOIN_TYPE of the join.
  */
 From.prototype._join = function(meta, joinType)
 {
-  var tokens, tree, onCond, columns;
+  var tokens, tree, onCond;
 
   if (meta.on)
   {
@@ -281,18 +316,17 @@ From.prototype._join = function(meta, joinType)
   }
 
   // Add the JOIN table.
-  this._addTable({table: meta.table, as: meta.as, cond: onCond}, joinType);
+  this._addTable({table: meta.table, as: meta.as, cond: onCond, parent: meta.parent}, joinType);
 
   // Make sure that each column used in the join is available (e.g. belongs to
   // one of the tables in the query).
   if (meta.on)
   {
-    columns  = this._condCompiler.getColumns(tree);
-    for (var i = 0; i < columns.length; ++i)
+    this._condCompiler.getColumns(tree).forEach(function(col)
     {
-      assert(this.isColumnAvailable(columns[i]),
-        'The column alias ' + columns[i] + ' is not available for an on condition.');
-    }
+      assert(this.isColumnAvailable(col),
+        'The column alias ' + col + ' is not available for an on condition.');
+    }.bind(this));
   }
 
   return this;
@@ -302,12 +336,13 @@ From.prototype._join = function(meta, joinType)
  * Inner join a table.
  * @param meta An object containing the following:
  * {
- *   table:  string,   // The name of the table to select from.
- *   as:     string,   // An alias for the table.  This is needed if, for example,
- *                     // the same table is joined in multiple times.  This is
- *                     // what the table will be serialized as, and defaults
- *                     // to the table's alias.
- *   on:     Condition // The condition (ON) for the join.
+ *   table:  string,    // The name of the table to select from.
+ *   as:     string,    // An alias for the table.  This is needed if, for example,
+ *                      // the same table is joined in multiple times.  This is
+ *                      // what the table will be serialized as, and defaults
+ *                      // to the table's alias.
+ *   on:     Condition, // The condition (ON) for the join.
+ *   parent: string     // The alias of the parent table, if any.
  * }
  */
 From.prototype.innerJoin = function(meta)
@@ -338,20 +373,13 @@ From.prototype.rightOuterJoin = function(meta)
  */
 From.prototype.toString = function()
 {
-  var sql       = 'SELECT  ';
-  var cols      = this._selectCols;
-  var fromName  = this._escaper.escapeProperty(this._tables[0].table.getName());
-  var fromAlias = this._escaper.escapeProperty(this._tables[0].tableAlias);
-  var tblMeta, joinName, joinAlias;
+  var sql  = 'SELECT  ';
+  var cols = this._selectCols;
+  var fromName, fromAlias, tblMeta, joinName, joinAlias;
 
   // No columns specified.  Get all columns.
   if (cols.length === 0)
-  {
-    this.select(this._availableCols.map(function(col)
-    {
-      return col.fqColName;
-    }));
-  }
+    this.selectAll();
 
   // Escape each selected column and add it to the query.
   sql += cols.map(function(col)
@@ -364,6 +392,8 @@ From.prototype.toString = function()
   }.bind(this)).join(', ');
 
   // Add the FROM portion.
+  fromName  = this._escaper.escapeProperty(this._tables[0].table.getName());
+  fromAlias = this._escaper.escapeProperty(this._tables[0].tableAlias);
   sql += '\n';
   sql += 'FROM    ' + fromName + ' AS ' + fromAlias;
 
@@ -392,6 +422,58 @@ From.prototype.toString = function()
   }
 
   return sql;
+};
+
+/**
+ * Execute the query.
+ * @param Schema An optional Schema implementation (constructor).
+ */
+From.prototype.execute = function(Schema)
+{
+  var schemata     = [];
+  var schemaLookup = {};
+
+  // No columns specified.  Get all columns.
+  if (this._selectCols.length === 0)
+    this.selectAll();
+
+  Schema = Schema || require(__dirname + '/../DataMapper/Schema');
+
+  // The primary key for each table is needed to create each schema.  Find
+  // each primary key and create the schema.
+  this._tables.forEach(function(tblMeta)
+  {
+    var pk = tblMeta.table.getPrimaryKey();
+    var fqColName, colMeta, schema;
+
+    // TODO: Composite keys are not yet implemented.
+    assert(pk.length === 1, 'Composite keys are not currently supported.');
+
+    // Create the schema.  In the query, the PK column name will be the fully-qualified
+    // column alias.  The serialized property should be the column alias.
+    fqColName = this.createFQColName(tblMeta.tableAlias, pk[0].getName());
+    colMeta   = this._selectColLookup[fqColName];
+    schema    = new Schema(colMeta.fqColAlias, colMeta.colAlias);
+
+    // Keep a lookup of table alias->schema.
+    schemaLookup[tblMeta.tableAlias] = schema;
+    
+    // If this table has no parent then the schema is top level.  Else
+    // this is a sub schema, and the parent is guaranteed to be present in
+    // the lookup.
+    if (tblMeta.parent === null)
+      schemata.push(schema);
+    else
+      schemaLookup[tblMeta.parent].addSchema(tblMeta.tableAlias, schema);
+  }.bind(this));
+
+  // Add each column/property to its schema.
+  this._selectCols.forEach(function(colMeta)
+  {
+    // PK already present.
+    if (!colMeta.column.isPrimary())
+      schemaLookup[colMeta.tableAlias].addProperty(colMeta.fqColAlias, colMeta.colAlias);
+  });
 };
 
 module.exports = From;

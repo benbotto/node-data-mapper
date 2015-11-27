@@ -157,6 +157,16 @@ describe('From (SELECT query) test suite.', function()
           .select('users.userID', {column: 'users.firstName', as: 'name'}, {column: 'users.lastName', as: 'name'});
       }).toThrowError('Column alias users.name already selected.');
     });
+
+    // Checks that the same column cannot be selected twice.
+    it('checks that the same column cannot be selected twice.', function()
+    {
+      expect(function()
+      {
+        new From(db, escaper, {table: 'users'})
+          .select('users.userID', {column: 'users.firstName', as: 'name'}, {column: 'users.firstName', as: 'name2'});
+      }).toThrowError('Column users.firstName already selected.');
+    });
   });
 
   describe('From where test suite.', function()
@@ -204,7 +214,7 @@ describe('From (SELECT query) test suite.', function()
     it('inner joins on primary key.', function()
     {
       var query = new From(db, escaper, {table: 'users', as: 'u'})
-        .innerJoin({table: 'phone_numbers', as: 'pn', on: {$eq: {'u.userID':'pn.userID'}}})
+        .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$eq: {'u.userID':'pn.userID'}}})
         .select('u.userID', 'pn.phoneNumberID');
 
       expect(query.toString()).toBe
@@ -215,13 +225,23 @@ describe('From (SELECT query) test suite.', function()
       );
     });
 
+    // Makes sure that if the parent is passed that it is a valid table.
+    it('makes sure that if the parent is passed that it is a valid table.', function()
+    {
+      expect(function()
+      {
+        new From(db, escaper, 'users')
+          .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'BAD_NAME'});
+      }).toThrowError('Parent table alias BAD_NAME is not a valid table alias.');
+    });
+
     // Verifies that only available columns can be used in ON conditions.
     it('verifies that only available columns can be used in ON conditions.', function()
     {
       expect(function()
       {
         new From(db, escaper, {table: 'users', as: 'u'})
-          .innerJoin({table: 'phone_numbers', as: 'pn', on: {$eq: {'u.INVALID':'pn.userID'}}});
+          .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$eq: {'u.INVALID':'pn.userID'}}});
       }).toThrowError('The column alias u.INVALID is not available for an on condition.');
     });
 
@@ -229,7 +249,7 @@ describe('From (SELECT query) test suite.', function()
     it('checks a left outer join.', function()
     {
       var query = new From(db, escaper, {table: 'users', as: 'u'})
-        .leftOuterJoin({table: 'phone_numbers', as: 'pn', on: {$eq: {'u.userID':'pn.userID'}}})
+        .leftOuterJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$eq: {'u.userID':'pn.userID'}}})
         .where({$is: {'pn.phoneNumberID':null}})
         .select('u.userID', 'pn.phoneNumberID');
 
@@ -246,7 +266,7 @@ describe('From (SELECT query) test suite.', function()
     it('checks a right outer join.', function()
     {
       var query = new From(db, escaper, {table: 'users', as: 'u'})
-        .rightOuterJoin({table: 'phone_numbers', as: 'pn', on: {$and: [{$eq: {'u.userID':'pn.userID'}},{$eq: {'pn.type':':mobile'}}]}})
+        .rightOuterJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$and: [{$eq: {'u.userID':'pn.userID'}},{$eq: {'pn.type':':mobile'}}]}})
         .select('u.userID', 'pn.phoneNumberID');
 
       expect(query.toString()).toBe
@@ -270,6 +290,76 @@ describe('From (SELECT query) test suite.', function()
         'FROM    `users` AS `u`\n' +
         'INNER JOIN `phone_numbers` AS `pn`'
       );
+    });
+  });
+
+  describe('From execute test suite.', function()
+  {
+    var Schema = require(__dirname + '/../DataMapper/Schema');
+    var schemata, SchemaProxy;
+
+    beforeEach(function()
+    {
+      // Proxy calls to Schema so that they can be tracked.
+      schemata = [];
+      SchemaProxy = function()
+      {
+        Schema.apply(this, arguments);
+        schemata.push(this);
+      };
+      SchemaProxy.prototype = Object.create(Schema.prototype);
+      SchemaProxy.prototype.constructor = Schema;
+    });
+
+    // Make sure that the schema for each pk gets created.
+    it('make sure that the schema for each pk gets created.', function()
+    {
+      // Single table, one schema.
+      new From(db, escaper, {table: 'users'})
+        .execute(SchemaProxy);
+
+      expect(schemata.length).toBe(1);
+      expect(schemata[0].getKeyColumnName()).toBe('users.ID');
+
+      // Two tables, two schema.
+      schemata.length = 0;
+      new From(db, escaper, {table: 'users'})
+        .innerJoin({table: 'phone_numbers', as: 'phoneNumbers', parent: 'users', on: {$eq: {'users.userID':'phoneNumbers.userID'}}})
+        .execute(SchemaProxy);
+      expect(schemata.length).toBe(2);
+      expect(schemata[0].getKeyColumnName()).toBe('users.ID');
+      expect(schemata[1].getKeyColumnName()).toBe('phoneNumbers.ID');
+    });
+
+    // Checks that the properties from each table get added to the schemata.
+    it('checks that the properties from each table get added to the schemata.', function()
+    {
+      new From(db, escaper, {table: 'users'})
+        .innerJoin({table: 'phone_numbers', as: 'phoneNumbers', parent: 'users', on: {$eq: {'users.userID':'phoneNumbers.userID'}}})
+        .execute(SchemaProxy);
+
+      expect(schemata[0].getProperties().length).toBe(3);
+      expect(schemata[0].getProperties()[0]).toEqual({columnName: 'users.ID',    propertyName: 'ID'});
+      expect(schemata[0].getProperties()[1]).toEqual({columnName: 'users.first', propertyName: 'first'});
+      expect(schemata[0].getProperties()[2]).toEqual({columnName: 'users.last',  propertyName: 'last'});
+
+      expect(schemata[1].getProperties().length).toBe(4);
+      expect(schemata[1].getProperties()[0]).toEqual({columnName: 'phoneNumbers.ID',          propertyName: 'ID'});
+      expect(schemata[1].getProperties()[1]).toEqual({columnName: 'phoneNumbers.userID',      propertyName: 'userID'});
+      expect(schemata[1].getProperties()[2]).toEqual({columnName: 'phoneNumbers.phoneNumber', propertyName: 'phoneNumber'});
+      expect(schemata[1].getProperties()[3]).toEqual({columnName: 'phoneNumbers.type',        propertyName: 'type'});
+    });
+
+    // Checks that the user schema is the parent of phoneNumbers.
+    it('checks that the user schema is the parent of phoneNumbers.', function()
+    {
+      new From(db, escaper, {table: 'users'})
+        .innerJoin({table: 'phone_numbers', as: 'phoneNumbers', parent: 'users', on: {$eq: {'users.userID':'phoneNumbers.userID'}}})
+        .execute(SchemaProxy);
+
+      expect(schemata[0].getSchemata().length).toBe(1);
+      expect(schemata[0].getSchemata()[0].propertyName).toBe('phoneNumbers');
+      expect(schemata[0].getSchemata()[0].schema).toBe(schemata[1]);
     });
   });
 });
