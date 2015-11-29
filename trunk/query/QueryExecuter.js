@@ -9,8 +9,13 @@ function QueryExecuter()
 
 /**
  * Execute a select query.
+ * @param query The SQL to execute.  The query is expected to be escaped.
+ * @param callback The callback function that is called when the query is executed.
+ *        function callback(err, results)
+ *        The results are an array, one entry per row, of objects
+ *        that are pairs of column->value.
  */
-QueryExecuter.prototype.select = function()
+QueryExecuter.prototype.select = function(/*query, callback*/)
 {
   throw new Error('QueryExecuter::select not implemented.');
 };
