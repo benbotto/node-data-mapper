@@ -1,0 +1,43 @@
+{
+  "name": "testDB",
+  "tables":
+  [
+    {
+      "name": "people",
+      "columns":
+      [
+        {
+          "name": "personID",
+          "alias": "id",
+          "isPrimary": true
+        },
+        {
+          "name": "firstName"
+        },
+        {
+          "name": "lastName" 
+        }
+      ]
+    },
+    {
+      "name": "phoneNumbers",
+      "columns":
+      [
+        {
+          "name": "phoneNumberID",
+          "alias": "id",
+          "isPrimary": true
+        },
+        {
+          "name": "personID"
+        },
+        {
+          "name": "phone"
+        },
+        {
+          "name": "type"
+        }
+      ]
+    }
+  ]
+}
