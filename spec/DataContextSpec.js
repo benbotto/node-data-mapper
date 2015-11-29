@@ -8,14 +8,16 @@ describe('DataContext test suite', function()
   var From         = require(__dirname + '/../query/From');
   var db           = new Database(require(__dirname + '/resource/testDB.json'));
   var escaper      = new MySQLEscaper();
+  var exec         = {};
 
   // Checks the constructor.
   it('checks the constructor.', function()
   {
-    var dc = new DataContext(db, escaper);
+    var dc = new DataContext(db, escaper, exec);
 
     expect(dc.getDatabase()).toBe(db);
     expect(dc.getEscaper()).toBe(escaper);
+    expect(dc.getQueryExecuter()).toBe(exec);
   });
 
   // Checks that a From query can be created.

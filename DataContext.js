@@ -8,11 +8,13 @@ var From = require('./query/From.js');
  * @param database The database to utilize.
  * @param escaper An instance of Escaper matching the database type (i.e.
  *        MySQLEscaper or MSSQLEscaper).
+ * @param queryExecuter A QueryExecuter instance (i.e. a MySQLQueryExecuter).
  */
-function DataContext(database, escaper)
+function DataContext(database, escaper, queryExecuter)
 {
-  this._database = database;
-  this._escaper  = escaper;
+  this._database      = database;
+  this._escaper       = escaper;
+  this._queryExecuter = queryExecuter;
 }
 
 /**
@@ -32,13 +34,21 @@ DataContext.prototype.getEscaper = function()
 };
 
 /**
+ * Get the query executer instance.
+ */
+DataContext.prototype.getQueryExecuter = function()
+{
+  return this._queryExecuter;
+};
+
+/**
  * Create a new SELECT query.
  * @param meta A meta object describing the table to select from.  Se the From
  *        constructor for details.
  */
 DataContext.prototype.from = function(meta)
 {
-  return new From(this.getDatabase(), this._escaper, meta);
+  return new From(this.getDatabase(), this._escaper, this._queryExecuter, meta);
 };
 
 module.exports = DataContext;
