@@ -1,6 +1,6 @@
 'use strict';
 
-var assert = require(__dirname + '/../assert');
+var assert = require(__dirname + '/../util/assert');
 
 /**
  * This class is a recursive decent parser for a WHERE Condition, which is a

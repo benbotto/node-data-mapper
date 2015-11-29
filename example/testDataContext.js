@@ -1,5 +1,5 @@
-var DataContext        = require(__dirname + '/../DataContext');
-var Database           = require(__dirname + '/../Database');
+var DataContext        = require(__dirname + '/../datacontext/DataContext');
+var Database           = require(__dirname + '/../database/Database');
 var MySQLEscaper       = require(__dirname + '/../query/MySQLEscaper');
 var MySQLQueryExecuter = require(__dirname + '/../query/MySQLQueryExecuter');
 var mysql              = require('mysql');
@@ -10,7 +10,7 @@ var pool    = mysql.createPool
 ({
   host:            'localhost',
   user:            'testUser',
-  password:        '4me2n0',
+  password:        'secret',
   database:        'test',
   connectionLimit: 10
 });

@@ -3,7 +3,7 @@ describe('From (SELECT query) test suite.', function()
   'use strict';
 
   var From         = require(__dirname + '/../query/From');
-  var Database     = require(__dirname + '/../Database');
+  var Database     = require(__dirname + '/../database/Database');
   var MySQLEscaper = require(__dirname + '/../query/MySQLEscaper');
   var db           = new Database(require(__dirname + '/resource/testDB.json'));
   var escaper      = new MySQLEscaper();
@@ -413,7 +413,6 @@ describe('From (SELECT query) test suite.', function()
         .execute()
         .then(function(result)
         {
-          console.log(result);
           expect(result.users.length).toBe(1);
           expect(result.users[0].phoneNumbers.length).toBe(3);
         });

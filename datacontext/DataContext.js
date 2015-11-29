@@ -1,11 +1,11 @@
 'use strict';
 
-var From = require('./query/From.js');
+var From = require(__dirname + '/../query/From.js');
 
 /**
  * The main interface to the ORM.  This class is expected to be extended by the
  * user (or created as a singleton).
- * @param database The database to utilize.
+ * @param database An instance of a Database.
  * @param escaper An instance of Escaper matching the database type (i.e.
  *        MySQLEscaper or MSSQLEscaper).
  * @param queryExecuter A QueryExecuter instance (i.e. a MySQLQueryExecuter).

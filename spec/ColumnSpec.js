@@ -2,7 +2,7 @@ describe('Column test suite', function()
 {
   'use strict';
 
-  var Column = require(__dirname + '/../Column');
+  var Column = require(__dirname + '/../database/Column');
 
   // Checks the constructor.
   it('checks the constructor.', function()

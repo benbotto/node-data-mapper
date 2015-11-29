@@ -1,6 +1,6 @@
 'use strict';
 
-var assert            = require(__dirname + '/../assert');
+var assert            = require(__dirname + '/../util/assert');
 var ConditionLexer    = require(__dirname + '/../query/ConditionLexer');
 var ConditionParser   = require(__dirname + '/../query/ConditionParser');
 var ConditionCompiler = require(__dirname + '/../query/ConditionCompiler');
