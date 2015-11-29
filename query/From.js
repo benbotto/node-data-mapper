@@ -4,13 +4,17 @@ var assert            = require(__dirname + '/../assert');
 var ConditionLexer    = require(__dirname + '/../query/ConditionLexer');
 var ConditionParser   = require(__dirname + '/../query/ConditionParser');
 var ConditionCompiler = require(__dirname + '/../query/ConditionCompiler');
+var DataMapper        = require(__dirname + '/../DataMapper/DataMapper');
+var deferred          = require('deferred');
 
 /**
  * Construct a new SELECT query.  FROM and JOINs must come first so that
  * selected columns can be found.
  * @param database The database to select from.
- * @param escaper An instance of Escaper matching the database type (i.e.
+ * @param escaper An instance of an Escaper matching the database type (i.e.
  *        MySQLEscaper or MSSQLEscaper).
+ * @param queryExecuter A QueryExecuter instance that implements the
+ *        select method.
  * @param meta Either the name of the table or a meta object describing the table:
  * {
  *   table:  string, // The name of the table to select from.
@@ -19,10 +23,11 @@ var ConditionCompiler = require(__dirname + '/../query/ConditionCompiler');
  *                   // This defaults to the table's alias.
  * }
  */
-function From(database, escaper, meta)
+function From(database, escaper, queryExecuter, meta)
 {
-  this._database   = database;
-  this._escaper    = escaper;
+  this._database      = database;
+  this._escaper       = escaper;
+  this._queryExecuter = queryExecuter;
 
   // These are the tables that are being queried due to FROM our JOINs.  There
   // is also a lookup of alias->table.
@@ -430,8 +435,9 @@ From.prototype.toString = function()
  */
 From.prototype.execute = function(Schema)
 {
-  var schemata     = [];
+  var schemata     = {};
   var schemaLookup = {};
+  var defer        = deferred();
 
   // No columns specified.  Get all columns.
   if (this._selectCols.length === 0)
@@ -462,7 +468,7 @@ From.prototype.execute = function(Schema)
     // this is a sub schema, and the parent is guaranteed to be present in
     // the lookup.
     if (tblMeta.parent === null)
-      schemata.push(schema);
+      schemata[tblMeta.tableAlias] = schema;
     else
       schemaLookup[tblMeta.parent].addSchema(tblMeta.tableAlias, schema);
   }.bind(this));
@@ -474,6 +480,26 @@ From.prototype.execute = function(Schema)
     if (!colMeta.column.isPrimary())
       schemaLookup[colMeta.tableAlias].addProperty(colMeta.fqColAlias, colMeta.colAlias);
   });
+
+  // Execute the query.
+  this._queryExecuter.select(this.toString(), function(err, result)
+  {
+    if (err)
+      defer.reject(err);
+    else
+    {
+      var serialized = {};
+      var dm         = new DataMapper();
+
+      for (var tblAlias in schemata)
+        serialized[tblAlias] = dm.serialize(result, schemata[tblAlias]);
+
+      defer.resolve(serialized);
+    }
+  });
+
+  // A promise is returned.  It will be resolved with the serialized results.
+  return defer.promise;
 };
 
 module.exports = From;
