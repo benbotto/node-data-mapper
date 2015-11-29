@@ -7,7 +7,7 @@ module.exports = function(grunt)
   grunt.initConfig
   ({
     jshint:         require('./grunt/jshint')(grunt, scripts),
-    jasmine_nodejs: require('./grunt/jasmine-nodejs')(grunt),
+    jasmine_nodejs: require('./grunt/jasmine-nodejs')(grunt, scripts),
     watch:          require('./grunt/watch')(grunt, scripts)
   });
 

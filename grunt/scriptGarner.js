@@ -11,18 +11,18 @@ module.exports = function(verbose)
   {
     return !script.match(/node_modules/) &&
            !script.match(/grunt/i) &&
-           !script.match(/spec/);
+           !script.match(/Spec.js$/);
   });
 
   // Grunt files.
-  files.grunt = glob.sync('**/*.js', globOpts).filter(function(script)
-  {
-    return !script.match(/node_modules/) &&
-           script.match(/grunt/i);
-  });
+  files.grunt = ['Gruntfile.js'].concat(glob.sync('grunt/*.js', globOpts));
 
   // Specs.
-  files.spec = glob.sync('spec/**/*.js', globOpts);
+  files.spec = glob.sync('**/*Spec.js', globOpts).filter(function(script)
+  {
+    return !script.match(/node_modules/) &&
+           !script.match(/grunt/i);
+  });
 
   if (verbose)
   {

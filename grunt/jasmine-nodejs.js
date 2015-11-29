@@ -1,4 +1,4 @@
-module.exports = function(grunt)
+module.exports = function(grunt, scripts)
 {
   'use strict';
 
@@ -12,7 +12,7 @@ module.exports = function(grunt)
     },
     all:
     {
-      specs: ['spec/**']
+      specs: scripts.spec
     }
   };
 

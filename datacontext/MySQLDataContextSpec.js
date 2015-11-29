@@ -2,10 +2,10 @@ describe('MySQLDataContext test suite', function()
 {
   'use strict';
 
-  var DataContext      = require(__dirname + '/../datacontext/DataContext');
-  var MySQLDataContext = require(__dirname + '/../datacontext/MySQLDataContext');
+  var DataContext      = require(__dirname + '/DataContext');
+  var MySQLDataContext = require(__dirname + '/MySQLDataContext');
   var Database         = require(__dirname + '/../database/Database');
-  var db               = new Database(require(__dirname + '/resource/testDB.json'));
+  var db               = new Database(require(__dirname + '/../spec/testDB.json'));
   var pool             = {};
 
   // Checks the constructor.

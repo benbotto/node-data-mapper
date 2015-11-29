@@ -2,7 +2,7 @@ describe('QueryExeucter test suite.', function()
 {
   'use strict';
 
-  var QueryExecuter = require(__dirname + '/../query/QueryExecuter');
+  var QueryExecuter = require(__dirname + '/QueryExecuter');
   var qe;
 
   beforeEach(function()

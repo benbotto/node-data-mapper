@@ -2,10 +2,10 @@ describe('From (SELECT query) test suite.', function()
 {
   'use strict';
 
-  var From         = require(__dirname + '/../query/From');
+  var From         = require(__dirname + '/From');
   var Database     = require(__dirname + '/../database/Database');
-  var MySQLEscaper = require(__dirname + '/../query/MySQLEscaper');
-  var db           = new Database(require(__dirname + '/resource/testDB.json'));
+  var MySQLEscaper = require(__dirname + '/MySQLEscaper');
+  var db           = new Database(require(__dirname + '/../spec/testDB.json'));
   var escaper      = new MySQLEscaper();
   var qryExec;
 
@@ -304,7 +304,7 @@ describe('From (SELECT query) test suite.', function()
 
   describe('From execute test suite.', function()
   {
-    var Schema = require(__dirname + '/../DataMapper/Schema');
+    var Schema = require(__dirname + '/../datamapper/Schema');
     var schemata, SchemaProxy;
 
     beforeEach(function()

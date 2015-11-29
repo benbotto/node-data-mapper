@@ -1,0 +1,2 @@
+Specs are in the directories with the files they are intended to test.  This
+directory contains shared testing resources.

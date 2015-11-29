@@ -2,8 +2,8 @@ describe('MySQLEscaper test suite.', function()
 {
   'use strict';
 
-  var Escaper      = require(__dirname + '/../query/Escaper');
-  var MySQLEscaper = require(__dirname + '/../query/MySQLEscaper');
+  var Escaper      = require(__dirname + '/Escaper');
+  var MySQLEscaper = require(__dirname + '/MySQLEscaper');
   var escaper      = new MySQLEscaper();
 
   describe('constructor test suite.', function()

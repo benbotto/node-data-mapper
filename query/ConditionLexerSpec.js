@@ -2,7 +2,7 @@ describe('ConditionLexer test suite.', function()
 {
   'use strict';
 
-  var ConditionLexer = require(__dirname + '/../query/ConditionLexer');
+  var ConditionLexer = require(__dirname + '/ConditionLexer');
   var cl             = new ConditionLexer();
 
   describe('ConditionLexer parse test suite.', function()
