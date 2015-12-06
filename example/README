@@ -1,0 +1,13 @@
+All the examples in this directory use the bike_shop database.  To import this
+database, run the SQL in bike_shop.sql.  First log in to your MySQL server,
+then run:
+
+source bike_shop.sql
+
+The database contains a series of bike shops.  Each bike shop has staff, and
+staff can get bonuses.  Each bike shop sells bikes.  Two queries are run to
+show what data have been added.  The first shows each bike shop, the staff for
+each, and each staff members bonuses.  (Most staff members have not received
+any bonuses.)  The second query shows each bike shop with all the bikes sold by
+each shop.  (Note that some of the bikes are sold by multiple shops.)
+
