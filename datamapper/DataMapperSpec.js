@@ -206,5 +206,28 @@ describe('DataMapper test suite.', function()
       }
     ]);
   });
+
+  // Serializes multiple sub-schemata with the same value for primary keys.
+  it('serializes multiple sub-schemata with the same value for primary keys.', function()
+  {
+    // Both phoneNumberID and productID are 1.
+    var query =
+    [
+      {personID: 1, phoneNumberID: 1, productID: 1}
+    ];
+
+    var schema = new Schema('personID')
+      .addSchema('phoneNumbers', new Schema('phoneNumberID'))
+      .addSchema('products',     new Schema('productID'));
+
+    expect(dm.serialize(query, schema)).toEqual
+    ([
+      {
+        personID: 1,
+        phoneNumbers: [{phoneNumberID: 1}],
+        products: [{productID: 1}]
+      }
+    ]);
+  });
 });
 

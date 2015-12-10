@@ -26,14 +26,15 @@ DataMapper.prototype.serialize = function(query, schema)
   {
     var doc, i, subProps, subSchemata;
     var keyCol = schema._keyColumnName;
+    var keyVal = queryRow[keyCol];
 
     // The keyCol is null, meaning this was an outer join and there is no
     // related data.
-    if (!queryRow[keyCol])
+    if (!keyVal)
       return;
       
     // First time encountering this key.  Create a document for it.
-    if (lookup[queryRow[keyCol]] === undefined)
+    if (lookup[keyVal] === undefined)
     {
       // If serializing to an array (a many relationship) then make a new
       // document for this row, otherwise the data will be added directly to
@@ -52,14 +53,14 @@ DataMapper.prototype.serialize = function(query, schema)
         collection.push(doc);
 
       // This lookup is used to ensure uniqueness.
-      lookup[queryRow[keyCol]] =
+      lookup[keyVal] =
       {
         document: doc,
         lookup:   {}
       };
     }
     else
-      doc = lookup[queryRow[keyCol]].document;
+      doc = lookup[keyVal].document;
 
     // Now serialize each sub schema.
     for (i = 0; i < schemata.length; ++i)
@@ -76,9 +77,16 @@ DataMapper.prototype.serialize = function(query, schema)
           doc[schemata[i].propertyName] = [];
       }
       
-      // Recurse and serialize the sub schemata.
+      // Recurse and serialize the sub schemata.  Note that the lookup for each
+      // schema needs to be unique because there could be two schemata at the
+      // same level that have key columns with the same value (e.g. a person with
+      // product and phone numbers, and phoneNumberID = 1 and productID = 1).
+      if (lookup[keyVal].lookup[schemata[i].propertyName] === undefined)
+        lookup[keyVal].lookup[schemata[i].propertyName] = {};
+
       serializeRow(queryRow, schemata[i].schema, doc[schemata[i].propertyName],
-        subProps, lookup[queryRow[keyCol]].lookup, subSchemata, schemata[i].relationshipType);
+        subProps, lookup[keyVal].lookup[schemata[i].propertyName], subSchemata,
+        schemata[i].relationshipType);
     }
   }
   
