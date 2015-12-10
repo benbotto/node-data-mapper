@@ -1,5 +1,7 @@
 'use strict';
 
+var assert = require(__dirname + '/../util/assert');
+
 /**
  * A Schema is a representation of a serializable database table, consisting of
  * a series of columns.  Each column may be provided a property name, which is
@@ -13,9 +15,10 @@ function Schema(keyColumnName, propertyName)
 {
   // Note that these properties are treated as package private.  The DataMapper
   // accesses them directly for efficiency reasons.
-  this._keyColumnName = keyColumnName;
-  this._properties    = [];
-  this._schemata      = [];
+  this._keyColumnName  = keyColumnName;
+  this._properties     = [];
+  this._schemata       = [];
+  this._propertyLookup = {};
   
   this.addProperty(keyColumnName, propertyName);
 }
@@ -38,9 +41,16 @@ Schema.prototype.getKeyColumnName = function()
  */
 Schema.prototype.addProperty = function(columnName, propertyName)
 {
+  propertyName = propertyName || columnName;
+
+  // The property names must be unique.
+  assert(this._propertyLookup[propertyName] === undefined,
+    'Property "' + propertyName + '" already present in schema.');
+
+  this._propertyLookup[propertyName] = true;
   this._properties.push
   ({
-    propertyName: propertyName || columnName,
+    propertyName: propertyName,
     columnName:   columnName
   });
   
@@ -83,6 +93,12 @@ Schema.prototype.getProperties = function()
  */
 Schema.prototype.addSchema = function(propertyName, schema, relationshipType)
 {
+  // The property names must be unique.
+  assert(this._propertyLookup[propertyName] === undefined,
+    'Property "' + propertyName + '" already present in schema.');
+
+  this._propertyLookup[propertyName] = true;
+
   this._schemata.push
   ({
     propertyName:     propertyName,
@@ -94,7 +110,7 @@ Schema.prototype.addSchema = function(propertyName, schema, relationshipType)
 };
 
 /**
- * Get the array of schemata, each of which has a property name and a Shema
+ * Get the array of schemata, each of which has a property name and a Schema
  * instance.
  */
 Schema.prototype.getSchemata = function()

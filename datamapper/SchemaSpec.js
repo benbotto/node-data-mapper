@@ -88,4 +88,21 @@ describe('Schema test suite.', function()
     expect(schemata[0].relationshipType).toBe(Schema.RELATIONSHIP_TYPE.MANY);
     expect(schemata[1].relationshipType).toBe(Schema.RELATIONSHIP_TYPE.SINGLE);
   });
+
+  // Checks that the same property name cannot be used twice.
+  it('checks that the same property name cannot be used twice.', function()
+  {
+    expect(function()
+    {
+      new Schema('personID').addProperty('personID');
+    }).toThrowError('Property "personID" already present in schema.');
+
+    expect(function()
+    {
+      new Schema('personID')
+        .addSchema('phoneNumbers', new Schema('phoneNumberID'))
+        .addSchema('phoneNumbers', new Schema('phoneNumberID'));
+    }).toThrowError('Property "phoneNumbers" already present in schema.');
+  });
 });
+
