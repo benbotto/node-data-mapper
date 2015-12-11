@@ -1,4 +1,3 @@
-Join needs relationship type (single/many).
 Primary keys should only be required if at least one column is selected from the table.  Then lookup tables could be excluded from the serialization (for many-to-many relationships).
 As more types of queries are added a query class should be created.  The parser/lexer/compiler should be in this class.
 Converters are going to be needed.  For example, to convert bits to booleans.  Each Column instance should have an array of converters, but the user should be able to override these on a per-query basis (in the select columns).

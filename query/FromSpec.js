@@ -396,17 +396,19 @@ describe('From (SELECT query) test suite.', function()
     // Checks that the query gets serialized.
     it('checks that the query gets serialized.', function()
     {
+      // Dummy response from the query executer.
       qryExec.select.and.callFake(function(query, callback)
       {
         var result =
         [
           {'users.ID': 1, 'users.first': 'joe', 'users.last': 'smith', 'phoneNumbers.ID': 11, 'phoneNumbers.phoneNumber': '111-111-1111'},
           {'users.ID': 1, 'users.first': 'joe', 'users.last': 'smith', 'phoneNumbers.ID': 12, 'phoneNumbers.phoneNumber': '222-222-3333'},
-          {'users.ID': 1, 'users.first': 'joe', 'users.last': 'smith', 'phoneNumbers.ID': 13, 'phoneNumbers.phoneNumber': '333-444-4444'},
+          {'users.ID': 1, 'users.first': 'joe', 'users.last': 'smith', 'phoneNumbers.ID': 13, 'phoneNumbers.phoneNumber': '333-444-4444'}
         ];
 
         callback(null, result);
       });
+
       new From(db, escaper, qryExec, {table: 'users'})
         .innerJoin({table: 'phone_numbers', as: 'phoneNumbers', parent: 'users', on: {$eq: {'users.userID':'phoneNumbers.userID'}}})
         .select('users.userID', 'users.firstName', 'users.lastName', 'phoneNumbers.phoneNumberID', 'phoneNumbers.phoneNumber')
@@ -415,6 +417,33 @@ describe('From (SELECT query) test suite.', function()
         {
           expect(result.users.length).toBe(1);
           expect(result.users[0].phoneNumbers.length).toBe(3);
+        });
+    });
+
+    // Checks that two separate schemata can be serialized.
+    it('checks that two separate schemata can be serialized.', function()
+    {
+      // Dummy response from the query executer.
+      qryExec.select.and.callFake(function(query, callback)
+      {
+        var result =
+        [
+          {'users.ID': 1, 'users.first': 'joe', 'users.last': 'smith', 'phoneNumbers.ID': 11, 'phoneNumbers.phoneNumber': '111-111-1111'},
+          {'users.ID': 1, 'users.first': 'joe', 'users.last': 'smith', 'phoneNumbers.ID': 12, 'phoneNumbers.phoneNumber': '222-222-3333'},
+          {'users.ID': 1, 'users.first': 'joe', 'users.last': 'smith', 'phoneNumbers.ID': 13, 'phoneNumbers.phoneNumber': '333-444-4444'}
+        ];
+
+        callback(null, result);
+      });
+
+      new From(db, escaper, qryExec, {table: 'users'})
+        .innerJoin({table: 'phone_numbers', as: 'phoneNumbers'})
+        .select('users.userID', 'users.firstName', 'users.lastName', 'phoneNumbers.phoneNumberID', 'phoneNumbers.phoneNumber')
+        .execute()
+        .then(function(result)
+        {
+          expect(result.users.length).toBe(1);
+          expect(result.phoneNumbers.length).toBe(3);
         });
     });
 
@@ -433,29 +462,41 @@ describe('From (SELECT query) test suite.', function()
         });
     });
 
-    // Checks that two separate schemata can be serialized.
-    it('checks that two separate schemata can be serialized.', function()
+    // Checks that relationship type is respected.
+    it('checks that relationship type is respected.', function()
     {
+      // Dummy response from the query executer.
       qryExec.select.and.callFake(function(query, callback)
       {
         var result =
         [
-          {'users.ID': 1, 'users.first': 'joe', 'users.last': 'smith', 'phoneNumbers.ID': 11, 'phoneNumbers.phoneNumber': '111-111-1111'},
-          {'users.ID': 1, 'users.first': 'joe', 'users.last': 'smith', 'phoneNumbers.ID': 12, 'phoneNumbers.phoneNumber': '222-222-3333'},
-          {'users.ID': 1, 'users.first': 'joe', 'users.last': 'smith', 'phoneNumbers.ID': 13, 'phoneNumbers.phoneNumber': '333-444-4444'},
+          {'user.ID': 1, 'phoneNumbers.ID': 11, 'phoneNumbers.userID': 1},
+          {'user.ID': 1, 'phoneNumbers.ID': 12, 'phoneNumbers.userID': 1},
+          {'user.ID': 2, 'phoneNumbers.ID': 13, 'phoneNumbers.userID': 2}
         ];
 
         callback(null, result);
       });
-      
-      new From(db, escaper, qryExec, {table: 'users'})
-        .innerJoin({table: 'phone_numbers', as: 'phoneNumbers'})
-        .select('users.userID', 'users.firstName', 'users.lastName', 'phoneNumbers.phoneNumberID', 'phoneNumbers.phoneNumber')
+
+      new From(db, escaper, qryExec, {table: 'phone_numbers', as: 'phoneNumbers'})
+        .innerJoin
+        ({
+          table:   'users',
+          as:      'user',
+          parent:  'phoneNumbers',
+          on:      {$eq: {'phoneNumbers.userID':'user.userID'}},
+          relType: 'single'
+        })
+        .select('phoneNumbers.phoneNumberID', 'user.userID')
         .execute()
         .then(function(result)
         {
-          expect(result.users.length).toBe(1);
           expect(result.phoneNumbers.length).toBe(3);
+
+          // 'user' is an object, not an array.
+          expect(result.phoneNumbers[0].user.ID).toBe(1);
+          expect(result.phoneNumbers[1].user.ID).toBe(1);
+          expect(result.phoneNumbers[2].user.ID).toBe(2);
         });
     });
   });

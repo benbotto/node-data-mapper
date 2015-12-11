@@ -86,13 +86,18 @@ From.prototype.createFQColName = function(tableAlias, colName)
  * array.
  * @param meta An object containing the following:
  * {
- *   table:  string,    // The name of the table to select from.
- *   as:     string,    // An alias for the table.  This is needed if, for example,
- *                      // the same table is joined in multiple times.  This is
- *                      // what the table will be serialized as, and defaults
- *                      // to the table's alias.
- *   cond:   Condition, // The condition (WHERE or ON) associated with the table.
- *   parent: string     // The alias of the parent table, if any.
+ *   table:   string,    // The name of the table to select from.
+ *   as:      string,    // An alias for the table.  This is needed if, for example,
+ *                       // the same table is joined in multiple times.  This is
+ *                       // what the table will be serialized as, and defaults
+ *                       // to the table's alias.
+ *   cond:    Condition, // The condition (WHERE or ON) associated with the table.
+ *   parent:  string     // The alias of the parent table, if any.
+ *   relType: string     // The type of relationship between the parent and this
+ *                       // table ("single" or "many").  If set to "single" the
+ *                       // table will be serialized into an object, otherwise
+ *                       // the table will be serialized into an array.  "many"
+ *                       // is the default.
  * }
  * @param joinType The type of join for the table, or null if this is the
  *        FROM table.
@@ -125,9 +130,10 @@ From.prototype._addTable = function(meta, joinType)
   {
     tableAlias: tableAlias,
     table:      table,
-    cond:       meta.cond   || null,
-    joinType:   joinType    || null,
-    parent:     meta.parent || null
+    cond:       meta.cond    || null,
+    joinType:   joinType     || null,
+    parent:     meta.parent  || null,
+    relType:    meta.relType
   };
   this._tables.push(tableMeta);
   this._tableAliasLookup[tableAlias] = tableMeta;
@@ -298,13 +304,18 @@ From.prototype.where = function(cond)
  * Join a table.
  * @param meta An object containing the following:
  * {
- *   table:  string,    // The name of the table to select from.
- *   as:     string,    // An alias for the table.  This is needed if, for example,
- *                      // the same table is joined in multiple times.  This is
- *                      // what the table will be serialized as, and defaults
- *                      // to the table's alias.
- *   on:     Condition, // The condition (ON) for the join.
- *   parent: string     // The alias of the parent table, if any.
+ *   table:    string,    // The name of the table to select from.
+ *   as:       string,    // An alias for the table.  This is needed if, for example,
+ *                        // the same table is joined in multiple times.  This is
+ *                        // what the table will be serialized as, and defaults
+ *                        // to the table's alias.
+ *   on:       Condition, // The condition (ON) for the join.
+ *   parent:   string,    // The alias of the parent table, if any.
+ *   relType:  string     // The type of relationship between the parent and this
+ *                        // table ("single" or "many").  If set to "single" the
+ *                        // table will be serialized into an object, otherwise
+ *                        // the table will be serialized into an array.  "many"
+ *                        // is the default.
  * }
  * @param joinType The From.JOIN_TYPE of the join.
  */
@@ -321,7 +332,7 @@ From.prototype._join = function(meta, joinType)
   }
 
   // Add the JOIN table.
-  this._addTable({table: meta.table, as: meta.as, cond: onCond, parent: meta.parent}, joinType);
+  this._addTable({table: meta.table, as: meta.as, cond: onCond, parent: meta.parent, relType: meta.relType}, joinType);
 
   // Make sure that each column used in the join is available (e.g. belongs to
   // one of the tables in the query).
@@ -470,7 +481,7 @@ From.prototype.execute = function(Schema)
     if (tblMeta.parent === null)
       schemata[tblMeta.tableAlias] = schema;
     else
-      schemaLookup[tblMeta.parent].addSchema(tblMeta.tableAlias, schema);
+      schemaLookup[tblMeta.parent].addSchema(tblMeta.tableAlias, schema, tblMeta.relType);
   }.bind(this));
 
   // Add each column/property to its schema.
