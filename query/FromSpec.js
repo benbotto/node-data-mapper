@@ -141,7 +141,29 @@ describe('From (SELECT query) test suite.', function()
       expect(function()
       {
         new From(db, escaper, qryExec, {table: 'users'}).select('users.firstName');
-      }).toThrowError('The primary key of each table must be selected, but the primary key of table users is not present in the array of selected columns.');
+      }).toThrowError('If a column is selected from a table, then the primary key ' +
+        'from that table must also be selected.  The primary key of table users ' +
+        'is not present in the array of selected columns.');
+
+      expect(function()
+      {
+        new From(db, escaper, qryExec, {table: 'users'})
+          .innerJoin({table: 'phone_numbers', parent: 'users'})
+          .select('users.userID', 'users.firstName', 'phoneNumbers.phoneNumber');
+      }).toThrowError('If a column is selected from a table, then the primary key ' +
+        'from that table must also be selected.  The primary key of table phoneNumbers ' +
+        'is not present in the array of selected columns.');
+    });
+
+    // Make sure that the primary key is only required if columns from a table are selected.
+    it('make sure that the primary key is only required if columns from a table are selected.', function()
+    {
+      expect(function()
+      {
+        new From(db, escaper, qryExec, {table: 'users'})
+          .innerJoin({table: 'phone_numbers', parent: 'users'})
+          .select('users.userID', 'users.firstName');
+      }).not.toThrow();
     });
 
     // Checks that columns can have custom aliases.

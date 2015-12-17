@@ -182,6 +182,8 @@ From.prototype.isColumnAvailable = function(fqColName)
 From.prototype.select = function(cols)
 {
   var colAliasLookup = {};
+  var selTables      = {};
+  var tblAlias, tblMeta, i, pkAlias;
 
   // Select may only be performed once on a query.
   assert(this._selectCols.length === 0, 'select already performed on query.');
@@ -236,26 +238,32 @@ From.prototype.select = function(cols)
     // Column is unique - save it in the list of selected columns with a lookup.
     this._selectCols.push(selColMeta);
     this._selectColLookup[fqColName] = selColMeta;
+
+    // Store the list of tables that were selected from.
+    selTables[availColMeta.tableAlias] = true;
   }.bind(this));
 
   // The primary key from each table must be selected.  The serialization
   // needs a way to uniquely identify each object; the primary key is used
   // for this.
-  this._tables.forEach(function(tblMeta)
+  for (tblAlias in selTables)
   {
+    tblMeta = this._tableAliasLookup[tblAlias];
+
     // This is the primary key of the table, which is an array.
-    tblMeta.table.getPrimaryKey().forEach(function(pkPart)
+    for (i = 0; i < tblMeta.table.getPrimaryKey().length; ++i)
     {
       // This is the alias of the column in the standard
       // <table-alias>.<column-name> format.
-      var pkAlias = this.createFQColName(tblMeta.tableAlias, pkPart.getName());
+      pkAlias = this.createFQColName(tblMeta.tableAlias, tblMeta.table.getPrimaryKey()[i].getName());
 
       assert(this._selectColLookup[pkAlias] !== undefined,
-        'The primary key of each table must be selected, but the primary key of table ' + 
-        tblMeta.table.getName() +
+        'If a column is selected from a table, then the primary key ' +
+        'from that table must also be selected.  The primary key of table ' +
+        tblMeta.tableAlias +
         ' is not present in the array of selected columns.');
-    }.bind(this));
-  }.bind(this));
+    }
+  }
 
   return this;
 };
