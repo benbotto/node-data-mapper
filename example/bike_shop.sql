@@ -17,7 +17,7 @@ CREATE TABLE bike_shops
 INSERT INTO bike_shops(name, address) VALUES
 ('Bob\'s Bikes'         ,'9107 Sunrise Blvd'), 
 ('Zephyr Cove Cruisers' ,'18271 Highway 50'), 
-('Cycle Works'          ,'3100 Robin Dr');
+('Cycle Works'          ,'3100 La Riviera Wy');
 
 
 -- Staff members at the stores.
@@ -26,21 +26,23 @@ CREATE TABLE staff
   staffID INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   firstName VARCHAR(255) NOT NULL,
   lastName VARCHAR(255) NOT NULL,
+  age INT,
+  sex VARCHAR(20),
   hasStoreKeys BIT NOT NULL DEFAULT 0,
   hireDate DATE NOT NULL,
   bikeShopID INT NOT NULL,
   CONSTRAINT fk_staff_bikeShopID FOREIGN KEY (bikeShopID) REFERENCES bike_shops(bikeShopID)
 );
 
-INSERT INTO staff (firstName, lastName, hasStorekeys, hireDate, bikeShopID) VALUES
-('Randy',    'Alamedo',     0, '2012-01-03', 1),
-('John',     'Stovall',     1, '1999-08-14', 1),
-('Tina',     'Beckenworth', 0, '2006-04-30', 1),
-('Abe',      'Django',      1, '2015-09-19', 2),
-('Sal',      'Green',       1, '2004-01-30', 3),
-('Valerie',  'Stocking',    1, '2007-11-12', 3),
-('Kimberly', 'Fenters',     0, '2006-03-25', 3),
-('Michael',  'Xavier',      0, '2010-04-29', 3);
+INSERT INTO staff (firstName, lastName, age, sex, hasStorekeys, hireDate, bikeShopID) VALUES
+('Randy',    'Alamedo',     21, 'male',   0, '2012-01-03', 1),
+('John',     'Stovall',     54, 'male',   1, '1999-08-14', 1),
+('Tina',     'Beckenworth', 16, 'female', 0, '2006-04-30', 1),
+('Abe',      'Django',      67, 'male',   1, '2015-09-19', 2),
+('Sal',      'Green',       42, 'male',   1, '2004-01-30', 3),
+('Valerie',  'Stocking',    29, 'female', 1, '2007-11-12', 3),
+('Kimberly', 'Fenters',     18, 'female', 0, '2006-03-25', 3),
+('Michael',  'Xavier',      22, 'male',   0, '2010-04-29', 3);
 
 
 -- Staff members can receive bonuses.

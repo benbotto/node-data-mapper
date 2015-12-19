@@ -28,6 +28,10 @@ var db =
         {name: 'staffID', isPrimary: true},
         {name: 'firstName'},
         {name: 'lastName'},
+        {name: 'age'},
+        // Columns can also be aliased.  Here, the column "sex" will be 
+        // serialized as "gender."
+        {name: 'sex', alias: 'gender'},
         {name: 'hasStoreKeys'},
         {name: 'hireDate'},
         {name: 'bikeShopID'}

@@ -19,7 +19,7 @@ The following drivers are supported.
 $ npm install mysql --save
 ```
 Support for other database drivers is underway, but at this time only mysql is supported.
-Extending node-data-mapper to support a new driver is trivial.  Refer the the Extending section.
+Extending node-data-mapper to support a new driver is trivial.  Refer the the [Extending](#extending) section.
 
 ###### Define a Database
 
@@ -58,6 +58,10 @@ var db =
         {name: 'staffID', isPrimary: true},
         {name: 'firstName'},
         {name: 'lastName'},
+        {name: 'age'},
+        // Columns can also be aliased.  Here, the column "sex" will be 
+        // serialized as "gender."
+        {name: 'sex', alias: 'gender'},
         {name: 'hasStoreKeys'},
         {name: 'hireDate'},
         {name: 'bikeShopID'}
@@ -173,7 +177,7 @@ query.execute().then(function(result)
   bikeShopDC.getQueryExecuter().getConnectionPool().end();
 });
 ```
-Running this code (node example/retrieve/allFromSingleTable.js) yields the following output.
+Running this code (```node example/retrieve/allFromSingleTable.js```) yields the following output.
 ```js
 Query:
 SELECT  `bikeShops`.`bikeShopID` AS `bikeShops.bikeShopID`, `bikeShops`.`name` AS `bikeShops.name`, `bikeShops`.`address` AS `bikeShops.address`
@@ -187,9 +191,12 @@ Result:
      { bikeShopID: 2,
        name: 'Zephyr Cove Cruisers',
        address: '18271 Highway 50' },
-     { bikeShopID: 3, name: 'Cycle Works', address: '3100 Robin Dr' } ] }
+     { bikeShopID: 3,
+       name: 'Cycle Works',
+       address: '3100 La Riviera Wy' } ] }
 ```
+Note the table "bike_shops" is aliased (refer to the [Define a Database](#define-a-database) section); hence, the serialized object is named "bikeShops." 
 
-### Extending
+## Extending
 
 The node-data-mapper module is designed to be extendable.  Adding support for a new database dialect is simple, and involves extending and specializing the DataContext class.  The DataContext defines a standard interface for escaping and executing queries.  Refer to the MySQLDataContext implementation for an example.
