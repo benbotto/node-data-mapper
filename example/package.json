@@ -1,0 +1,15 @@
+{
+  "name": "node-data-mapper-examples",
+  "version": "1.0.0",
+  "description": "Example code for the node-data-mapper module.",
+  "main": "example.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mysql": "^2.10.0",
+    "node-data-mapper": "^1.0.0"
+  }
+}
