@@ -2,7 +2,7 @@ describe('MySQLQueryExecuter test suite.', function()
 {
   'use strict';
 
-  var MySQLQueryExecuter = require(__dirname + '/MySQLQueryExecuter');
+  var MySQLQueryExecuter = require('./MySQLQueryExecuter');
   var qe, con;
 
   beforeEach(function()

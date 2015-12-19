@@ -2,9 +2,9 @@ describe('Table test suite', function()
 {
   'use strict';
 
-  var Table   = require(__dirname + '/Table');
-  var Column  = require(__dirname + '/Column');
-  var users   = require(__dirname + '/../spec/testDB.json').tables[0];
+  var Table  = require('./Table');
+  var Column = require('./Column');
+  var users  = require('../spec/testDB.json').tables[0];
 
   describe('Table constructor test suite.', function()
   {

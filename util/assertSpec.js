@@ -2,7 +2,7 @@ describe('assert function test suite', function()
 {
   'use strict';
 
-  var assert = require(__dirname + '/assert');
+  var assert = require('./assert');
 
   // Checks true and false.
   it('checks true and false.', function()

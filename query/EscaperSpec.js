@@ -2,7 +2,7 @@ describe('Escaper test suite.', function()
 {
   'use strict';
 
-  var Escaper = require(__dirname + '/Escaper');
+  var Escaper = require('./Escaper');
   var escaper = new Escaper();
 
   describe('property escape test suite.', function()

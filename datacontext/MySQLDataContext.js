@@ -1,8 +1,8 @@
 'use strict';
 
-var DataContext        = require(__dirname + '/DataContext');
-var MySQLEscaper       = require(__dirname + '/../query/MySQLEscaper');
-var MySQLQueryExecuter = require(__dirname + '/../query/MySQLQueryExecuter');
+var DataContext        = require('./DataContext');
+var MySQLEscaper       = require('../query/MySQLEscaper');
+var MySQLQueryExecuter = require('../query/MySQLQueryExecuter');
 
 /**
  * A DataContext for MySQL databases.

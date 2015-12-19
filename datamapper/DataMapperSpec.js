@@ -2,8 +2,8 @@ describe('DataMapper test suite.', function()
 {
   'use strict';
 
-  var Schema     = require(__dirname + '/Schema');
-  var DataMapper = require(__dirname + '/DataMapper');
+  var Schema     = require('./Schema');
+  var DataMapper = require('./DataMapper');
   var dm         = new DataMapper();
 
   // Serializes a single table.

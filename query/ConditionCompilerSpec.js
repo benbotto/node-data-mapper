@@ -2,10 +2,10 @@ describe('ConditionCompiler test suite.', function()
 {
   'use strict';
 
-  var MySQLEscaper      = require(__dirname + '/MySQLEscaper');
-  var ConditionLexer    = require(__dirname + '/ConditionLexer');
-  var ConditionParser   = require(__dirname + '/ConditionParser');
-  var ConditionCompiler = require(__dirname + '/ConditionCompiler');
+  var MySQLEscaper      = require('./MySQLEscaper');
+  var ConditionLexer    = require('./ConditionLexer');
+  var ConditionParser   = require('./ConditionParser');
+  var ConditionCompiler = require('./ConditionCompiler');
   var lexer             = new ConditionLexer();
   var parser            = new ConditionParser();
   var compiler          = new ConditionCompiler(new MySQLEscaper());

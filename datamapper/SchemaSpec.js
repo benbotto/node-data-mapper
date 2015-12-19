@@ -2,7 +2,7 @@ describe('Schema test suite.', function()
 {
   'use strict';
 
-  var Schema = require(__dirname + '/Schema');
+  var Schema = require('./Schema');
 
   // Checks the constructor.
   it('checks the constructor.', function()

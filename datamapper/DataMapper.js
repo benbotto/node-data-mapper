@@ -1,6 +1,6 @@
 'use strict';
 
-var Schema = require(__dirname + '/Schema');
+var Schema = require('./Schema');
 
 /**
  * The DataMapper serializes a schema into an object.

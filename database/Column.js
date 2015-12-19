@@ -1,6 +1,6 @@
 'use strict';
 
-var assert = require(__dirname + '/../util/assert');
+var assert = require('../util/assert');
 
 /**
  * Represents a database column.

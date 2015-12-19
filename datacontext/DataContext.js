@@ -1,6 +1,6 @@
 'use strict';
 
-var From = require(__dirname + '/../query/From.js');
+var From = require('../query/From.js');
 
 /**
  * The main interface to the ORM.  This class is expected to be extended by the

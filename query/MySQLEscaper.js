@@ -1,7 +1,7 @@
 'use strict';
 
-var mysql = require('mysql');
-var Escaper = require(__dirname + '/Escaper');
+var mysql   = require('mysql');
+var Escaper = require('./Escaper');
 
 /**
  * Helper class for escaping parts of a query.

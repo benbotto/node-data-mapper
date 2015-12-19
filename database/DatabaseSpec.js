@@ -2,9 +2,9 @@ describe('Database test suite', function()
 {
   'use strict';
 
-  var Database = require(__dirname + '/Database');
-  var Table    = require(__dirname + '/Table');
-  var testDB   = require(__dirname + '/../spec/testDB.json');
+  var Database = require('./Database');
+  var Table    = require('./Table');
+  var testDB   = require('../spec/testDB.json');
 
   describe('Database constructor test suite.', function()
   {

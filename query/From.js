@@ -1,10 +1,10 @@
 'use strict';
 
-var assert            = require(__dirname + '/../util/assert');
-var ConditionLexer    = require(__dirname + '/../query/ConditionLexer');
-var ConditionParser   = require(__dirname + '/../query/ConditionParser');
-var ConditionCompiler = require(__dirname + '/../query/ConditionCompiler');
-var DataMapper        = require(__dirname + '/../datamapper/DataMapper');
+var assert            = require('../util/assert');
+var ConditionLexer    = require('../query/ConditionLexer');
+var ConditionParser   = require('../query/ConditionParser');
+var ConditionCompiler = require('../query/ConditionCompiler');
+var DataMapper        = require('../datamapper/DataMapper');
 var deferred          = require('deferred');
 
 /**
@@ -462,7 +462,7 @@ From.prototype.execute = function(Schema)
   if (this._selectCols.length === 0)
     this.selectAll();
 
-  Schema = Schema || require(__dirname + '/../datamapper/Schema');
+  Schema = Schema || require('../datamapper/Schema');
 
   // The primary key for each table is needed to create each schema.  Find
   // each primary key and create the schema.

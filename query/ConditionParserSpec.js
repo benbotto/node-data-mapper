@@ -2,8 +2,8 @@ describe('ConditionParser test suite.', function()
 {
   'use strict';
 
-  var ConditionLexer  = require(__dirname + '/ConditionLexer');
-  var ConditionParser = require(__dirname + '/ConditionParser');
+  var ConditionLexer  = require('./ConditionLexer');
+  var ConditionParser = require('./ConditionParser');
   var lexer           = new ConditionLexer();
   var parser          = new ConditionParser();
 

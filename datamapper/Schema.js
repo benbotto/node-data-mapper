@@ -1,6 +1,6 @@
 'use strict';
 
-var assert = require(__dirname + '/../util/assert');
+var assert = require('../util/assert');
 
 /**
  * A Schema is a representation of a serializable database table, consisting of

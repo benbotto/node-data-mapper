@@ -2,11 +2,11 @@ describe('DataContext test suite', function()
 {
   'use strict';
 
-  var DataContext  = require(__dirname + '/DataContext');
-  var Database     = require(__dirname + '/../database/Database');
-  var MySQLEscaper = require(__dirname + '/../query/MySQLEscaper');
-  var From         = require(__dirname + '/../query/From');
-  var db           = new Database(require(__dirname + '/../spec/testDB.json'));
+  var DataContext  = require('./DataContext');
+  var Database     = require('../database/Database');
+  var MySQLEscaper = require('../query/MySQLEscaper');
+  var From         = require('../query/From');
+  var db           = new Database(require('../spec/testDB.json'));
   var escaper      = new MySQLEscaper();
   var exec         = {};
 
