@@ -1,13 +1,21 @@
+'use strict';
+
 var db =
 {
   name: 'bike_shop',
   tables:
   [
     {
+      // The name of the database table.
       name: 'bike_shops',
+      // When a query is mapped to an object or array, by default the object
+      // will use the alias.  In this case, selecting from bike_shops will
+      // result in an array of bikeShops.
       alias: 'bikeShops',
       columns:
       [
+        // Each table must have a primary key.  Support for composite keys is
+        // underway.
         {name: 'bikeShopID', isPrimary: true},
         {name: 'name'},
         {name: 'address'}

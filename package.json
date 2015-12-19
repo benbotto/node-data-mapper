@@ -1,12 +1,12 @@
 {
-  "name": "orm",
+  "name": "node-data-mapper",
   "version": "1.0.0",
   "description": "A light weight object relational mapper using the data mapper pattern.",
-  "main": "test.js",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "grunt"
   },
-  "author": "",
+  "author": "Ben Botto",
   "license": "ISC",
   "devDependencies": {
     "glob": "^5.0.13",

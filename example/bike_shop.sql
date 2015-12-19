@@ -4,6 +4,8 @@ CREATE DATABASE bike_shop
   DEFAULT COLLATE utf8_general_ci;
 USE bike_shop;
 
+GRANT ALL ON `bike_shop`.* TO 'example'@'%' IDENTIFIED BY 'secret';
+
 -- Stores that sell bikes.
 CREATE TABLE bike_shops
 (
