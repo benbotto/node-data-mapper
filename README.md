@@ -197,6 +197,63 @@ Result:
 ```
 Note the table "bike_shops" is aliased (refer to the [Define a Database](#define-a-database) section); hence, the serialized object is named "bikeShops." 
 
+###### Limiting Columns
+
+The selected columns can be limited by using the ```select``` method.  The ```select``` method is variadic, and in its simplest form it can be passed an array of fully-qualified column names.  A fully-qualified column name takes the form ```<table-alias>.<column-name>```.  For example, the ```bike_shops``` table is aliased ```bikeShops```, so limiting the above query to ```bikeShopID``` and ```address```:
+
+```js
+var query = bikeShopDC
+  .from('bike_shops')
+  .select('bikeShops.bikeShopID', 'bikeShops.name');
+```
+It's important to note that if any columns are selected from a table, then the primary key must also be selected.  If the primary key is not selected then an exception will be raised.
+
+###### Ad-Hoc Aliasing
+
+Tables and columns can be aliased in the Database definition, but often it's convenient to alias on the fly.  Both ```from``` and ```select``` can be given objects to describe the serialization.  The ```from``` method takes a meta object with the following properties:
+
+```js
+{
+  table:  string, // The name of the table to select from.
+  as:     string  // An alias for the table.  This is needed if, for example,
+                  // the same table is joined in multiple times.
+                  // This defaults to the table's alias.
+}
+```
+
+Likewise, the ```select``` method can be passed multiple column meta objects with the following properties:
+
+```js
+{
+  column:   string, // The fully-qualified column name in the
+                    // form: <table-alias>.<column-name>
+  as:       string  // An alias for the column, used for serialization.
+                    // If not provided this defaults to the column's alias.
+}
+```
+
+Building on the previous examples, the table and columns can be aliased as follows:
+
+```js
+var query = bikeShopDC
+  .from({table: 'bike_shops', as: 'shops'})
+  .select({column: 'shops.bikeShopID', as: 'id'}, {column: 'shops.name', as: 'shopName'});
+```
+
+Running this example (```example/retrieve/adHocAlias.js```) yields the following output:
+
+```
+Query:
+SELECT  `shops`.`bikeShopID` AS `shops.id`, `shops`.`name` AS `shops.shopName`
+FROM    `bike_shops` AS `shops` 
+
+Result:
+{ shops: 
+   [ { id: 1, shopName: 'Bob\'s Bikes' },
+     { id: 2, shopName: 'Zephyr Cove Cruisers' },
+     { id: 3, shopName: 'Cycle Works' } ] }
+```
+
 ## Extending
 
 The node-data-mapper module is designed to be extendable.  Adding support for a new database dialect is simple, and involves extending and specializing the DataContext class.  The DataContext defines a standard interface for escaping and executing queries.  Refer to the MySQLDataContext implementation for an example.
