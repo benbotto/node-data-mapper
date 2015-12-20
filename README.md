@@ -363,6 +363,82 @@ Result:
 
 Note that AND and OR conditions get parenthesized appropriately.
 
+##### Joins
+
+Joins are completed using the ```innerJoin```, ```leftOuterJoin```, and ```rightOuterJoin``` methods.  Each of these methods takes a meta object that describes the join operation, along with an optional object containing paremter values (in case the join has parameters that need to be replaced).  The meta object has the following format:
+
+```js
+{
+  table:  string,    // The name of the table to select from.
+  as:     string,    // An alias for the table.  This is needed if, for example,
+                     // the same table is joined in multiple times.  This is
+                     // what the table will be serialized as, and defaults
+                     // to the table's alias.
+  on:     Condition, // The condition (ON) for the join.
+  parent: string     // The alias of the parent table, if any.
+}
+```
+
+A basic example of an INNER JOIN follows.  This example finds all staff members that have received bonuses.
+
+```js
+var query = bikeShopDC
+  .from('staff')
+  .innerJoin({table: 'bonuses', parent: 'staff', on: {$eq: {'staff.staffID':'bonuses.bonusID'}}})
+  .select('staff.staffID', 'staff.firstName', 'staff.lastName', 'bonuses.bonusID', 'bonuses.amount');
+```
+
+Running this query (```node example/retrieve/basicJoin.js```) shows the following output:
+
+```
+SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`firstName` AS `staff.firstName`, `staff`.`lastName` AS `staff.lastName`, `bonuses`.`bonusID` AS `bonuses.bonusID`, `bonuses`.`amount` AS `bonuses.amount`
+FROM    `staff` AS `staff`
+INNER JOIN `bonuses` AS `bonuses` ON `staff`.`staffID` = `bonuses`.`bonusID` 
+
+Result:
+{ staff: 
+   [ { staffID: 1,
+       firstName: 'Randy',
+       lastName: 'Alamedo',
+       bonuses: [ { bonusID: 1, amount: 250 } ] },
+     { staffID: 2,
+       firstName: 'John',
+       lastName: 'Stovall',
+       bonuses: [ { bonusID: 2, amount: 600 } ] },
+     { staffID: 3,
+       firstName: 'Tina',
+       lastName: 'Beckenworth',
+       bonuses: [ { bonusID: 3, amount: 320 } ] } ] }
+```
+
+To find all employees that have not received bonuses a LEFT OUTER JOIN can be used (a minus in set terminology):
+
+```js
+var query = bikeShopDC
+  .from('staff')
+  .leftOuterJoin({table: 'bonuses', on: {$eq: {'staff.staffID':'bonuses.bonusID'}}})
+  .select('staff.staffID', 'staff.firstName', 'staff.lastName')
+  .where({$is: {'bonuses.bonusID': null}});
+```
+
+In this query, note that no columns from the bonuses table are selected because the query is designed to find staff members without bonuses.  Hence, the join does not need a parent, and the resulting staff objects do not have "bonuses" properties.  Running this example (```node example/retrieve/leftJoin.js```) prints the following:
+
+```
+Query:
+SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`firstName` AS `staff.firstName`, `staff`.`lastName` AS `staff.lastName`
+FROM    `staff` AS `staff`
+LEFT OUTER JOIN `bonuses` AS `bonuses` ON `staff`.`staffID` = `bonuses`.`bonusID`
+WHERE   `bonuses`.`bonusID` IS NULL 
+
+Result:
+{ staff: 
+   [ { staffID: 4, firstName: 'Abe', lastName: 'Django' },
+     { staffID: 5, firstName: 'Sal', lastName: 'Green' },
+     { staffID: 6, firstName: 'Valerie', lastName: 'Stocking' },
+     { staffID: 7, firstName: 'Kimberly', lastName: 'Fenters' },
+     { staffID: 8, firstName: 'Michael', lastName: 'Xavier' } ] }
+```
+
 ## Extending
 
 The node-data-mapper module is designed to be extendable.  Adding support for a new database dialect is simple, and involves extending and specializing the DataContext class.  The DataContext defines a standard interface for escaping and executing queries.  Refer to the MySQLDataContext implementation for an example.
