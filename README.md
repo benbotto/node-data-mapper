@@ -210,7 +210,7 @@ Result:
        name: 'Cycle Works',
        address: '3100 La Riviera Wy' } ] }
 ```
-Because the table "bike_shops" is aliased (refer to the [Define a Database](#define-a-database) section), the serialized object is named "bikeShops." 
+Because the table "bike_shops" is aliased (refer to the [Define a Database](#define-a-database) section), the associated property in the serialized object is named "bikeShops."
 
 ##### Limiting Columns
 
@@ -380,7 +380,7 @@ Note that AND and OR conditions get parenthesized appropriately.
 
 ##### Joins
 
-Joins are completed using the ```innerJoin```, ```leftOuterJoin```, and ```rightOuterJoin``` methods.  Each of these methods takes a meta object that describes the join operation, along with an optional object containing paremter values (in case the join has parameters that need to be replaced).  The meta object has the following format:
+Joins are completed using the ```innerJoin```, ```leftOuterJoin```, and ```rightOuterJoin``` methods.  Each of these methods takes a meta object that describes the join operation, along with an optional object containing parameter values (in case the join has parameters that need to be replaced).  The meta object has the following format:
 
 ```js
 {
@@ -434,7 +434,7 @@ Result:
 
 Relationships between tables are not formally defined in node-data-mapper, so join conditions and relationships are left entirely up to the developer.
 
-Let's consider another example.  To find all employees that have not received bonuses a LEFT OUTER JOIN can be used (a minus in set terminology):
+Let's consider another example.  To find all employees that have not received bonuses a minus operation (in set terminology) can be employed using a LEFT OUTER JOIN:
 
 ```js
 var query = bikeShopDC
@@ -464,7 +464,7 @@ Result:
 
 ##### Relationships
 
-The join examples above all show one-to-many relationships; each staff member has zero or more bonuses.  Let's say we want to find all bonuses with their associated staff member.  In this case each bonus has exactly one related staff member.
+The join examples above all show one-to-many relationships; each staff member has zero or more bonuses.  Let's say we want to find all bonuses with their associated staff member.  In this case each bonus has exactly one related staff member, so the ```relType``` is set to ```single``` in the join meta object.
 
 ```js
 var query = bikeShopDC
@@ -497,13 +497,12 @@ Result:
 
 As expected, the "staff" property is serialized as an object instead of an array.
 
-Lastly, for many-to-many relationships it's usually desirable to exclude the lookup table from the serialized results.  For example, each bike shop in the bike_shops database sells bikes, and some shops sell the same bike.  To get all the bike shops with the array of bikes that each sells, simply do not select any columns from the bike_shops_bikes table (the lookup table between bike_shops and bikes):
+Lastly, for many-to-many relationships it's usually desirable to exclude the lookup table from the serialized results.  For example, each bike shop in the bike_shop database sells bikes, and some shops sell the same bikes: Both Bob's Bikes and Cycle Works sell Haro bikes.  Let's say that we want all bike shops, and we want each ```bikeShop``` to have an array of ```bikes``` in the serialized result.  To accomplish this:
+
+1. Set the parent of ```bikes``` to ```bikeShops```.
+2. Do not select any columns from the lookup table, which is ```bike_shop_bikes``` in this case.
 
 ```js
-// Find all bike shops with the bikes that each sells.  Note that no columns
-// are selected from the lookup table (bike_shop_bikes), so it is excluded from
-// the serialized result.  Also, the parent of the bikes table is set to
-// bikeShops, so each bike shop will have an array of bikes.
 var query = bikeShopDC
   .from('bike_shops')
   .innerJoin({table: 'bike_shop_bikes', on: {$eq: {'bikeShops.bikeShopID':'bikeShopBikes.bikeShopID'}}})
