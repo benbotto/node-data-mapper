@@ -59,7 +59,8 @@ var db =
       ]
     },
     {
-      name: 'bikeShopBikes',
+      name: 'bike_shop_bikes',
+      alias: 'bikeShopBikes',
       columns:
       [
         {name: 'bikeShopBikeID', isPrimary: true},
