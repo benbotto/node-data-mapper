@@ -364,13 +364,18 @@ From.prototype._join = function(meta, params, joinType)
  * Inner join a table.
  * @param meta An object containing the following:
  * {
- *   table:  string,    // The name of the table to select from.
- *   as:     string,    // An alias for the table.  This is needed if, for example,
- *                      // the same table is joined in multiple times.  This is
- *                      // what the table will be serialized as, and defaults
- *                      // to the table's alias.
- *   on:     Condition, // The condition (ON) for the join.
- *   parent: string     // The alias of the parent table, if any.
+ *   table:   string,    // The name of the table to select from.
+ *   as:      string,    // An alias for the table.  This is needed if, for example,
+ *                       // the same table is joined in multiple times.  This is
+ *                       // what the table will be serialized as, and defaults
+ *                       // to the table's alias.
+ *   on:      Condition, // The condition (ON) for the join.
+ *   parent:  string,    // The alias of the parent table, if any.
+ *   relType: string     // The type of relationship between the parent and this
+ *                       // table ("single" or "many").  If set to "single" the
+ *                       // table will be serialized into an object, otherwise
+ *                       // the table will be serialized into an array.  "many"
+ *                       // is the default.
  * }
  * @param params An object of key-value pairs that are used to replace
  *        values in the query.
