@@ -2,6 +2,21 @@
 
 A lightweight object-relational mapper for node.js using the data mapper pattern.
 
+##### Table of Contents
+
+- [Getting Started](#getting-started)
+    - [Install node-data-mapper](#install-node-data-mapper)
+    - [Install a Supported Driver](#install-a-supported-driver)
+    - [Define a Database](#define-a-database)
+    - [Create a DataContext Instance](#create-a-datacontext-instance)
+- [Examples](#examples)
+  - [Selecting](#selecting)
+      - [Limiting Columns](#limiting-columns)
+      - [Ad-Hoc Aliasing](#ad-hoc-aliasing)
+      - [Conditions](#conditions)
+      - [Joins](#joins)
+- [Extending](#extending)
+
 ### Getting Started
 
 ##### Install node-data-mapper
@@ -103,9 +118,9 @@ var db =
 module.exports = db;
 ```
 
-##### Define a DataContext Instance
+##### Create a DataContext Instance
 
-A DataContext instance is the interface through which queries are executed.  The DataContext constructor takes two parameters: a Database instance and a connection pool.
+A DataContext instance is the interface through which queries are executed.  The DataContext constructor takes two parameters: a Database instance and a connection pool.  The example DataContext below uses the ```bikeShop.js``` Database definition, which is presented above and contained in the example/bikeShop.js file.
 
 ```js
 'use strict';
@@ -143,7 +158,7 @@ source bike_shop.sql
 
 The database contains a series of bike shops.  Each bike shop has staff, and staff can get bonuses.  Each bike shop sells bikes. When you source bike_shop.sql, two queries are run to show what data have been added.  The first shows all the bike shops, the staff for each, and each staff member's bonuses.  (Most staff members have not received any bonuses.)  The second query shows all the bike shops with all the bikes sold by each shop.  Note that some of the bikes are sold by multiple shops.
 
-The bike_shop.sql script creates a user "example" with a password of "secret". If you change the credentials then you will need to update the bikeShopDataContext.js file accordingly.
+The bike_shop.sql script creates a user "example" with a password of "secret." If you change the credentials then you will need to update the bikeShopDataContext.js file accordingly.
 
 ### Selecting
 
@@ -195,7 +210,7 @@ Result:
        name: 'Cycle Works',
        address: '3100 La Riviera Wy' } ] }
 ```
-Note the table "bike_shops" is aliased (refer to the [Define a Database](#define-a-database) section); hence, the serialized object is named "bikeShops." 
+Because the table "bike_shops" is aliased (refer to the [Define a Database](#define-a-database) section), the serialized object is named "bikeShops." 
 
 ##### Limiting Columns
 
@@ -242,7 +257,7 @@ var query = bikeShopDC
 
 Running this example (```example/retrieve/adHocAlias.js```) yields the following output:
 
-```
+```js
 Query:
 SELECT  `shops`.`bikeShopID` AS `shops.id`, `shops`.`name` AS `shops.shopName`
 FROM    `bike_shops` AS `shops` 
@@ -369,13 +384,18 @@ Joins are completed using the ```innerJoin```, ```leftOuterJoin```, and ```right
 
 ```js
 {
-  table:  string,    // The name of the table to select from.
-  as:     string,    // An alias for the table.  This is needed if, for example,
-                     // the same table is joined in multiple times.  This is
-                     // what the table will be serialized as, and defaults
-                     // to the table's alias.
-  on:     Condition, // The condition (ON) for the join.
-  parent: string     // The alias of the parent table, if any.
+  table:   string,    // The name of the table to select from.
+  as:      string,    // An alias for the table.  This is needed if, for example,
+                      // the same table is joined in multiple times.  This is
+                      // what the table will be serialized as, and defaults
+                      // to the table's alias.
+  on:      Condition, // The condition (ON) for the join.
+  parent:  string,    // The alias of the parent table, if any.
+  relType: string     // The type of relationship between the parent and this
+                      // table ("single" or "many").  If set to "single" the
+                      // table will be serialized into an object, otherwise
+                      // the table will be serialized into an array.  "many"
+                      // is the default.
 }
 ```
 
@@ -423,7 +443,7 @@ var query = bikeShopDC
 
 In this query, note that no columns from the bonuses table are selected because the query is designed to find staff members without bonuses.  Hence, the join does not need a parent, and the resulting staff objects do not have "bonuses" properties.  Running this example (```node example/retrieve/leftJoin.js```) prints the following:
 
-```
+```js
 Query:
 SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`firstName` AS `staff.firstName`, `staff`.`lastName` AS `staff.lastName`
 FROM    `staff` AS `staff`
