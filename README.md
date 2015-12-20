@@ -319,7 +319,7 @@ var query = bikeShopDC
   .where({$gt: {'staff.age':21}});
 ```
 
-Here is an example that uses parameters.  Note that **string parameters have to be parameterized.**  This is to help prevent SQL injection.
+Here is an example that uses parameters.  Note that **string values have to be parameterized**, which helps prevent SQL injection.
 
 ```js
 // Find employees with a firstName of "Valerie."
