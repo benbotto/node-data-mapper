@@ -1,6 +1,6 @@
 # node-data-mapper
 
-A lightweight object-relational mapper for node.js using the data mapper pattern.
+An object-relational mapper for node.js using the data-mapper pattern.  node-data-mapper is fast, and it has an intuitive interface that closely resembles SQL.  And because the data-mapper pattern is used instead of active record, data models are plain old JavaScript objects.
 
 ##### Table of Contents
 
@@ -15,6 +15,7 @@ A lightweight object-relational mapper for node.js using the data mapper pattern
       - [Ad-Hoc Aliasing](#ad-hoc-aliasing)
       - [Conditions](#conditions)
       - [Joins](#joins)
+      - [Relationships](#relationships)
 - [Extending](#extending)
 
 ### Getting Started
@@ -39,8 +40,6 @@ Extending node-data-mapper to support a new driver is trivial.  Refer the the [E
 ##### Define a Database
 
 The easiest way to define a database is using a simple object.  Here's a basic example for a bike shop database.  A database is made up of an array of tables, and each table is made up of an array of columns.  Each table must have a primary key column defined.  Tables and columns can be aliased; an alias defines how a table or column will be serialized.
-
-More advanced configurations are presented later.
 
 ```js
 'use strict';
@@ -133,7 +132,7 @@ var mysql = require('mysql');
 var db = new ndm.Database(require('./bikeShop'));
 
 // Create a connection pool.  In this case we're using a MySQL connection
-// pool with a 10 connection limit.  (Refer to the mysql documentation.)
+// pool with a 10-connection limit.  (Refer to the mysql documentation.)
 var pool = mysql.createPool
 ({
   host:            'localhost',
@@ -347,7 +346,7 @@ var query = bikeShopDC
 
 Running this example (```node example/retrieve/advancedWhere.js```) yields the following output:
 
-```
+```js
 SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`firstName` AS `staff.firstName`, `staff`.`lastName` AS `staff.lastName`, `staff`.`sex` AS `staff.gender`, `staff`.`age` AS `staff.age`
 FROM    `staff` AS `staff`
 WHERE   ((`staff`.`sex` = 'male' AND `staff`.`age` >= 25) OR (`staff`.`sex` = 'female' AND `staff`.`age` >= 23)) 
@@ -404,16 +403,17 @@ A basic example of an INNER JOIN follows.  This example finds all staff members 
 ```js
 var query = bikeShopDC
   .from('staff')
-  .innerJoin({table: 'bonuses', parent: 'staff', on: {$eq: {'staff.staffID':'bonuses.bonusID'}}})
+  .innerJoin({table: 'bonuses', parent: 'staff', on: {$eq: {'staff.staffID':'bonuses.staffID'}}})
   .select('staff.staffID', 'staff.firstName', 'staff.lastName', 'bonuses.bonusID', 'bonuses.amount');
 ```
 
 Running this query (```node example/retrieve/basicJoin.js```) shows the following output:
 
-```
+```js
+Query:
 SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`firstName` AS `staff.firstName`, `staff`.`lastName` AS `staff.lastName`, `bonuses`.`bonusID` AS `bonuses.bonusID`, `bonuses`.`amount` AS `bonuses.amount`
 FROM    `staff` AS `staff`
-INNER JOIN `bonuses` AS `bonuses` ON `staff`.`staffID` = `bonuses`.`bonusID` 
+INNER JOIN `bonuses` AS `bonuses` ON `staff`.`staffID` = `bonuses`.`staffID` 
 
 Result:
 { staff: 
@@ -421,17 +421,19 @@ Result:
        firstName: 'Randy',
        lastName: 'Alamedo',
        bonuses: [ { bonusID: 1, amount: 250 } ] },
-     { staffID: 2,
-       firstName: 'John',
-       lastName: 'Stovall',
+     { staffID: 6,
+       firstName: 'Valerie',
+       lastName: 'Stocking',
        bonuses: [ { bonusID: 2, amount: 600 } ] },
-     { staffID: 3,
-       firstName: 'Tina',
-       lastName: 'Beckenworth',
+     { staffID: 8,
+       firstName: 'Michael',
+       lastName: 'Xavier',
        bonuses: [ { bonusID: 3, amount: 320 } ] } ] }
 ```
 
-To find all employees that have not received bonuses a LEFT OUTER JOIN can be used (a minus in set terminology):
+Relationships between tables are not formally defined in node-data-mapper, so join conditions and relationships are left entirely up to the developer.
+
+Let's consider another example.  To find all employees that have not received bonuses a LEFT OUTER JOIN can be used (a minus in set terminology):
 
 ```js
 var query = bikeShopDC
@@ -447,17 +449,52 @@ In this query, no columns from the bonuses table are selected because the query 
 Query:
 SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`firstName` AS `staff.firstName`, `staff`.`lastName` AS `staff.lastName`
 FROM    `staff` AS `staff`
-LEFT OUTER JOIN `bonuses` AS `bonuses` ON `staff`.`staffID` = `bonuses`.`bonusID`
+LEFT OUTER JOIN `bonuses` AS `bonuses` ON `staff`.`staffID` = `bonuses`.`staffID`
 WHERE   `bonuses`.`bonusID` IS NULL 
 
 Result:
 { staff: 
-   [ { staffID: 4, firstName: 'Abe', lastName: 'Django' },
+   [ { staffID: 2, firstName: 'John', lastName: 'Stovall' },
+     { staffID: 3, firstName: 'Tina', lastName: 'Beckenworth' },
+     { staffID: 4, firstName: 'Abe', lastName: 'Django' },
      { staffID: 5, firstName: 'Sal', lastName: 'Green' },
-     { staffID: 6, firstName: 'Valerie', lastName: 'Stocking' },
-     { staffID: 7, firstName: 'Kimberly', lastName: 'Fenters' },
-     { staffID: 8, firstName: 'Michael', lastName: 'Xavier' } ] }
+     { staffID: 7, firstName: 'Kimberly', lastName: 'Fenters' } ] }
 ```
+
+##### Relationships
+
+The join examples above all show one-to-many relationships; each staff member has zero or more bonuses.  Let's say we want to find all bonuses with their associated staff member.  In this case each bonus has exactly one related staff member.
+
+```js
+var query = bikeShopDC
+  .from('bonuses')
+  .innerJoin({table: 'staff', parent: 'bonuses',
+    relType: 'single', on: {$eq: {'bonuses.staffID':'staff.staffID'}}})
+  .select('bonuses.bonusID', 'bonuses.amount', 'staff.staffID', 'staff.firstName', 'staff.lastName');
+```
+
+This example (```node example/retrieve/manyToOneJoin.js```) shows the following output.
+
+```js
+Query:
+SELECT  `bonuses`.`bonusID` AS `bonuses.bonusID`, `bonuses`.`amount` AS `bonuses.amount`, `staff`.`staffID` AS `staff.staffID`, `staff`.`firstName` AS `staff.firstName`, `staff`.`lastName` AS `staff.lastName`
+FROM    `bonuses` AS `bonuses`
+INNER JOIN `staff` AS `staff` ON `bonuses`.`staffID` = `staff`.`staffID` 
+
+Result:
+{ bonuses: 
+   [ { bonusID: 1,
+       amount: 250,
+       staff: { staffID: 1, firstName: 'Randy', lastName: 'Alamedo' } },
+     { bonusID: 2,
+       amount: 600,
+       staff: { staffID: 6, firstName: 'Valerie', lastName: 'Stocking' } },
+     { bonusID: 3,
+       amount: 320,
+       staff: { staffID: 8, firstName: 'Michael', lastName: 'Xavier' } } ] }
+```
+
+As expected, the "staff" property is serialized as an object instead of an array.
 
 ## Extending
 
