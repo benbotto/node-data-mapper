@@ -19,13 +19,13 @@ describe('ConditionCompiler test suite.', function()
     cond   = {$eq: {name: ':name'}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`name` = :name');
+    expect(compiler.compile(tree, {name: 'Joe'})).toBe("`name` = 'Joe'");
 
     // $neq.
     cond   = {$neq: {name: ':name'}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`name` <> :name');
+    expect(compiler.compile(tree, {name: 'Joe'})).toBe("`name` <> 'Joe'");
 
     // $lt.
     cond   = {$lt: {age: 30}};
@@ -55,13 +55,13 @@ describe('ConditionCompiler test suite.', function()
     cond   = {$like: {name: ':name'}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`name` LIKE :name');
+    expect(compiler.compile(tree, {name: 'Joe'})).toBe("`name` LIKE 'Joe'");
 
     // $notLike.
     cond   = {$notLike: {name: ':name'}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`name` NOT LIKE :name');
+    expect(compiler.compile(tree, {name: 'Joe'})).toBe("`name` NOT LIKE 'Joe'");
   });
 
   // Checks the value types--column, parameter, and number.
@@ -73,7 +73,7 @@ describe('ConditionCompiler test suite.', function()
     cond   = {$eq: {name: ':name'}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`name` = :name');
+    expect(compiler.compile(tree, {name: 'Joe'})).toBe("`name` = 'Joe'");
 
     // Number.
     cond   = {$eq: {age: 30}};
@@ -121,7 +121,7 @@ describe('ConditionCompiler test suite.', function()
     cond   = {$in: {employer: [':emp1', ':emp2']}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('`employer` IN (:emp1, :emp2)');
+    expect(compiler.compile(tree, {emp1: 'Nike', emp2: "Billy's Flowers"})).toBe("`employer` IN ('Nike', 'Billy\\'s Flowers')");
 
     // Columns.
     cond   = {$in: {'u.employer': ['mom.employer', 'dad.employer']}};
@@ -151,7 +151,7 @@ describe('ConditionCompiler test suite.', function()
     cond   = {$and: [{$eq: {'u.name': ':name'}}, {$gt: {'u.age': 21}}]};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('(`u`.`name` = :name AND `u`.`age` > 21)');
+    expect(compiler.compile(tree, {name: 'Joe'})).toBe("(`u`.`name` = 'Joe' AND `u`.`age` > 21)");
 
     // Single condition OR'd.
     cond   = {$or: [{$eq: {name: 'pn.name'}}]};
@@ -163,7 +163,7 @@ describe('ConditionCompiler test suite.', function()
     cond   = {$or: [{$eq: {name: ':name'}}, {$gt: {age: 21}}]};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree)).toBe('(`name` = :name OR `age` > 21)');
+    expect(compiler.compile(tree, {name: 'Joe'})).toBe("(`name` = 'Joe' OR `age` > 21)");
   });
 
   // Compiles some more complicated conditions.
@@ -188,8 +188,8 @@ describe('ConditionCompiler test suite.', function()
     };
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree))
-      .toBe('(`gender` = :gender AND (`occupation` IS NULL OR `salary` <= 11000))');
+    expect(compiler.compile(tree, {gender: 'male'}))
+      .toBe("(`gender` = 'male' AND (`occupation` IS NULL OR `salary` <= 11000))");
 
     // ((`gender` = 'M' AND `age` > 23) OR (`gender` = 'F' AND `age` > 21))
     cond =
@@ -202,8 +202,36 @@ describe('ConditionCompiler test suite.', function()
     };
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
-    expect(compiler.compile(tree))
-      .toBe('((`gender` = :male AND `age` > 23) OR (`gender` = :female AND `age` > 21))');
+    expect(compiler.compile(tree, {male: 'M', female: 'F'}))
+      .toBe("((`gender` = 'M' AND `age` > 23) OR (`gender` = 'F' AND `age` > 21))");
+  });
+
+  // Replaces parameters in a condition.
+  it('replaces parameters in a condition.', function()
+  {
+    var cond, tokens, tree;
+
+    cond   = {$eq: {store: ':store'}};
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens);
+
+    expect(compiler.compile(tree, {store: "Suzy's Floozies"}))
+      .toBe("`store` = 'Suzy\\'s Floozies'");
+  });
+
+  // Checks that the replacement is required for each parameter.
+  it('checks that the replacement is required for each parameter.', function()
+  {
+    var cond, tokens, tree;
+
+    cond   = {$eq: {gender: ':gender'}};
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens);
+
+    expect(function()
+    {
+      compiler.compile(tree);
+    }).toThrowError('Replacement value for parameter :gender not present.');
   });
 
   describe('ConditionCompiler parseColumns test suite', function()

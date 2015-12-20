@@ -1,5 +1,7 @@
 'use strict';
 
+var assert = require('../util/assert');
+
 /**
  * This class takes in a parse tree--as created by a ConditionParser--and
  * compiles the condition into SQL.
@@ -14,8 +16,10 @@ function ConditionCompiler(escaper)
 /**
  * Compile the parse tree.
  * @param parseTree The parse tree, as created by a ConditionParser.
+ * @param params An object of key-value pairs that are used to replace
+ *        values in the query.
  */
-ConditionCompiler.prototype.compile = function(parseTree)
+ConditionCompiler.prototype.compile = function(parseTree, params)
 {
   var compOps =
   {
@@ -41,6 +45,8 @@ ConditionCompiler.prototype.compile = function(parseTree)
     $or:  'OR'
   };
 
+  params = params || {};
+
   // Function to recursively traverse the parse tree and compile it.
   function traverse(tree, escaper)
   {
@@ -50,10 +56,18 @@ ConditionCompiler.prototype.compile = function(parseTree)
     // The return is escaped properly.
     function getValue(token, escaper)
     {
+      // The token could be a column, a parameter, or a number.
       if (token.type === 'column')
         return escaper.escapeFullyQualifiedColumn(token.value);
+      else if (token.type === 'parameter')
+      {
+        // Find the value in the params list (the leading colon is removed).
+        var value = params[token.value.substring(1)];
+        assert(value, 'Replacement value for parameter ' + token.value + ' not present.');
+        return escaper.escapeLiteral(value);
+      }
       else
-        return token.value; // Parameter or number - no need to escape.
+        return token.value;
     }
 
     switch (tree.token.type)
