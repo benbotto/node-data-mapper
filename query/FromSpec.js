@@ -237,6 +237,20 @@ describe('From (SELECT query) test suite.', function()
           .where({$eq: {userID: 4}}); // Should be users.userID.
       }).toThrowError('The column alias userID is not available for a where condition.');
     });
+
+    // Checks that parameters get replaced.
+    it('checks that parameters get replaced.', function()
+    {
+      var query = new From(db, escaper, qryExec, {table: 'users'})
+        .select('users.userID')
+        .where({$eq: {'users.firstName':':firstName'}}, {firstName: 'Sally'});
+      expect(query.toString()).toBe
+      (
+        'SELECT  `users`.`userID` AS `users.ID`\n' +
+        'FROM    `users` AS `users`\n' +
+        'WHERE   `users`.`firstName` = \'Sally\''
+      );
+    });
   });
 
   describe('From join test suite.', function()
@@ -297,14 +311,14 @@ describe('From (SELECT query) test suite.', function()
     it('checks a right outer join.', function()
     {
       var query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
-        .rightOuterJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$and: [{$eq: {'u.userID':'pn.userID'}},{$eq: {'pn.type':':mobile'}}]}})
+        .rightOuterJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$and: [{$eq: {'u.userID':'pn.userID'}},{$eq: {'pn.type':':phoneType'}}]}}, {phoneType: 'mobile'})
         .select('u.userID', 'pn.phoneNumberID');
 
       expect(query.toString()).toBe
       (
         'SELECT  `u`.`userID` AS `u.ID`, `pn`.`phoneNumberID` AS `pn.ID`\n' +
         'FROM    `users` AS `u`\n' +
-        'RIGHT OUTER JOIN `phone_numbers` AS `pn` ON (`u`.`userID` = `pn`.`userID` AND `pn`.`type` = :mobile)'
+        'RIGHT OUTER JOIN `phone_numbers` AS `pn` ON (`u`.`userID` = `pn`.`userID` AND `pn`.`type` = \'mobile\')'
       );
     });
 

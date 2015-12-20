@@ -285,8 +285,10 @@ From.prototype.selectAll = function()
 /**
  * Add a where condition.
  * @param cond The condition object.  For the format look at @ref ConditionCompiler.
+ * @param params An object of key-value pairs that are used to replace
+ *        values in the query.
  */
-From.prototype.where = function(cond)
+From.prototype.where = function(cond, params)
 {
   var tokens, tree, columns; 
 
@@ -304,7 +306,7 @@ From.prototype.where = function(cond)
       'The column alias ' + columns[i] + ' is not available for a where condition.');
   }
 
-  this._tables[0].cond = this._condCompiler.compile(tree);
+  this._tables[0].cond = this._condCompiler.compile(tree, params);
   return this;
 };
 
@@ -325,9 +327,11 @@ From.prototype.where = function(cond)
  *                        // the table will be serialized into an array.  "many"
  *                        // is the default.
  * }
+ * @param params An object of key-value pairs that are used to replace
+ *        values in the query.
  * @param joinType The From.JOIN_TYPE of the join.
  */
-From.prototype._join = function(meta, joinType)
+From.prototype._join = function(meta, params, joinType)
 {
   var tokens, tree, onCond;
 
@@ -336,7 +340,7 @@ From.prototype._join = function(meta, joinType)
     // Lex, parse, and compile the condition.
     tokens = this._condLexer.parse(meta.on);
     tree   = this._condParser.parse(tokens);
-    onCond = this._condCompiler.compile(tree);
+    onCond = this._condCompiler.compile(tree, params);
   }
 
   // Add the JOIN table.
@@ -368,28 +372,34 @@ From.prototype._join = function(meta, joinType)
  *   on:     Condition, // The condition (ON) for the join.
  *   parent: string     // The alias of the parent table, if any.
  * }
+ * @param params An object of key-value pairs that are used to replace
+ *        values in the query.
  */
-From.prototype.innerJoin = function(meta)
+From.prototype.innerJoin = function(meta, params)
 {
-  return this._join(meta, From.JOIN_TYPE.INNER);
+  return this._join(meta, params, From.JOIN_TYPE.INNER);
 };
 
 /**
  * Left outer join a table.
  * @param meta Refer to the innerJoin function for details.
+ * @param params An object of key-value pairs that are used to replace
+ *        values in the query.
  */
-From.prototype.leftOuterJoin = function(meta)
+From.prototype.leftOuterJoin = function(meta, params)
 {
-  return this._join(meta, From.JOIN_TYPE.LEFT_OUTER);
+  return this._join(meta, params, From.JOIN_TYPE.LEFT_OUTER);
 };
 
 /**
  * Right outer join a table.
  * @param meta Refer to the innerJoin function for details.
+ * @param params An object of key-value pairs that are used to replace
+ *        values in the query.
  */
-From.prototype.rightOuterJoin = function(meta)
+From.prototype.rightOuterJoin = function(meta, params)
 {
-  return this._join(meta, From.JOIN_TYPE.RIGHT_OUTER);
+  return this._join(meta, params, From.JOIN_TYPE.RIGHT_OUTER);
 };
 
 /**
