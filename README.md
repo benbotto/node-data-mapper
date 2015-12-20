@@ -103,7 +103,8 @@ var db =
       ]
     },
     {
-      name: 'bikeShopBikes',
+      name: 'bike_shop_bikes',
+      alias: 'bikeShopBikes',
       columns:
       [
         {name: 'bikeShopBikeID', isPrimary: true},
@@ -495,6 +496,54 @@ Result:
 ```
 
 As expected, the "staff" property is serialized as an object instead of an array.
+
+Lastly, for many-to-many relationships it's usually desirable to exclude the lookup table from the serialized results.  For example, each bike shop in the bike_shops database sells bikes, and some shops sell the same bike.  To get all the bike shops with the array of bikes that each sells, simply do not select any columns from the bike_shops_bikes table (the lookup table between bike_shops and bikes):
+
+```js
+// Find all bike shops with the bikes that each sells.  Note that no columns
+// are selected from the lookup table (bike_shop_bikes), so it is excluded from
+// the serialized result.  Also, the parent of the bikes table is set to
+// bikeShops, so each bike shop will have an array of bikes.
+var query = bikeShopDC
+  .from('bike_shops')
+  .innerJoin({table: 'bike_shop_bikes', on: {$eq: {'bikeShops.bikeShopID':'bikeShopBikes.bikeShopID'}}})
+  .innerJoin({table: 'bikes', parent: 'bikeShops', on: {$eq: {'bikeShopBikes.bikeID':'bikes.bikeID'}}})
+  .select('bikeShops.bikeShopID', 'bikeShops.name', 'bikes.bikeID', 'bikes.brand', 'bikes.model');
+```
+
+Here is the result (```node example/retrieve/manyToManyJoin.js```):
+
+```js
+Query:
+SELECT  `bikeShops`.`bikeShopID` AS `bikeShops.bikeShopID`, `bikeShops`.`name` AS `bikeShops.name`, `bikes`.`bikeID` AS `bikes.bikeID`, `bikes`.`brand` AS `bikes.brand`, `bikes`.`model` AS `bikes.model`
+FROM    `bike_shops` AS `bikeShops`
+INNER JOIN `bike_shop_bikes` AS `bikeShopBikes` ON `bikeShops`.`bikeShopID` = `bikeShopBikes`.`bikeShopID`
+INNER JOIN `bikes` AS `bikes` ON `bikeShopBikes`.`bikeID` = `bikes`.`bikeID` 
+
+Result:
+{ bikeShops: 
+   [ { bikeShopID: 1,
+       name: 'Bob\'s Bikes',
+       bikes: 
+        [ { bikeID: 1, brand: 'Felt', model: 'F1' },
+          { bikeID: 2, brand: 'Felt', model: 'Z5' },
+          { bikeID: 5, brand: 'Stolen', model: 'Sinner Complete' },
+          { bikeID: 6, brand: 'Haro', model: 'SDV2' },
+          { bikeID: 7, brand: 'Haro', model: 'Leucadia DLX' } ] },
+     { bikeShopID: 2,
+       name: 'Zephyr Cove Cruisers',
+       bikes: 
+        [ { bikeID: 3, brand: 'Specialized', model: 'Stump Jumber HT' },
+          { bikeID: 4, brand: 'Specialized', model: 'ERA Carbon 29' } ] },
+     { bikeShopID: 3,
+       name: 'Cycle Works',
+       bikes: 
+        [ { bikeID: 6, brand: 'Haro', model: 'SDV2' },
+          { bikeID: 7, brand: 'Haro', model: 'Leucadia DLX' },
+          { bikeID: 8, brand: 'Firmstrong', model: 'Bella Fashionista' },
+          { bikeID: 9, brand: 'Firmstrong', model: 'Black Rock' },
+          { bikeID: 10, brand: 'Firmstrong', model: 'Bella Classic' } ] } ] }
+```
 
 ## Extending
 
