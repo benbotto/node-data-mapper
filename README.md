@@ -4,13 +4,13 @@ A lightweight object-relational mapper for node.js using the data mapper pattern
 
 ### Getting Started
 
-###### Install node-data-mapper
+##### Install node-data-mapper
 
 ```bash
 $ npm install node-data-mapper --save
 ```
 
-###### Install a Supported Driver
+##### Install a Supported Driver
 
 The following drivers are supported.
 
@@ -21,7 +21,7 @@ $ npm install mysql --save
 Support for other database drivers is underway, but at this time only mysql is supported.
 Extending node-data-mapper to support a new driver is trivial.  Refer the the [Extending](#extending) section.
 
-###### Define a Database
+##### Define a Database
 
 The easiest way to define a database is using a simple object.  Here's a basic example for a bike shop database.  A database is made up of an array of tables, and each table is made up of an array of columns.  Each table must have a primary key column defined.  Tables and columns can be aliased; an alias defines how a table or column will be serialized.
 
@@ -103,7 +103,7 @@ var db =
 module.exports = db;
 ```
 
-###### Define a DataContext Instance
+##### Define a DataContext Instance
 
 A DataContext instance is the interface through which queries are executed.  The DataContext constructor takes two parameters: a Database instance and a connection pool.
 
@@ -197,7 +197,7 @@ Result:
 ```
 Note the table "bike_shops" is aliased (refer to the [Define a Database](#define-a-database) section); hence, the serialized object is named "bikeShops." 
 
-###### Limiting Columns
+##### Limiting Columns
 
 The selected columns can be limited by using the ```select``` method.  The ```select``` method is variadic, and in its simplest form it can be passed an array of fully-qualified column names.  A fully-qualified column name takes the form ```<table-alias>.<column-name>```.  For example, the ```bike_shops``` table is aliased ```bikeShops```, so limiting the above query to ```bikeShopID``` and ```address```:
 
@@ -208,7 +208,7 @@ var query = bikeShopDC
 ```
 It's important to note that if any columns are selected from a table, then the primary key must also be selected.  If the primary key is not selected then an exception will be raised.
 
-###### Ad-Hoc Aliasing
+##### Ad-Hoc Aliasing
 
 Tables and columns can be aliased in the Database definition, but often it's convenient to alias on the fly.  Both ```from``` and ```select``` can be given objects to describe the serialization.  The ```from``` method takes a meta object with the following properties:
 
@@ -254,7 +254,7 @@ Result:
      { id: 3, shopName: 'Cycle Works' } ] }
 ```
 
-###### Conditions
+##### Conditions
 
 Conditions (WHERE and ON) operate similarly to MongoDB.  The available operators are:
 
