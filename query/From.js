@@ -488,18 +488,24 @@ From.prototype.execute = function(Schema)
     // column alias.  The serialized property should be the column alias.
     fqColName = this.createFQColName(tblMeta.tableAlias, pk[0].getName());
     colMeta   = this._selectColLookup[fqColName];
-    schema    = new Schema(colMeta.fqColAlias, colMeta.colAlias);
 
-    // Keep a lookup of table alias->schema.
-    schemaLookup[tblMeta.tableAlias] = schema;
-    
-    // If this table has no parent then the schema is top level.  Else
-    // this is a sub schema, and the parent is guaranteed to be present in
-    // the lookup.
-    if (tblMeta.parent === null)
-      schemata[tblMeta.tableAlias] = schema;
-    else
-      schemaLookup[tblMeta.parent].addSchema(tblMeta.tableAlias, schema, tblMeta.relType);
+    // The table might not be included (that is, no columns from the table are
+    // selected).
+    if (colMeta !== undefined)
+    {
+      schema = new Schema(colMeta.fqColAlias, colMeta.colAlias);
+
+      // Keep a lookup of table alias->schema.
+      schemaLookup[tblMeta.tableAlias] = schema;
+      
+      // If this table has no parent then the schema is top level.  Else
+      // this is a sub schema, and the parent is guaranteed to be present in
+      // the lookup.
+      if (tblMeta.parent === null)
+        schemata[tblMeta.tableAlias] = schema;
+      else
+        schemaLookup[tblMeta.parent].addSchema(tblMeta.tableAlias, schema, tblMeta.relType);
+    }
   }.bind(this));
 
   // Add each column/property to its schema.
