@@ -254,6 +254,115 @@ Result:
      { id: 3, shopName: 'Cycle Works' } ] }
 ```
 
+###### Conditions
+
+Conditions (WHERE and ON) operate similarly to MongoDB.  The available operators are:
+
+```js
+// Comparison operators.
+$eq
+$neq
+$lt
+$lte
+$gt
+$gte
+$like
+$notLike
+
+// NULL operators.
+$is
+$isnt
+
+// Boolean operators.
+$and
+$or
+```
+
+Conditions are defined formally as a language, as described by the following grammer (EBNF):
+
+```
+<condition>                ::= "{" <comparison> | <null-comparison> | <in-comparison> | <logical-condition> "}"
+<comparison>               ::= <comparison-operator> ":" "{" <column> ":" <value> "}"
+<null-comparison>          ::= <null-comparison-operator> ":" "{" <column> ":" null "}"
+<in-comparison>            ::= <in-comparison-operator> ":" "{" <column> ":" "[" <value> {"," <value>} "]" "}"
+<logical-condition>        ::= <boolean-operator> ":" "[" <condition> {"," <condition>} "]"
+<comparison-operator>      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte" | "$like" | "$notlike"
+<in-comparison-operator>   ::= "$in"
+<null-comparison-operator> ::= "$is" | "$isnt"
+<boolean-operator>         ::= "$and" | "$or"
+<value>                    ::= <parameter> | <column> | <number>
+<column>                   ::= <string>
+<parameter>                ::= :<string>
+
+```
+
+Below is a WHERE condition that is used to find all staff that are older than 21:
+
+```js
+var query = bikeShopDC
+  .from('staff')
+  .where({$gt: {'staff.age':21}});
+```
+
+Here is an example that uses parameters.  Note that string parameters have to be parameterized.  This is to help prevent SQL Injection.
+
+```js
+// Find employees with a firstName of "Valerie."
+var query = bikeShopDC
+  .from('staff')
+  .where({$eq: {'staff.firstName':':firstName'}}, {firstName: 'Valerie'});
+```
+
+For a more advanced example, let's say that cars can be rented to males 25 and older, or females 23 and over.  To find all staff members that satisfy these criteria:
+
+```js
+var query = bikeShopDC
+  .from('staff')
+  .select('staff.staffID', 'staff.firstName', 'staff.lastName', 'staff.sex', 'staff.age')
+  .where
+  ({
+    $or:
+    [
+      {$and: [{$eq: {'staff.sex':':male'}},   {$gte: {'staff.age':25}}]},
+      {$and: [{$eq: {'staff.sex':':female'}}, {$gte: {'staff.age':23}}]}
+    ]
+  },
+  {male: 'male', female: 'female'});
+```
+
+Running this example (```node example/retrieve/advancedWhere.js```) yields the following output:
+
+```
+SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`firstName` AS `staff.firstName`, `staff`.`lastName` AS `staff.lastName`, `staff`.`sex` AS `staff.gender`, `staff`.`age` AS `staff.age`
+FROM    `staff` AS `staff`
+WHERE   ((`staff`.`sex` = 'male' AND `staff`.`age` >= 25) OR (`staff`.`sex` = 'female' AND `staff`.`age` >= 23)) 
+
+Result:
+{ staff: 
+   [ { staffID: 2,
+       firstName: 'John',
+       lastName: 'Stovall',
+       gender: 'male',
+       age: 54 },
+     { staffID: 4,
+       firstName: 'Abe',
+       lastName: 'Django',
+       gender: 'male',
+       age: 67 },
+     { staffID: 5,
+       firstName: 'Sal',
+       lastName: 'Green',
+       gender: 'male',
+       age: 42 },
+     { staffID: 6,
+       firstName: 'Valerie',
+       lastName: 'Stocking',
+       gender: 'female',
+       age: 29 } ] }
+```
+
+Note that AND and OR conditions get parenthesized appropriately.
+
 ## Extending
 
 The node-data-mapper module is designed to be extendable.  Adding support for a new database dialect is simple, and involves extending and specializing the DataContext class.  The DataContext defines a standard interface for escaping and executing queries.  Refer to the MySQLDataContext implementation for an example.
