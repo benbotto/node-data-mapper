@@ -166,6 +166,17 @@ describe('From (SELECT query) test suite.', function()
       }).not.toThrow();
     });
 
+    // Checks that the primary key of the from table is always required.
+    it('checks that the primary key of the from table is always required.', function()
+    {
+      expect(function()
+      {
+        new From(db, escaper, qryExec, {table: 'users'})
+          .innerJoin({table: 'phone_numbers', parent: 'users'})
+          .select('phoneNumbers.phoneNumberID');
+      }).toThrowError('The primary key of the from table is required.');
+    });
+
     // Checks that columns can have custom aliases.
     it('checks that columns can have custom aliases.', function()
     {
@@ -533,6 +544,39 @@ describe('From (SELECT query) test suite.', function()
           expect(result.phoneNumbers[0].user.ID).toBe(1);
           expect(result.phoneNumbers[1].user.ID).toBe(1);
           expect(result.phoneNumbers[2].user.ID).toBe(2);
+        });
+    });
+
+    // Checks that if no columns are selected from a table, then the table is optional.
+    it('checks that if no columns are selected from a table, then the table is optional.', function()
+    {
+      // Dummy response from the query executer.
+      qryExec.select.and.callFake(function(query, callback)
+      {
+        var result =
+        [
+          {'users.ID': 1, 'users.first': 'joe'},
+          {'users.ID': 2, 'users.first': 'sue'},
+          {'users.ID': 3, 'users.first': 'bob'}
+        ];
+
+        callback(null, result);
+      });
+      new From(db, escaper, qryExec, {table: 'users'})
+        .innerJoin({table: 'phone_numbers', parent: 'users'})
+        .select('users.userID', 'users.firstName')
+        .execute()
+        .then(function(result)
+        {
+          expect(result).toEqual
+          ({
+            users:
+            [
+              {ID: 1, first: 'joe'},
+              {ID: 2, first: 'sue'},
+              {ID: 3, first: 'bob'}
+            ]
+          });
         });
     });
   });

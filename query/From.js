@@ -265,6 +265,9 @@ From.prototype.select = function(cols)
     }
   }
 
+  // The primary key from the from table is also required.
+  assert(selTables[this._tables[0].tableAlias], 'The primary key of the from table is required.');
+
   return this;
 };
 
