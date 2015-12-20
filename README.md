@@ -221,7 +221,7 @@ var query = bikeShopDC
   .from('bike_shops')
   .select('bikeShops.bikeShopID', 'bikeShops.name');
 ```
-It's important to note that if any columns are selected from a table, then the primary key must also be selected.  If the primary key is not selected then an exception will be raised.
+It's important to point out that if any columns are selected from a table, then the primary key must also be selected.  If the primary key is not selected then an exception will be raised.
 
 ##### Ad-Hoc Aliasing
 
@@ -319,7 +319,7 @@ var query = bikeShopDC
   .where({$gt: {'staff.age':21}});
 ```
 
-Here is an example that uses parameters.  Note that string parameters have to be parameterized.  This is to help prevent SQL Injection.
+Here is an example that uses parameters.  Note that **string parameters have to be parameterized.**  This is to help prevent SQL injection.
 
 ```js
 // Find employees with a firstName of "Valerie."
@@ -441,7 +441,7 @@ var query = bikeShopDC
   .where({$is: {'bonuses.bonusID': null}});
 ```
 
-In this query, note that no columns from the bonuses table are selected because the query is designed to find staff members without bonuses.  Hence, the join does not need a parent, and the resulting staff objects do not have "bonuses" properties.  Running this example (```node example/retrieve/leftJoin.js```) prints the following:
+In this query, no columns from the bonuses table are selected because the query is designed to find staff members *without* bonuses.  Hence, the join does not need a parent, and the resulting staff objects do not have "bonuses" properties.  Running this example (```node example/retrieve/leftJoin.js```) prints the following:
 
 ```js
 Query:
