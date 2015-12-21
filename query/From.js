@@ -56,6 +56,9 @@ function From(database, escaper, queryExecuter, meta)
   this._condLexer    = new ConditionLexer();
   this._condParser   = new ConditionParser();
   this._condCompiler = new ConditionCompiler(this._escaper);
+
+  // The order of the query.
+  this._orderBy = [];
 }
 
 From.JOIN_TYPE =
@@ -168,7 +171,7 @@ From.prototype.isColumnAvailable = function(fqColName)
 };
 
 /**
- * Select columns manually.
+ * Select columns manually.  This function is variadic.
  * @param cols An array of columns to select.  Each column can either be a
  *        string in the form <table-alias>.<column-name>, or it can be an
  *        object in the following form:
@@ -411,13 +414,54 @@ From.prototype.rightOuterJoin = function(meta, params)
 };
 
 /**
+ * Order by one or more columns.  This function is variadic and can either
+ * take an array or multiple arguments.
+ * @param metas An array of fully-qualified column names in the form:
+ *        <table-alias>.<column-name>, or an array of objects with the following
+ *        properties.
+ * {
+ *   column: string, // The fully-qualified column name in the
+ *                   // form: <table-alias>.<column-name>
+ *   dir:    string  // The sort direction: either "ASC" or "DESC."  Defaults to "ASC."
+ * }
+ */
+From.prototype.orderBy = function(metas)
+{
+  // orderBy may only be called once.
+  assert(this._orderBy.length === 0, 'orderBy already performed on query.');
+
+  // Make sure metas is an array.
+  if (!(metas instanceof Array))
+    metas = Array.prototype.slice.call(arguments);
+
+  metas.forEach(function(meta)
+  {
+    if (typeof meta === 'string')
+      meta = {column: meta};
+
+    if (!meta.dir)
+      meta.dir = 'ASC';
+
+    assert(meta.column, 'orderBy column is required.');
+    assert(meta.dir === 'ASC' || meta.dir === 'DESC',
+      'dir must be either "ASC" or "DESC."');
+    assert(this._availableColsLookup[meta.column],
+      '"' + meta.column + '" is not available for orderBy.');
+
+    this._orderBy.push(this._escaper.escapeProperty(meta.column) + ' ' + meta.dir);
+  }.bind(this));
+
+  return this;
+};
+
+/**
  * Get the SQL that represents the query.
  */
 From.prototype.toString = function()
 {
   var sql  = 'SELECT  ';
   var cols = this._selectCols;
-  var fromName, fromAlias, tblMeta, joinName, joinAlias;
+  var fromName, fromAlias, tblMeta, joinName, joinAlias, i;
 
   // No columns specified.  Get all columns.
   if (cols.length === 0)
@@ -441,7 +485,7 @@ From.prototype.toString = function()
 
   // Add any JOINs.  The first table is the FROM table, hence the loop starts
   // at 1.
-  for (var i = 1; i < this._tables.length; ++i)
+  for (i = 1; i < this._tables.length; ++i)
   {
     tblMeta   = this._tables[i];
     joinName  = this._escaper.escapeProperty(tblMeta.table.getName());
@@ -456,11 +500,20 @@ From.prototype.toString = function()
     }
   }
 
+  // Add the WHERE clause.
   if (this._tables[0].cond !== null)
   {
     sql += '\n';
     sql += 'WHERE   ';
     sql += this._tables[0].cond;
+  }
+
+  // Add the order.
+  if (this._orderBy.length !== 0)
+  {
+    sql += '\n';
+    sql += 'ORDER BY ';
+    sql += this._orderBy.join(', ');
   }
 
   return sql;

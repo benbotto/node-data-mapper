@@ -580,5 +580,100 @@ describe('From (SELECT query) test suite.', function()
         });
     });
   });
+
+  describe('From orderBy test suite.', function()
+  {
+    // Checks that orderBy can only be called once.
+    it('checks that orderBy can only be called once.', function()
+    {
+      expect(function()
+      {
+        new From(db, escaper, qryExec, {table: 'users'})
+          .select(['users.userID', 'users.firstName', 'users.lastName'])
+          .orderBy('users.firstName')
+          .orderBy('users.firstName');
+      }).toThrowError('orderBy already performed on query.');
+    });
+
+    // Checks that the column property is required.
+    it('checks that the column property is required.', function()
+    {
+      expect(function()
+      {
+        new From(db, escaper, qryExec, {table: 'users'})
+          .select(['users.userID', 'users.firstName', 'users.lastName'])
+          .orderBy({});
+      }).toThrowError('orderBy column is required.');
+    });
+
+
+    // Checks that the direction must be either ASC or DESC.
+    it('checks that the direction must be either ASC or DESC.', function()
+    {
+      expect(function()
+      {
+        new From(db, escaper, qryExec, {table: 'users'})
+          .select(['users.userID', 'users.firstName', 'users.lastName'])
+          .orderBy({column: 'users.firstName', dir: 'FOO'});
+      }).toThrowError('dir must be either "ASC" or "DESC."');
+    });
+
+    // Checks that only available columns can be selected.
+    it('checks that only available columns can be selected.', function()
+    {
+      expect(function()
+      {
+        new From(db, escaper, qryExec, {table: 'users'})
+          .select(['users.userID', 'users.firstName', 'users.lastName'])
+          .orderBy('bad.column');
+      }).toThrowError('"bad.column" is not available for orderBy.');
+    });
+
+    // Checks a basic orderBy on a single column.
+    it('checks a basic orderBy on a single column.', function()
+    {
+      var query = new From(db, escaper, qryExec, {table: 'users'})
+        .select(['users.userID', 'users.firstName', 'users.lastName'])
+        .orderBy('users.firstName');
+
+      expect(query.toString()).toBe
+      (
+        'SELECT  `users`.`userID` AS `users.ID`, `users`.`firstName` AS `users.first`, `users`.`lastName` AS `users.last`\n' +
+        'FROM    `users` AS `users`\n' +
+        'ORDER BY `users.firstName` ASC'
+      );
+    });
+
+    // Checks orderBy on multiple columns.
+    it('checks orderBy on multiple columns.', function()
+    {
+      var query = new From(db, escaper, qryExec, {table: 'users'})
+        .select(['users.userID', 'users.firstName', 'users.lastName'])
+        .orderBy('users.userID', 'users.firstName', 'users.lastName');
+
+      expect(query.toString()).toBe
+      (
+        'SELECT  `users`.`userID` AS `users.ID`, `users`.`firstName` AS `users.first`, `users`.`lastName` AS `users.last`\n' +
+        'FROM    `users` AS `users`\n' +
+        'ORDER BY `users.userID` ASC, `users.firstName` ASC, `users.lastName` ASC'
+      );
+    });
+
+    // Checks the orderBy with multiple directions.
+    it('checks the orderBy with multiple directions.', function()
+    {
+      var query = new From(db, escaper, qryExec, {table: 'users'})
+        .select(['users.userID', 'users.firstName', 'users.lastName'])
+        .orderBy({column: 'users.userID'}, {column: 'users.firstName', dir: 'ASC'}, {column: 'users.lastName', dir: 'DESC'});
+
+      expect(query.toString()).toBe
+      (
+        'SELECT  `users`.`userID` AS `users.ID`, `users`.`firstName` AS `users.first`, `users`.`lastName` AS `users.last`\n' +
+        'FROM    `users` AS `users`\n' +
+        'ORDER BY `users.userID` ASC, `users.firstName` ASC, `users.lastName` DESC'
+      );
+      
+    });
+  });
 });
 
