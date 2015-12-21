@@ -191,16 +191,6 @@ ConditionParser.prototype._matchType = function(type)
   this._advance();
 };
 
-// Handles non-characters.  Verifies that the current token's value matches
-// the passed-in value.  If not, an exception is raised.  If so, the token is
-// advanced.
-ConditionParser.prototype._matchValue = function(value)
-{
-  assert(this._token !== null && this._token.value === value, this._errorString(value));
-  this._addNode();
-  this._advance();
-};
-
 // Handles the basic character terminals, which aren't needed in the
 // resulting sentence/tree.  These are the basic terminals: "{", "}", "[",
 // "]", ":", ","
