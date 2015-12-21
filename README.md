@@ -12,6 +12,7 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
 - [Examples](#examples)
   - [Selecting](#selecting)
       - [Limiting Columns](#limiting-columns)
+      - [Ordering](#ordering)
       - [Ad-Hoc Aliasing](#ad-hoc-aliasing)
       - [Conditions](#conditions)
       - [Joins](#joins)
@@ -222,6 +223,56 @@ var query = bikeShopDC
   .select('bikeShops.bikeShopID', 'bikeShops.name');
 ```
 It's important to point out that if any columns are selected from a table, then the primary key must also be selected.  If the primary key is not selected then an exception will be raised.
+
+##### Ordering
+
+The results of a query can be ordered using the ```orderBy``` method.  In its simplest form, the method can be passed multiple strings that corresponds to fully-qualified columns names.  For example, to order the previous query ```by bikeShops.name```:
+
+```js
+var query = bikeShopDC
+  .from('bike_shops')
+  .select('bikeShops.bikeShopID', 'bikeShops.name')
+  .orderBy('bikeShops.name');
+```
+
+Alternatively multiple objects can be passed to the ```orderBy``` method.  Each object is defined as follows:
+
+```js
+{
+  column: string, // The fully-qualified column name in the
+                  // form: <table-alias>.<column-name>
+  dir:    string  // The sort direction: either "ASC" or "DESC."  Defaults to "ASC."
+}
+```
+
+A more advanced ordering example is presented below:
+
+```js
+var query = bikeShopDC
+  .from('staff')
+  .select('staff.staffID', 'staff.hasStoreKeys', 'staff.firstName')
+  .orderBy({column: 'staff.hasStoreKeys', dir: 'DESC'}, 'staff.firstName');
+```
+
+Running this example (```node example/retrieve/advancedOrder.js```) displays:
+
+```js
+Query:
+SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`hasStoreKeys` AS `staff.hasStoreKeys`, `staff`.`firstName` AS `staff.firstName`
+FROM    `staff` AS `staff`
+ORDER BY `staff.hasStoreKeys` DESC, `staff.firstName` ASC 
+
+Result:
+{ staff: 
+   [ { staffID: 4, hasStoreKeys: <Buffer 01>, firstName: 'Abe' },
+     { staffID: 2, hasStoreKeys: <Buffer 01>, firstName: 'John' },
+     { staffID: 5, hasStoreKeys: <Buffer 01>, firstName: 'Sal' },
+     { staffID: 6, hasStoreKeys: <Buffer 01>, firstName: 'Valerie' },
+     { staffID: 7, hasStoreKeys: <Buffer 00>, firstName: 'Kimberly' },
+     { staffID: 8, hasStoreKeys: <Buffer 00>, firstName: 'Michael' },
+     { staffID: 1, hasStoreKeys: <Buffer 00>, firstName: 'Randy' },
+     { staffID: 3, hasStoreKeys: <Buffer 00>, firstName: 'Tina' } ] }
+```
 
 ##### Ad-Hoc Aliasing
 
