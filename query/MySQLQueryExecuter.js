@@ -32,29 +32,5 @@ MySQLQueryExecuter.prototype.select = function(query, callback)
   this._pool.query(query, callback);
 };
 
-/**
- * Execute an update MySQLQuery.
- */
-MySQLQueryExecuter.prototype.update = function()
-{
-  throw new Error('MySQLQueryExecuter::update not implemented.');
-};
-
-/**
- * Execute a delete MySQLQuery.
- */
-MySQLQueryExecuter.prototype.delete = function()
-{
-  throw new Error('MySQLQueryExecuter::delete not implemented.');
-};
-
-/**
- * Execute an insert MySQLQuery.
- */
-MySQLQueryExecuter.prototype.insert = function()
-{
-  throw new Error('MySQLQueryExecuter::insert not implemented.');
-};
-
 module.exports = MySQLQueryExecuter;
 

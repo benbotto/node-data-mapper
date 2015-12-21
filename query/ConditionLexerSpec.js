@@ -108,6 +108,7 @@ describe('ConditionLexer test suite.', function()
       expect(cl.parse('1.0')).toEqual([{terminal: true, type: 'number', value: 1}]);
       expect(cl.parse('.5')).toEqual([{terminal: true, type: 'number', value: 0.5}]);
       expect(cl.parse('-4600.532')).toEqual([{terminal: true, type: 'number', value: -4600.532}]);
+      expect(cl.parse('0123')).toEqual([{terminal: true, type: 'number', value: 123}]);
       expect(function()
       {
         cl.parse('46-.23');
@@ -258,6 +259,18 @@ describe('ConditionLexer test suite.', function()
         {terminal: true, type: 'parameter', value: ':name'},
         {terminal: true, type: 'char', value: '}'}
       ]);
+    });
+  });
+
+  describe('ConditionLexer bad terminal test suite.', function()
+  {
+    // Checks that other characters throw an exception.
+    it('checks that other characters throw an exception.', function()
+    {
+      expect(function()
+      {
+        cl.parse("A");
+      }).toThrowError('Unexpected character found A');
     });
   });
 });
