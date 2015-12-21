@@ -1,11 +1,11 @@
 {
   "name": "node-data-mapper",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "An object-relational mapper for node.js using the data mapper pattern.",
   "main": "index.js",
   "scripts": {
     "test": "grunt",
-    "coverage": "./node_modules/.bin/istanbul cover -x 'grunt/*' `which grunt` --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
+    "coverage": "./node_modules/.bin/istanbul cover -x 'grunt/*' `which grunt` && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "author": "Ben Botto",
   "license": "ISC",
