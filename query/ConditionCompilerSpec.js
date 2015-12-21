@@ -166,6 +166,16 @@ describe('ConditionCompiler test suite.', function()
     expect(compiler.compile(tree, {name: 'Joe'})).toBe("(`name` = 'Joe' OR `age` > 21)");
   });
 
+  // Checks an invalid token type (should never fire in real code).
+  it('checks an invalid token type (should be impossible).', function()
+  {
+    var tree = {token: {type: 'BAD'}};
+    expect(function()
+    {
+      compiler.compile(tree);
+    }).toThrowError('Unknown type: BAD');
+  });
+
   // Compiles some more complicated conditions.
   it('compiles some more complicated conditions.', function()
   {
