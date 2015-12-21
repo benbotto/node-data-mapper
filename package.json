@@ -1,7 +1,7 @@
 {
   "name": "node-data-mapper",
-  "version": "1.0.3",
-  "description": "A light weight object relational mapper using the data mapper pattern.",
+  "version": "1.0.4",
+  "description": "An object-relational mapper for node.js using the data mapper pattern.",
   "main": "index.js",
   "scripts": {
     "test": "grunt"
