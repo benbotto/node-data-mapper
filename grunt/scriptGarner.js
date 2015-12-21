@@ -10,6 +10,7 @@ module.exports = function(verbose)
   files.app = glob.sync('**/*.js', globOpts).filter(function(script)
   {
     return !script.match(/node_modules/) &&
+           !script.match(/coverage/i) &&
            !script.match(/grunt/i) &&
            !script.match(/Spec.js$/);
   });
@@ -21,6 +22,7 @@ module.exports = function(verbose)
   files.spec = glob.sync('**/*Spec.js', globOpts).filter(function(script)
   {
     return !script.match(/node_modules/) &&
+           !script.match(/coverage/i) &&
            !script.match(/grunt/i);
   });
 
