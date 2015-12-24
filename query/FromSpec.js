@@ -395,15 +395,15 @@ describe('From (SELECT query) test suite.', function()
         .execute(SchemaProxy);
 
       expect(schemata[0].getProperties().length).toBe(3);
-      expect(schemata[0].getProperties()[0]).toEqual({columnName: 'users.ID',    propertyName: 'ID'});
-      expect(schemata[0].getProperties()[1]).toEqual({columnName: 'users.first', propertyName: 'first'});
-      expect(schemata[0].getProperties()[2]).toEqual({columnName: 'users.last',  propertyName: 'last'});
+      expect(schemata[0].getProperties()[0]).toEqual({columnName: 'users.ID',    propertyName: 'ID',    converter: undefined});
+      expect(schemata[0].getProperties()[1]).toEqual({columnName: 'users.first', propertyName: 'first', converter: undefined});
+      expect(schemata[0].getProperties()[2]).toEqual({columnName: 'users.last',  propertyName: 'last',  converter: undefined});
 
       expect(schemata[1].getProperties().length).toBe(4);
-      expect(schemata[1].getProperties()[0]).toEqual({columnName: 'phoneNumbers.ID',          propertyName: 'ID'});
-      expect(schemata[1].getProperties()[1]).toEqual({columnName: 'phoneNumbers.userID',      propertyName: 'userID'});
-      expect(schemata[1].getProperties()[2]).toEqual({columnName: 'phoneNumbers.phoneNumber', propertyName: 'phoneNumber'});
-      expect(schemata[1].getProperties()[3]).toEqual({columnName: 'phoneNumbers.type',        propertyName: 'type'});
+      expect(schemata[1].getProperties()[0]).toEqual({columnName: 'phoneNumbers.ID',          propertyName: 'ID',          converter: undefined});
+      expect(schemata[1].getProperties()[1]).toEqual({columnName: 'phoneNumbers.userID',      propertyName: 'userID',      converter: undefined});
+      expect(schemata[1].getProperties()[2]).toEqual({columnName: 'phoneNumbers.phoneNumber', propertyName: 'phoneNumber', converter: undefined});
+      expect(schemata[1].getProperties()[3]).toEqual({columnName: 'phoneNumbers.type',        propertyName: 'type',        converter: undefined});
     });
 
     // Checks schema parents.

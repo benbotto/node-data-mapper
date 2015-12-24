@@ -33,6 +33,41 @@ describe('Schema test suite.', function()
     expect(props[2].columnName).toBe('lastName');
   });
 
+  // Adds a property with an alias.
+  it('adds a property with an alias.', function()
+  {
+    var schema = new Schema('pid', 'personID')
+      .addProperty('firstName', 'name');
+    var props  = schema.getProperties();
+
+    expect(props.length).toBe(2);
+    expect(props[0].propertyName).toBe('personID');
+    expect(props[0].columnName).toBe('pid');
+    expect(props[1].propertyName).toBe('name');
+    expect(props[1].columnName).toBe('firstName');
+  });
+
+  // Adds a property with a converter.
+  it('adds a property with a converter.', function()
+  {
+    var converter = function() {};
+    var schema    = new Schema('pid', 'personID', converter)
+      .addProperty('firstName', null, converter)
+      .addProperty('lastName');
+    var props     = schema.getProperties();
+
+    expect(props.length).toBe(3);
+    expect(props[0].propertyName).toBe('personID');
+    expect(props[0].columnName).toBe('pid');
+    expect(props[0].converter).toBe(converter);
+    expect(props[1].propertyName).toBe('firstName');
+    expect(props[1].columnName).toBe('firstName');
+    expect(props[1].converter).toBe(converter);
+    expect(props[2].propertyName).toBe('lastName');
+    expect(props[2].columnName).toBe('lastName');
+    expect(props[2].converter).toBe(undefined);
+  });
+
   // Adds some sub schemata.
   it('adds some sub schemata.', function()
   {
