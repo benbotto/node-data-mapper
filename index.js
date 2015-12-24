@@ -19,6 +19,7 @@ module.exports =
   QueryExecuter:      require('./query/QueryExecuter'),
   MySQLQueryExecuter: require('./query/MySQLQueryExecuter'),
   Schema:             require('./datamapper/Schema'),
-  DataMapper:         require('./datamapper/DataMapper')
+  DataMapper:         require('./datamapper/DataMapper'),
+  bitConverter:       require('./converter/bitConverter')
 };
 
