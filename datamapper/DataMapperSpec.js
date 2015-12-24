@@ -229,5 +229,34 @@ describe('DataMapper test suite.', function()
       }
     ]);
   });
+
+  // Serializes with converters.
+  it('serializes with converters.', function()
+  {
+    function idConvert(id)
+    {
+      return id + 10;
+    }
+
+    function ucConvert(str)
+    {
+      return str.toUpperCase();
+    }
+
+    var query =
+    [
+      {pid: 1, firstName: 'Jack', lastName: 'Black'},
+      {pid: 2, firstName: 'Dave', lastName: 'Zander'}
+    ];
+    var schema = new Schema('pid', 'personID', idConvert)
+      .addProperty('firstName', 'first', ucConvert)
+      .addProperty('lastName');
+
+    expect(dm.serialize(query, schema)).toEqual
+    ([
+      {personID: 11, first: 'JACK', lastName: 'Black'},
+      {personID: 12, first: 'DAVE', lastName: 'Zander'}
+    ]);
+  });
 });
 

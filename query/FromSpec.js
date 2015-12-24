@@ -406,6 +406,21 @@ describe('From (SELECT query) test suite.', function()
       expect(schemata[1].getProperties()[3]).toEqual({columnName: 'phoneNumbers.type',        propertyName: 'type',        convert: undefined});
     });
 
+    // Checks that converter functions can be added.
+    it('checks that converter functions can be added.', function()
+    {
+      var convert = function() {};
+
+      new From(db, escaper, qryExec, {table: 'users'})
+        .select({column: 'users.userID', convert: convert}, {column: 'users.firstName', convert: convert})
+        .execute(SchemaProxy);
+
+      expect(schemata[0].getProperties()[0].columnName).toBe('users.ID');
+      expect(schemata[0].getProperties()[0].convert).toBe(convert);
+      expect(schemata[0].getProperties()[1].columnName).toBe('users.first');
+      expect(schemata[0].getProperties()[1].convert).toBe(convert);
+    });
+
     // Checks schema parents.
     it('checks schema parents.', function()
     {
@@ -464,6 +479,44 @@ describe('From (SELECT query) test suite.', function()
         {
           expect(result.users.length).toBe(1);
           expect(result.users[0].phoneNumbers.length).toBe(3);
+        });
+    });
+
+    // Checks that columns can be converted using a convert function.
+    it('checks that columns can be converted using a convert function.', function()
+    {
+      function idConvert(id)
+      {
+        return id + 10;
+      }
+
+      function ucConvert(str)
+      {
+        return str.toUpperCase();
+      }
+
+      // Dummy response from the query executer.
+      qryExec.select.and.callFake(function(query, callback)
+      {
+        var result =
+        [
+          {'users.ID': 1, 'users.first': 'joe'},
+          {'users.ID': 2, 'users.first': 'jane'}
+        ];
+
+        callback(null, result);
+      });
+
+      new From(db, escaper, qryExec, {table: 'users'})
+        .select({column: 'users.userID', convert: idConvert}, {column: 'users.firstName', convert: ucConvert})
+        .execute()
+        .then(function(result)
+        {
+          expect(result.users.length).toBe(2);
+          expect(result.users[0].ID).toBe(11);
+          expect(result.users[1].ID).toBe(12);
+          expect(result.users[0].first).toBe('JOE');
+          expect(result.users[1].first).toBe('JANE');
         });
     });
 
@@ -606,7 +659,6 @@ describe('From (SELECT query) test suite.', function()
       }).toThrowError('orderBy column is required.');
     });
 
-
     // Checks that the direction must be either ASC or DESC.
     it('checks that the direction must be either ASC or DESC.', function()
     {
@@ -672,7 +724,6 @@ describe('From (SELECT query) test suite.', function()
         'FROM    `users` AS `users`\n' +
         'ORDER BY `users.userID` ASC, `users.firstName` ASC, `users.lastName` DESC'
       );
-      
     });
   });
 });

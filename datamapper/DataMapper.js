@@ -24,9 +24,9 @@ DataMapper.prototype.serialize = function(query, schema)
   function serializeRow(queryRow, schema, collection, properties, lookup,
     schemata, relationshipType)
   {
-    var doc, i, subProps, subSchemata;
     var keyCol = schema._keyColumnName;
     var keyVal = queryRow[keyCol];
+    var doc, i, subProps, subSchemata;
 
     // The keyCol is null, meaning this was an outer join and there is no
     // related data.
@@ -46,7 +46,12 @@ DataMapper.prototype.serialize = function(query, schema)
 
       // Add each property->column value to the document.
       for (i = 0; i < properties.length; ++i)
-        doc[properties[i].propertyName] = queryRow[properties[i].columnName];
+      {
+        if (properties[i].convert)
+          doc[properties[i].propertyName] = properties[i].convert(queryRow[properties[i].columnName]);
+        else
+          doc[properties[i].propertyName] = queryRow[properties[i].columnName];
+      }
 
       // Add the document to the collection (if serializing to an array).
       if (relationshipType === Schema.RELATIONSHIP_TYPE.MANY)

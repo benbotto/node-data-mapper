@@ -176,10 +176,12 @@ From.prototype.isColumnAvailable = function(fqColName)
  *        string in the form <table-alias>.<column-name>, or it can be an
  *        object in the following form:
  * {
- *   column:   string, // The fully-qualified column name in the
- *                     // form: <table-alias>.<column-name>
- *   as:       string  // An alias for the column, used for serialization.
- *                     // If not provided this defaults to the column's alias.
+ *   column:   string,  // The fully-qualified column name in the
+ *                      // form: <table-alias>.<column-name>
+ *   as:       string,  // An alias for the column, used for serialization.
+ *                      // If not provided this defaults to the column's alias.
+ *   convert:  function // An optional function that takes the column value
+ *                      // and transforms it.
  * }
  */
 From.prototype.select = function(cols)
@@ -223,7 +225,8 @@ From.prototype.select = function(cols)
       column:     availColMeta.column,
       colAlias:   colAlias,
       fqColAlias: fqColAlias,
-      fqColName:  fqColName
+      fqColName:  fqColName,
+      convert:    userSelColMeta.convert
     };
 
     // Each alias must be unique.
@@ -554,7 +557,7 @@ From.prototype.execute = function(Schema)
     // selected).
     if (colMeta !== undefined)
     {
-      schema = new Schema(colMeta.fqColAlias, colMeta.colAlias);
+      schema = new Schema(colMeta.fqColAlias, colMeta.colAlias, colMeta.convert);
 
       // Keep a lookup of table alias->schema.
       schemaLookup[tblMeta.tableAlias] = schema;
@@ -574,7 +577,10 @@ From.prototype.execute = function(Schema)
   {
     // PK already present.
     if (!colMeta.column.isPrimary())
-      schemaLookup[colMeta.tableAlias].addProperty(colMeta.fqColAlias, colMeta.colAlias);
+    {
+      schemaLookup[colMeta.tableAlias].addProperty(
+        colMeta.fqColAlias, colMeta.colAlias, colMeta.convert);
+    }
   });
 
   // Execute the query.
