@@ -50,22 +50,22 @@ describe('Schema test suite.', function()
   // Adds a property with a converter.
   it('adds a property with a converter.', function()
   {
-    var converter = function() {};
-    var schema    = new Schema('pid', 'personID', converter)
-      .addProperty('firstName', null, converter)
+    var convert = function() {};
+    var schema  = new Schema('pid', 'personID', convert)
+      .addProperty('firstName', null, convert)
       .addProperty('lastName');
-    var props     = schema.getProperties();
+    var props   = schema.getProperties();
 
     expect(props.length).toBe(3);
     expect(props[0].propertyName).toBe('personID');
     expect(props[0].columnName).toBe('pid');
-    expect(props[0].converter).toBe(converter);
+    expect(props[0].convert).toBe(convert);
     expect(props[1].propertyName).toBe('firstName');
     expect(props[1].columnName).toBe('firstName');
-    expect(props[1].converter).toBe(converter);
+    expect(props[1].convert).toBe(convert);
     expect(props[2].propertyName).toBe('lastName');
     expect(props[2].columnName).toBe('lastName');
-    expect(props[2].converter).toBe(undefined);
+    expect(props[2].convert).toBe(undefined);
   });
 
   // Adds some sub schemata.

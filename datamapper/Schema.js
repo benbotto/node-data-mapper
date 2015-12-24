@@ -10,10 +10,10 @@ var assert = require('../util/assert');
  *        primary key.
  * @param propertyName An optional alias for the key column.  Defaults to the
  *        same name as the key column.
- * @param conveter An optional converter function that takes in the value
+ * @param convert An optional convert function that takes in the value
  *        associated the key column and converts it.
  */
-function Schema(keyColumnName, propertyName, converter)
+function Schema(keyColumnName, propertyName, convert)
 {
   // Note that these properties are treated as package private.  The DataMapper
   // accesses them directly for efficiency reasons.
@@ -22,7 +22,7 @@ function Schema(keyColumnName, propertyName, converter)
   this._schemata       = [];
   this._propertyLookup = {};
   
-  this.addProperty(keyColumnName, propertyName, converter);
+  this.addProperty(keyColumnName, propertyName, convert);
 }
 
 Schema.RELATIONSHIP_TYPE = {MANY: 'many', SINGLE: 'single'};
@@ -40,10 +40,10 @@ Schema.prototype.getKeyColumnName = function()
  * @param columnName The name of the database column.
  * @param propertyName The name of the property in the resulting object.
  *        Defaults to the property name.
- * @param conveter An optional converter function that takes in the value
+ * @param convert An optional convert function that takes in the value
  *        associated the column and converts it.
  */
-Schema.prototype.addProperty = function(columnName, propertyName, converter)
+Schema.prototype.addProperty = function(columnName, propertyName, convert)
 {
   propertyName = propertyName || columnName;
 
@@ -56,7 +56,7 @@ Schema.prototype.addProperty = function(columnName, propertyName, converter)
   ({
     propertyName: propertyName,
     columnName:   columnName,
-    converter:    converter
+    convert:      convert
   });
   
   return this;
