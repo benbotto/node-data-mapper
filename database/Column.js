@@ -7,13 +7,14 @@ var assert = require('../util/assert');
  * @param column An object representing the column with the following properties.
  * {
  *   name:      string, // Required.  The name of the column.
- *
  *   alias:     string, // Optional.  The column alias, used for serializing.
  *                      // Defaults to name.
- *
- *   isPrimary: bool    // Optional.  Whether or not this column is a primary key.
+ *   isPrimary: bool,   // Optional.  Whether or not this column is a primary key.
  *                      // Defaults to false.
- *                  
+ *   converter: object  // An optional converter object containing onRetrieve
+ *                      // and/or onSave methods.  These methods will be called
+ *                      // when a column is serialized after a select, or before
+ *                      // the column is saved to the database.
  * }
  */
 function Column(column)
@@ -23,6 +24,7 @@ function Column(column)
   this._name      = column.name;
   this._alias     = column.alias || this._name;
   this._isPrimary = !!column.isPrimary;
+  this._converter = column.converter || {};
 }
 
 /**
@@ -47,6 +49,14 @@ Column.prototype.getAlias = function()
 Column.prototype.isPrimary = function()
 {
   return this._isPrimary;
+};
+
+/**
+ * Get the column converter object, if any.
+ */
+Column.prototype.getConverter = function()
+{
+  return this._converter;
 };
 
 module.exports = Column;
