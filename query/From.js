@@ -199,7 +199,7 @@ From.prototype.select = function(cols)
 
   cols.forEach(function(userSelColMeta)
   {
-    var fqColName, colAlias, fqColAlias, availColMeta, selColMeta;
+    var fqColName, colAlias, fqColAlias, availColMeta, selColMeta, convert;
 
     // Each column is an object, but can be short-handed as a string.  If a
     // a string is passed convert it to object format.
@@ -218,6 +218,7 @@ From.prototype.select = function(cols)
     availColMeta = this._availableColsLookup[fqColName];
     colAlias     = userSelColMeta.as || availColMeta.column.getAlias();
     fqColAlias   = this.createFQColName(availColMeta.tableAlias, colAlias);
+    convert      = userSelColMeta.convert || availColMeta.column.getConverter().onRetrieve;
 
     selColMeta = 
     {
@@ -226,7 +227,7 @@ From.prototype.select = function(cols)
       colAlias:   colAlias,
       fqColAlias: fqColAlias,
       fqColName:  fqColName,
-      convert:    userSelColMeta.convert
+      convert:    convert
     };
 
     // Each alias must be unique.

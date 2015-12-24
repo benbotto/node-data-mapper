@@ -421,6 +421,40 @@ describe('From (SELECT query) test suite.', function()
       expect(schemata[0].getProperties()[1].convert).toBe(convert);
     });
 
+    // Checks that converters can be added in the database definition.
+    it('checks that converters can be added in the database definition.', function()
+    {
+      var converter =
+      {
+        onRetrieve: function(r) { return r; }
+      };
+
+      var db = new Database
+      ({
+        name: 'node_mart',
+        tables:
+        [
+          {
+            name: 'products',
+            columns:
+            [
+              {name: 'productID', isPrimary: true},
+              {name: 'isActive', converter: converter}
+            ]
+          }
+        ]
+      });
+
+      new From(db, escaper, qryExec, {table: 'products'})
+        .select('products.productID', 'products.isActive')
+        .execute(SchemaProxy);
+
+      expect(schemata[0].getProperties()[0].columnName).toBe('products.productID');
+      expect(schemata[0].getProperties()[0].convert).toBeUndefined();
+      expect(schemata[0].getProperties()[1].columnName).toBe('products.isActive');
+      expect(schemata[0].getProperties()[1].convert).toBe(converter.onRetrieve);
+    });
+
     // Checks schema parents.
     it('checks schema parents.', function()
     {
