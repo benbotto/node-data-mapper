@@ -1,6 +1,7 @@
 'use strict';
 
-var db =
+var ndm = require('node-data-mapper');
+var db  =
 {
   name: 'bike_shop',
   tables:
@@ -32,7 +33,13 @@ var db =
         // Columns can also be aliased.  Here, the column "sex" will be 
         // serialized as "gender."
         {name: 'sex', alias: 'gender'},
-        {name: 'hasStoreKeys'},
+        // Converter objects can be added to Column definitions.  A converter
+        // has an onRetrieve and an onSave function.  The former takes a value
+        // from the database and converts it for serialization.  The latter
+        // takes a serialized value and converts it such that it can be saved
+        // to the database.  In this case bit values from the database will
+        // be turned into booleans.
+        {name: 'hasStoreKeys', converter: ndm.bitConverter},
         {name: 'hireDate'},
         {name: 'bikeShopID'}
       ]

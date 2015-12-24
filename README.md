@@ -15,8 +15,9 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
 - [Examples](#examples)
   - [Selecting](#selecting)
       - [Limiting Columns](#limiting-columns)
-      - [Ordering](#ordering)
       - [Ad-Hoc Aliasing](#ad-hoc-aliasing)
+      - [Ordering](#ordering)
+      - [Converters](#converters)
       - [Conditions](#conditions)
       - [Joins](#joins)
       - [Relationships](#relationships)
@@ -47,6 +48,8 @@ The easiest way to define a database is using a simple object.  Here's a basic e
 
 ```js
 'use strict';
+
+var ndm = require('node-data-mapper');
 
 var db =
 {
@@ -80,7 +83,13 @@ var db =
         // Columns can also be aliased.  Here, the column "sex" will be 
         // serialized as "gender."
         {name: 'sex', alias: 'gender'},
-        {name: 'hasStoreKeys'},
+        // Converter objects can be added to Column definitions.  A converter
+        // has an onRetrieve and an onSave function.  The former takes a value
+        // from the database and converts it for serialization.  The latter
+        // takes a serialized value and converts it such that it can be saved
+        // to the database.  In this case bit values from the database will
+        // be turned into booleans.
+        {name: 'hasStoreKeys', converter: ndm.bitConverter},
         {name: 'hireDate'},
         {name: 'bikeShopID'}
       ]
@@ -196,7 +205,7 @@ query.execute().then(function(result)
   bikeShopDC.getQueryExecuter().getConnectionPool().end();
 });
 ```
-Running this code (```node example/retrieve/allFromSingleTable.js```) yields the following output.
+Running this code (```$ node example/retrieve/allFromSingleTable.js```) yields the following output.
 ```js
 Query:
 SELECT  `bikeShops`.`bikeShopID` AS `bikeShops.bikeShopID`, `bikeShops`.`name` AS `bikeShops.name`, `bikeShops`.`address` AS `bikeShops.address`
@@ -226,56 +235,6 @@ var query = bikeShopDC
   .select('bikeShops.bikeShopID', 'bikeShops.name');
 ```
 It's important to point out that if any columns are selected from a table, then the primary key must also be selected.  If the primary key is not selected then an exception will be raised.
-
-##### Ordering
-
-The results of a query can be ordered using the ```orderBy``` method.  In its simplest form, the method can be passed multiple strings that corresponds to fully-qualified columns names.  For example, to order the previous query ```by bikeShops.name```:
-
-```js
-var query = bikeShopDC
-  .from('bike_shops')
-  .select('bikeShops.bikeShopID', 'bikeShops.name')
-  .orderBy('bikeShops.name');
-```
-
-Alternatively multiple objects can be passed to the ```orderBy``` method.  Each object is defined as follows:
-
-```js
-{
-  column: string, // The fully-qualified column name in the
-                  // form: <table-alias>.<column-name>
-  dir:    string  // The sort direction: either "ASC" or "DESC."  Defaults to "ASC."
-}
-```
-
-A more advanced ordering example is presented below:
-
-```js
-var query = bikeShopDC
-  .from('staff')
-  .select('staff.staffID', 'staff.hasStoreKeys', 'staff.firstName')
-  .orderBy({column: 'staff.hasStoreKeys', dir: 'DESC'}, 'staff.firstName');
-```
-
-Running this example (```node example/retrieve/advancedOrder.js```) displays:
-
-```js
-Query:
-SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`hasStoreKeys` AS `staff.hasStoreKeys`, `staff`.`firstName` AS `staff.firstName`
-FROM    `staff` AS `staff`
-ORDER BY `staff.hasStoreKeys` DESC, `staff.firstName` ASC 
-
-Result:
-{ staff: 
-   [ { staffID: 4, hasStoreKeys: <Buffer 01>, firstName: 'Abe' },
-     { staffID: 2, hasStoreKeys: <Buffer 01>, firstName: 'John' },
-     { staffID: 5, hasStoreKeys: <Buffer 01>, firstName: 'Sal' },
-     { staffID: 6, hasStoreKeys: <Buffer 01>, firstName: 'Valerie' },
-     { staffID: 7, hasStoreKeys: <Buffer 00>, firstName: 'Kimberly' },
-     { staffID: 8, hasStoreKeys: <Buffer 00>, firstName: 'Michael' },
-     { staffID: 1, hasStoreKeys: <Buffer 00>, firstName: 'Randy' },
-     { staffID: 3, hasStoreKeys: <Buffer 00>, firstName: 'Tina' } ] }
-```
 
 ##### Ad-Hoc Aliasing
 
@@ -322,6 +281,129 @@ Result:
      { id: 2, shopName: 'Zephyr Cove Cruisers' },
      { id: 3, shopName: 'Cycle Works' } ] }
 ```
+
+##### Ordering
+
+The results of a query can be ordered using the ```orderBy``` method.  In its simplest form, the method can be passed multiple strings that corresponds to fully-qualified columns names.  For example, to order the previous query ```by bikeShops.name```:
+
+```js
+var query = bikeShopDC
+  .from('bike_shops')
+  .select('bikeShops.bikeShopID', 'bikeShops.name')
+  .orderBy('bikeShops.name');
+```
+
+Alternatively multiple objects can be passed to the ```orderBy``` method.  Each object is defined as follows:
+
+```js
+{
+  column: string, // The fully-qualified column name in the
+                  // form: <table-alias>.<column-name>
+  dir:    string  // The sort direction: either "ASC" or "DESC."  Defaults to "ASC."
+}
+```
+
+A more advanced ordering example is presented below:
+
+```js
+var query = bikeShopDC
+  .from('staff')
+  .select('staff.staffID', 'staff.hasStoreKeys', 'staff.firstName')
+  .orderBy({column: 'staff.hasStoreKeys', dir: 'DESC'}, 'staff.firstName');
+```
+
+Running this example (```$ node example/retrieve/advancedOrder.js```) displays:
+
+```js
+Query:
+SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`hasStoreKeys` AS `staff.hasStoreKeys`, `staff`.`firstName` AS `staff.firstName`
+FROM    `staff` AS `staff`
+ORDER BY `staff.hasStoreKeys` DESC, `staff.firstName` ASC 
+
+Result:
+{ staff: 
+   [ { staffID: 4, hasStoreKeys: true, firstName: 'Abe' },
+     { staffID: 2, hasStoreKeys: true, firstName: 'John' },
+     { staffID: 5, hasStoreKeys: true, firstName: 'Sal' },
+     { staffID: 6, hasStoreKeys: true, firstName: 'Valerie' },
+     { staffID: 7, hasStoreKeys: false, firstName: 'Kimberly' },
+     { staffID: 8, hasStoreKeys: false, firstName: 'Michael' },
+     { staffID: 1, hasStoreKeys: false, firstName: 'Randy' },
+     { staffID: 3, hasStoreKeys: false, firstName: 'Tina' } ] }
+```
+
+##### Converters
+
+In the last example you may have noticed that the ```hasStoreKeys``` property, which is defined as a bit in the database, is serialized as a boolean.  Look at the [Define a Database](#define-a-database) section and you'll see that the ```hasStoreKeys``` ```Column``` definition has a ```converter``` object.  A ```converter``` is an object with two functions: ```onRetrieve``` and ```onSave```.  Each function takes in a value and transforms it.  The former transforms for serialization, and the latter transforms for saving (INSERT or UPDATE).  For example, here is how the bitConverter is defined.
+
+```js
+'use strict';
+
+module.exports =
+{
+  /**
+   * Convert the "bit" to a boolean.
+   * @param bit Either an instance of a Buffer containing a 1 or a 0, or a number.
+   */
+  onRetrieve: function(bit)
+  {
+    if (bit === null || bit === undefined || bit === '')
+      return null;
+
+    if (Buffer.isBuffer(bit))
+      return bit[0] === 1;
+
+    return bit === '1' || bit === 1;
+  },
+
+  /**
+   * Convert a boolean to a bit.
+   * @param bool A boolean value.
+   */
+  onSave: function(bool)
+  {
+    if (bool === null || bool === undefined || bool === '')
+      return null;
+    return bool ? 1 : 0;
+  }
+};
+```
+
+Converters can also be defined on the fly instead of at the ```Column```-definition level.  (Note that the property name is ```convert``` rather than ```converter``` when using an ad-hoc conversion function.  A ```converter``` object has two methods, but here ```convert``` is synonymous with a ```converter.onRetrieve``` method.)
+
+```js
+// Convert a str to upper case.
+function ucConverter(str)
+{
+  return str.toUpperCase();
+}
+
+// The firstName property will be converted to upper case.
+var query = bikeShopDC
+  .from('staff')
+  .select('staff.staffID', {column: 'staff.firstName', convert: ucConverter});
+```
+
+Running the above example (```$ node example/retrieve/adHocConverter.js```) shows:
+
+```js
+Query:
+SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`firstName` AS `staff.firstName`
+FROM    `staff` AS `staff` 
+
+Result:
+{ staff: 
+   [ { staffID: 1, firstName: 'RANDY' },
+     { staffID: 2, firstName: 'JOHN' },
+     { staffID: 3, firstName: 'TINA' },
+     { staffID: 4, firstName: 'ABE' },
+     { staffID: 5, firstName: 'SAL' },
+     { staffID: 6, firstName: 'VALERIE' },
+     { staffID: 7, firstName: 'KIMBERLY' },
+     { staffID: 8, firstName: 'MICHAEL' } ] }
+```
+
+As you can see, the ```firstName``` property has been correctly transformed.
 
 ##### Conditions
 
@@ -399,7 +481,7 @@ var query = bikeShopDC
   {male: 'male', female: 'female'});
 ```
 
-Running this example (```node example/retrieve/advancedWhere.js```) yields the following output:
+Running this example (```$ node example/retrieve/advancedWhere.js```) yields the following output:
 
 ```js
 SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`firstName` AS `staff.firstName`, `staff`.`lastName` AS `staff.lastName`, `staff`.`sex` AS `staff.gender`, `staff`.`age` AS `staff.age`
@@ -462,7 +544,7 @@ var query = bikeShopDC
   .select('staff.staffID', 'staff.firstName', 'staff.lastName', 'bonuses.bonusID', 'bonuses.amount');
 ```
 
-Running this query (```node example/retrieve/basicJoin.js```) shows the following output:
+Running this query (```$ node example/retrieve/basicJoin.js```) shows the following output:
 
 ```js
 Query:
@@ -498,7 +580,7 @@ var query = bikeShopDC
   .where({$is: {'bonuses.bonusID': null}});
 ```
 
-In this query, no columns from the bonuses table are selected because the query is designed to find staff members *without* bonuses.  Hence, the join does not need a parent, and the resulting staff objects do not have "bonuses" properties.  Running this example (```node example/retrieve/leftJoin.js```) prints the following:
+In this query, no columns from the bonuses table are selected because the query is designed to find staff members *without* bonuses.  Hence, the join does not need a parent, and the resulting staff objects do not have "bonuses" properties.  Running this example (```$ node example/retrieve/leftJoin.js```) prints the following:
 
 ```js
 Query:
@@ -528,7 +610,7 @@ var query = bikeShopDC
   .select('bonuses.bonusID', 'bonuses.amount', 'staff.staffID', 'staff.firstName', 'staff.lastName');
 ```
 
-This example (```node example/retrieve/manyToOneJoin.js```) shows the following output.
+This example (```$ node example/retrieve/manyToOneJoin.js```) shows the following output.
 
 ```js
 Query:
@@ -564,7 +646,7 @@ var query = bikeShopDC
   .select('bikeShops.bikeShopID', 'bikeShops.name', 'bikes.bikeID', 'bikes.brand', 'bikes.model');
 ```
 
-Here is the result (```node example/retrieve/manyToManyJoin.js```):
+Here is the result (```$ node example/retrieve/manyToManyJoin.js```):
 
 ```js
 Query:
