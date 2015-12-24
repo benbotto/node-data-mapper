@@ -424,11 +424,7 @@ describe('From (SELECT query) test suite.', function()
     // Checks that converters can be added in the database definition.
     it('checks that converters can be added in the database definition.', function()
     {
-      var converter =
-      {
-        onRetrieve: function(r) { return r; }
-      };
-
+      var converter = {};
       var db = new Database
       ({
         name: 'node_mart',

@@ -22,11 +22,7 @@ describe('Column test suite', function()
     var col3 = new Column({name: 'TestCol3', isPrimary: true});
     expect(col3.isPrimary()).toBe(true);
 
-    var converter =
-    {
-      onRetrieve: function(r) { return r; },
-      onSave:     function(s) { return s; }
-    };
+    var converter = {};
     var col4 = new Column({name: 'TestCol4', converter: converter});
 
     expect(col4.getConverter()).toBe(converter);
