@@ -22,5 +22,126 @@ describe('Insert test suite.', function()
       new Insert(db, escaper, qryExec, {});
     });
   });
+
+  describe('Insert toString test suite.', function()
+  {
+    // Converts a basic model to a string.
+    it('converts a basic model to a string.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users:
+        [
+          {first: 'Sandy', last: 'Perkins'}
+        ]
+      });
+
+      expect(query.toString()).toEqual
+      (
+        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
+        "VALUES ('Sandy', 'Perkins')"
+      );
+    });
+
+    // Checks that properties that are not table aliases are ignored.
+    it('checks that properties that are not table aliases are ignored.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users:
+        [
+          {first: 'Sandy', last: 'Perkins'}
+        ],
+        another: []
+      });
+
+      expect(query.toString()).toEqual
+      (
+        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
+        "VALUES ('Sandy', 'Perkins')"
+      );
+    });
+
+    // Checks that aliased table inserts are generated correctly.
+    it('checks that aliased table inserts are generated correctly.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        phoneNumbers: {userID: 12, phoneNumber: '444-555-6666', type: 'mobile'}
+      });
+
+      expect(query.toString()).toBe
+      (
+        'INSERT INTO `phone_numbers` (`userID`, `phoneNumber`, `type`)\n' +
+        "VALUES (12, '444-555-6666', 'mobile')"
+      );
+    });
+
+    // Checks that apostrophes get escaped.
+    it('checks that apostrophes get escaped.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users: {first: 'Sandy', last: "O'Hare"}
+      });
+
+      expect(query.toString()).toEqual
+      (
+        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
+        "VALUES ('Sandy', 'O\\'Hare')"
+      );
+    });
+
+    // Checks that undefined values are skipped.
+    it('checks that undefined values are skipped.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users: {first: 'Sandy'}
+      });
+
+      expect(query.toString()).toEqual
+      (
+        'INSERT INTO `users` (`firstName`)\n' +
+        "VALUES ('Sandy')"
+      );
+    });
+
+    // Checks that null values work.
+    it('checks that null values work.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users: {first: 'Sandy', last: null}
+      });
+
+      expect(query.toString()).toEqual
+      (
+        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
+        "VALUES ('Sandy', NULL)"
+      );
+    });
+
+    // Checks that an array of models can be inserted.
+    it('checks that an array of models can be inserted.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users:
+        [
+          {first: 'Sandy', last: 'Perkins'},
+          {first: 'Sandy', last: "O'Hare"}
+        ]
+      });
+
+      expect(query.toString()).toEqual
+      (
+        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
+        "VALUES ('Sandy', 'Perkins');\n\n" +
+        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
+        "VALUES ('Sandy', 'O\\'Hare')"
+      );
+    });
+  });
 });
 
