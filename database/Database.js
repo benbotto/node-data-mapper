@@ -77,6 +77,15 @@ Database.prototype.getTableByName = function(name)
 };
 
 /**
+ * Check if name is a valid table name.
+ * @param name The name of a table.
+ */
+Database.prototype.isTableName = function(name)
+{
+  return !!this._nameLookup[name];
+};
+
+/**
  * Get a table by alias.
  * @param alias The alias of the table.
  */
@@ -86,6 +95,15 @@ Database.prototype.getTableByAlias = function(alias)
     'Table alias ' + alias + ' does not exist in database ' + this.getName() + '.');
 
   return this._aliasLookup[alias];
+};
+
+/**
+ * Check if name is a valid table alias.
+ * @param alias The alias of a table.
+ */
+Database.prototype.isTableAlias = function(alias)
+{
+  return !!this._aliasLookup[alias];
 };
 
 module.exports = Database;

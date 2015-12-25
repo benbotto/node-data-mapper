@@ -44,6 +44,13 @@ describe('Database test suite', function()
       expect(db.getTableByName('phone_numbers').getAlias()).toBe('phoneNumbers');
       expect(db.getTableByAlias('phoneNumbers').getName()).toBe('phone_numbers');
       expect(db.getTableByAlias('phoneNumbers')).toBe(db.getTableByName('phone_numbers'));
+
+      expect(db.isTableName('users')).toBe(true);
+      expect(db.isTableName('phone_numbers')).toBe(true);
+      expect(db.isTableName('foo')).toBe(false);
+      expect(db.isTableAlias('users')).toBe(true);
+      expect(db.isTableAlias('phoneNumbers')).toBe(true);
+      expect(db.isTableAlias('foo')).toBe(false);
     });
 
     // Adds a duplicate table.
