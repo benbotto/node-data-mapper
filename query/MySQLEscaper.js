@@ -32,6 +32,5 @@ MySQLEscaper.prototype.escapeLiteral = function(literal)
   return mysql.escape(literal);
 };
 
-
 module.exports = MySQLEscaper;
 
