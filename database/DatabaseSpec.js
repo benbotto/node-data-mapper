@@ -4,7 +4,7 @@ describe('Database test suite', function()
 
   var Database = require('./Database');
   var Table    = require('./Table');
-  var testDB   = require('../spec/testDB.json');
+  var testDB   = require('../spec/testDB');
 
   describe('Database constructor test suite.', function()
   {

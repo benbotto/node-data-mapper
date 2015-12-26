@@ -4,7 +4,7 @@ describe('Table test suite', function()
 
   var Table  = require('./Table');
   var Column = require('./Column');
-  var users  = require('../spec/testDB.json').tables[0];
+  var users  = require('../spec/testDB').tables[0];
 
   describe('Table constructor test suite.', function()
   {

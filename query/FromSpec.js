@@ -5,7 +5,7 @@ describe('From (SELECT query) test suite.', function()
   var From         = require('./From');
   var Database     = require('../database/Database');
   var MySQLEscaper = require('./MySQLEscaper');
-  var db           = new Database(require('../spec/testDB.json'));
+  var db           = new Database(require('../spec/testDB'));
   var escaper      = new MySQLEscaper();
   var qryExec;
 

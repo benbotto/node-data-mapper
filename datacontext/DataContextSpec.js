@@ -6,7 +6,7 @@ describe('DataContext test suite', function()
   var Database     = require('../database/Database');
   var MySQLEscaper = require('../query/MySQLEscaper');
   var From         = require('../query/From');
-  var db           = new Database(require('../spec/testDB.json'));
+  var db           = new Database(require('../spec/testDB'));
   var escaper      = new MySQLEscaper();
   var exec         = {};
 

@@ -5,7 +5,7 @@ describe('MySQLDataContext test suite', function()
   var DataContext      = require('./DataContext');
   var MySQLDataContext = require('./MySQLDataContext');
   var Database         = require('../database/Database');
-  var db               = new Database(require('../spec/testDB.json'));
+  var db               = new Database(require('../spec/testDB'));
   var pool             = {};
 
   // Checks the constructor.
