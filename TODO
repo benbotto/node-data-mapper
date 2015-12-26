@@ -1,4 +1,3 @@
-As more types of queries are added a query class should be created.  The parser/lexer/compiler should be in this class.
-Converters are going to be needed.  For example, to convert bits to booleans.  Each Column instance should have an array of converters, but the user should be able to override these on a per-query basis (in the select columns).
 Composite keys are not supported by the Schema and will not work.  Needs impl.
 When there are two top-level schemata two DataMappers are used.  This doubles the time because two loops are needed.  Performance would be better if the DataMapper could take an array of schemata and perform the mapping in a single loop.  On the other hand, two top-level schemata is a corner case.
+It would be nice to allow multiple queries to be combinded into a single one.  With big queries, the cartisian product can be huge and it would be a performance enhancer to allow selecting from multiple related entities.
