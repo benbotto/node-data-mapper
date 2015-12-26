@@ -57,8 +57,12 @@ Insert.prototype._buildQueries = function()
         // undefined values are skipped.
         if (val !== undefined)
         {
-          vals.push(val);
           cols.push(columns[j].getName());
+
+          // If there is a converter associated with this column, use it.
+          if (val !== null && columns[j].getConverter().onSave)
+            val = columns[j].getConverter().onSave(val);
+          vals.push(val);
         }
       }
 

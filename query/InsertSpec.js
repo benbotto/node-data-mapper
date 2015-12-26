@@ -142,6 +142,38 @@ describe('Insert test suite.', function()
         "VALUES ('Sandy', 'O\\'Hare')"
       );
     });
+
+    // Checks that converters are used.
+    it('checks that converters are used.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        products:
+        [
+          {description: 'Innova Valkyrie', isActive: true},
+          {description: 'Innova Valkyrie', isActive: false},
+          {description: 'Innova Valkyrie', isActive: null}
+        ]
+      });
+      
+      
+      var converter = db.getTableByName('products').getColumnByName('isActive').getConverter();
+      spyOn(converter, 'onSave').and.callThrough();
+
+      expect(query.toString()).toEqual
+      (
+        'INSERT INTO `products` (`description`, `isActive`)\n' +
+        "VALUES ('Innova Valkyrie', 1);\n\n" +
+        'INSERT INTO `products` (`description`, `isActive`)\n' +
+        "VALUES ('Innova Valkyrie', 0);\n\n" +
+        'INSERT INTO `products` (`description`, `isActive`)\n' +
+        "VALUES ('Innova Valkyrie', NULL)"
+      );
+
+      // The onSave method should not be called with nulls, so there should be
+      // a call count of 2.
+      expect(converter.onSave.calls.count()).toBe(2);
+    });
   });
 });
 
