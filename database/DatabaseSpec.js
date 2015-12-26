@@ -22,9 +22,10 @@ describe('Database test suite', function()
       var db = new Database(testDB);
 
       expect(db.getName()).toBe('testDB');
-      expect(db.getTables().length).toBe(2);
+      expect(db.getTables().length).toBe(3);
       expect(db.getTables()[0].getName()).toBe('users');
       expect(db.getTables()[1].getName()).toBe('phone_numbers');
+      expect(db.getTables()[2].getName()).toBe('products');
     });
   });
 

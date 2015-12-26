@@ -1,3 +1,7 @@
+'use strict';
+
+var bitConverter = require('../converter/bitConverter');
+
 var db =
 {
   name: 'testDB',
@@ -41,6 +45,15 @@ var db =
         {
           name: 'type'
         }
+      ]
+    },
+    {
+      name: 'products',
+      columns:
+      [
+        {name: 'productID', isPrimary: true},
+        {name: 'description'},
+        {name: 'isActive', converter: bitConverter}
       ]
     }
   ]
