@@ -7,8 +7,7 @@ var Table  = require('./Table');
  * Class for representing a database.
  * @param database An object in the following format.
  * {
- *   name:   string,      // Required.  The name of the database.
- *
+ *   name:   string,      // The name of the database.  Optional.
  *   tables: array<Table> // Optional.  An array of Tables (or objects suitable for
  *                        // the Table constructor).
  *                        // See the Table constructor for property details.
@@ -16,9 +15,7 @@ var Table  = require('./Table');
  */
 function Database(database)
 {
-  assert(database.name, 'Database name is required.');
-
-  this._name        = database.name;
+  this._name        = database.name || '';
   this._tables      = [];
   this._nameLookup  = {};
   this._aliasLookup = {};
