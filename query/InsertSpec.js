@@ -21,6 +21,13 @@ describe('Insert test suite.', function()
     {
       new Insert(db, escaper, qryExec, {});
     });
+
+    // Checks that the database can be retrieved.
+    it('checks that the database can be retrieved.', function()
+    {
+      var query = new Insert(db, escaper, qryExec, {});
+      expect(query.getDatabase()).toBe(db);
+    });
   });
 
   describe('Insert toString test suite.', function()

@@ -21,6 +21,14 @@ function Insert(database, escaper, queryExecuter, model)
 }
 
 /**
+ * Get the database instance.
+ */
+Insert.prototype.getDatabase = function()
+{
+  return this._database;
+};
+
+/**
  * Private helper to build an array of INSERT queries.
  */
 Insert.prototype._buildQueries = function()
