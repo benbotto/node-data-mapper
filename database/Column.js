@@ -59,5 +59,29 @@ Column.prototype.getConverter = function()
   return this._converter;
 };
 
+/**
+ * Convert the Column instance to an object.
+ */
+Column.prototype.toObject = function()
+{
+  var obj =
+  {
+    name:      this._name,
+    alias:     this._alias,
+    isPrimary: this._isPrimary,
+    converter: this._converter
+  };
+
+  return obj;
+};
+
+/**
+ * Clone this column.
+ */
+Column.prototype.clone = function()
+{
+  return new Column(this.toObject());
+};
+
 module.exports = Column;
 

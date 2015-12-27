@@ -93,4 +93,64 @@ describe('Database test suite', function()
       expect(db.addTable(tbl)).toBe(db);
     });
   });
+
+  describe('Database toObject test suite.', function()
+  {
+    // Converts a db back to an object.
+    it('converts a db back to an object.', function()
+    {
+      var db = new Database
+      ({
+        name: 'testDB',
+        tables:
+        [
+          {
+            name: 'users',
+            columns:
+            [
+              {
+                name: 'userID',
+                alias: 'ID',
+                isPrimary: true
+              }
+            ]
+          },
+        ]
+      });
+
+      expect(db.toObject()).toEqual
+      ({
+        name: 'testDB',
+        tables:
+        [
+          {
+            name: 'users',
+            alias: 'users',
+            columns:
+            [
+              {
+                name: 'userID',
+                alias: 'ID',
+                isPrimary: true,
+                converter: {}
+              }
+            ]
+          },
+        ]
+      });
+    });
+  });
+
+  describe('Database clone test tuite.', function()
+  {
+    // Clones a database.
+    it('clones a database.', function()
+    {
+      var db = new Database(testDB);
+      var clone = db.clone();
+
+      expect(db.toObject()).toEqual(clone.toObject());
+    });
+  });  
 });
+

@@ -183,5 +183,52 @@ describe('Table test suite', function()
       expect(usersTbl.isColumnAlias('nope')).toBe(false);
     });
   });
+
+  describe('Table toObject test suite.', function()
+  {
+    // Converts the users table to an object.
+    it('converts the users table to an object.', function()
+    {
+      var usersTbl = new Table(users);
+      expect(usersTbl.toObject()).toEqual
+      ({
+        name: 'users',
+        alias: 'users',
+        columns:
+        [
+          {
+            name: 'userID',
+            alias: 'ID',
+            isPrimary: true,
+            converter: {}
+          },
+          {
+            name: 'firstName',
+            alias: 'first',
+            isPrimary: false,
+            converter: {}
+          },
+          {
+            name: 'lastName',
+            alias: 'last',
+            isPrimary: false,
+            converter: {}
+          }
+        ]
+      });
+    });
+  });
+
+  describe('Table clone test suite.', function()
+  {
+    // Clones a table.
+    it('clones a table.', function()
+    {
+      var table = new Table(users);
+      var clone = table.clone();
+
+      expect(table.toObject()).toEqual(clone.toObject());
+    });
+  });
 });
 

@@ -103,5 +103,26 @@ Database.prototype.isTableAlias = function(alias)
   return !!this._aliasLookup[alias];
 };
 
+/**
+ * Convert the Database instance back to an object.
+ */
+Database.prototype.toObject = function()
+{
+  var obj = {name: this._name, tables: []};
+
+  for (var i = 0; i < this._tables.length; ++i)
+    obj.tables.push(this._tables[i].toObject());
+
+  return obj;
+};
+
+/**
+ * Clone this Database instance.
+ */
+Database.prototype.clone = function()
+{
+  return new Database(this.toObject());
+};
+
 module.exports = Database;
 

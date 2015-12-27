@@ -18,7 +18,7 @@ var Column = require('./Column');
  */
 function Table(table)
 {
-  assert(table.name,    'name is required.');
+  assert(table.name, 'name is required.');
 
   this._name        = table.name;
   this._alias       = table.alias || this._name;
@@ -135,6 +135,32 @@ Table.prototype.getColumnByAlias = function(alias)
 Table.prototype.isColumnAlias = function(alias)
 {
   return !!this._aliasLookup[alias];
+};
+
+/**
+ * Convert the Table instance to an object.
+ */
+Table.prototype.toObject = function()
+{
+  var obj =
+  {
+    name:    this._name,
+    alias:   this._alias,
+    columns: []
+  };
+
+  for (var i = 0; i < this._columns.length; ++i)
+    obj.columns.push(this._columns[i].toObject());
+
+  return obj;
+};
+
+/**
+ * Clone this Table.
+ */
+Table.prototype.clone = function()
+{
+  return new Table(this.toObject());
 };
 
 module.exports = Table;
