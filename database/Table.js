@@ -8,12 +8,10 @@ var Column = require('./Column');
  * @param table An object containing a table definition, in the following format.
  * {
  *   name:       string,        // Required.  The name of the table.
- *
- *   columns:    array<Column>, // Required.  An array of Columns (or object
- *                              // suitable for the Column constructor) that make up the table.
+ *   columns:    array<Column>, // An array of Columns (or object suitable for
+ *                              // the Column constructor) that make up the table.
  *                              // Refer to the Column constructor for property details.
  *                              // At least one of the columns must be a primary key.
- *
  *   alias:      string         // An optional alias for the table, used for serializing.
  *                              // Defaults to the table name.
  * }
@@ -21,7 +19,6 @@ var Column = require('./Column');
 function Table(table)
 {
   assert(table.name,    'name is required.');
-  assert(table.columns, 'columns is required.');
 
   this._name        = table.name;
   this._alias       = table.alias || this._name;
@@ -30,11 +27,14 @@ function Table(table)
   this._nameLookup  = {};
   this._aliasLookup = {};
 
-  table.columns.forEach(this.addColumn.bind(this));
+  if (table.columns)
+  {
+    table.columns.forEach(this.addColumn.bind(this));
 
-  // Make sure there is at least one primary key.
-  assert(this._primaryKey.length !== 0,
-    'At least one column must be a primary key.');
+    // Make sure there is at least one primary key.
+    assert(this._primaryKey.length !== 0,
+      'At least one column must be a primary key.');
+  }
 }
 
 /**
@@ -108,6 +108,15 @@ Table.prototype.getColumnByName = function(name)
 };
 
 /**
+ * Check if name is a valid column name.
+ * @param name The column name.
+ */
+Table.prototype.isColumnName = function(name)
+{
+  return !!this._nameLookup[name];
+};
+
+/**
  * Get a column by alias.
  * @param alias The column alias.
  */
@@ -117,6 +126,15 @@ Table.prototype.getColumnByAlias = function(alias)
     'Column alias ' + alias + ' does not exist in table ' + this.getName() + '.');
 
   return this._aliasLookup[alias];
+};
+
+/**
+ * Check if alias is a valid column alias.
+ * @param alias The column alias.
+ */
+Table.prototype.isColumnAlias = function(alias)
+{
+  return !!this._aliasLookup[alias];
 };
 
 module.exports = Table;

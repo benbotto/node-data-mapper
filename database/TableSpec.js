@@ -17,15 +17,6 @@ describe('Table test suite', function()
       }).toThrowError('name is required.');
     });
 
-    // Checks that columns is required.
-    it('checks that columns is required.', function()
-    {
-      expect(function()
-      {
-        new Table({name: 'foo'});
-      }).toThrowError('columns is required.');
-    });
-
     // Checks that the primary key is required.
     it('checks that the primary key is required.', function()
     {
@@ -172,6 +163,24 @@ describe('Table test suite', function()
     it('makes sure that addColumn returns this (the table).', function()
     {
       expect(usersTbl.addColumn(new Column({name: 'surname'}))).toBe(usersTbl);
+    });
+
+    // Checks the isColumnName function.
+    it('checks the isColumnName function.', function()
+    {
+      expect(usersTbl.isColumnName('userID')).toBe(true);
+      expect(usersTbl.isColumnName('firstName')).toBe(true);
+      expect(usersTbl.isColumnName('lastName')).toBe(true);
+      expect(usersTbl.isColumnName('nope')).toBe(false);
+    });
+
+    // Checks the isColumnAlias function.
+    it('checks the isColumnAlias function.', function()
+    {
+      expect(usersTbl.isColumnAlias('ID')).toBe(true);
+      expect(usersTbl.isColumnAlias('first')).toBe(true);
+      expect(usersTbl.isColumnAlias('last')).toBe(true);
+      expect(usersTbl.isColumnAlias('nope')).toBe(false);
     });
   });
 });
