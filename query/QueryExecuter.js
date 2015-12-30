@@ -21,6 +21,18 @@ QueryExecuter.prototype.select = function(/*query, callback*/)
 };
 
 /**
+ * Execute an insert query.
+ * @param query The SQL to execute.  The query is expected to be escaped.
+ * @param callback The callback function that is called when the query is executed.
+ *        function callback(err, result)
+ *        If available, the result object should have an insertId property.
+ */
+QueryExecuter.prototype.insert = function()
+{
+  throw new Error('QueryExecuter::insert not implemented.');
+};
+
+/**
  * Execute an update query.
  */
 QueryExecuter.prototype.update = function()
@@ -34,14 +46,6 @@ QueryExecuter.prototype.update = function()
 QueryExecuter.prototype.delete = function()
 {
   throw new Error('QueryExecuter::delete not implemented.');
-};
-
-/**
- * Execute an insert query.
- */
-QueryExecuter.prototype.insert = function()
-{
-  throw new Error('QueryExecuter::insert not implemented.');
 };
 
 module.exports = QueryExecuter;
