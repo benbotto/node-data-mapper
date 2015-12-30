@@ -227,7 +227,7 @@ Because the table "bike_shops" is aliased (refer to the [Define a Database](#def
 
 ##### Limiting Columns
 
-The selected columns can be limited by using the ```select``` method.  The ```select``` method is variadic, and in its simplest form it can be passed an array of fully-qualified column names.  A fully-qualified column name takes the form ```<table-alias>.<column-name>```.  For example, the ```bike_shops``` table is aliased ```bikeShops```, so limiting the above query to ```bikeShopID``` and ```address```:
+The selected columns can be limited by using the ```select``` method.  The ```select``` method is variadic, and in its simplest form it can be passed an array of fully-qualified column names.  A fully-qualified column name takes the form ```<table-alias>.<column-name>```.  For example, the ```bike_shops``` table is aliased ```bikeShops```, so limiting the above query to ```bikeShopID``` and ```name```:
 
 ```js
 var query = bikeShopDC
