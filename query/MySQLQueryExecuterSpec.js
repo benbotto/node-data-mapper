@@ -22,5 +22,15 @@ describe('MySQLQueryExecuter test suite.', function()
 
     expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
   });
+
+  // Checks the insert method.
+  it('checks the insert method.', function()
+  {
+    function callback() {}
+    var query = 'INSERT INTO users (userName) VALUES (\'foo bar\')';
+    qe.insert(query, callback);
+
+    expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
+  });
 });
 

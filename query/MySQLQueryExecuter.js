@@ -32,5 +32,17 @@ MySQLQueryExecuter.prototype.select = function(query, callback)
   this._pool.query(query, callback);
 };
 
+/**
+ * Execute an insert query.
+ * @param query The SQL to execute.  The query is expected to be escaped.
+ * @param callback The callback function that is called when the query is executed.
+ *        function callback(err, result)
+ *        If available, the result object should have an insertId property.
+ */
+MySQLQueryExecuter.prototype.insert = function(query, callback)
+{
+  this._pool.query(query, callback);
+};
+
 module.exports = MySQLQueryExecuter;
 
