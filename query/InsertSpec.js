@@ -28,6 +28,30 @@ describe('Insert test suite.', function()
       var query = new Insert(db, escaper, qryExec, {});
       expect(query.getDatabase()).toBe(db);
     });
+
+    // Checks that the recurseType must be valid.
+    it('checks that the recurseType must be valid.', function()
+    {
+      expect(function()
+      {
+        new Insert(db, escaper, qryExec, {}, 'none');
+      }).not.toThrow();
+
+      expect(function()
+      {
+        new Insert(db, escaper, qryExec, {}, 'depth-first');
+      }).not.toThrow();
+
+      expect(function()
+      {
+        new Insert(db, escaper, qryExec, {}, 'breadth-first');
+      }).not.toThrow();
+
+      expect(function()
+      {
+        new Insert(db, escaper, qryExec, {}, 'BAD TYPE');
+      }).toThrowError('Invalid recurseType.');
+    });
   });
 
   describe('Insert toString test suite.', function()
@@ -162,8 +186,7 @@ describe('Insert test suite.', function()
           {description: 'Innova Valkyrie', isActive: null}
         ]
       });
-      
-      
+
       var converter = db.getTableByName('products').getColumnByName('isActive').getConverter();
       spyOn(converter, 'onSave').and.callThrough();
 
@@ -180,6 +203,36 @@ describe('Insert test suite.', function()
       // The onSave method should not be called with nulls, so there should be
       // a call count of 2.
       expect(converter.onSave.calls.count()).toBe(2);
+    });
+
+    // Checks a nested model.
+    it('checks a nested model.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users:
+        {
+          first: 'Sandy',
+          last:  'Perkins',
+          phoneNumbers:
+          [
+            {phoneNumber: '111-111-1111', type: 'home'},
+            {phoneNumber: '222-222-2222', type: 'mobile'}
+          ]
+        }
+      }, 'breadth-first');
+
+      console.log(query.toString());
+
+      expect(query.toString()).toEqual
+      (
+        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
+        "VALUES ('Sandy', 'Perkins');\n\n" +
+        'INSERT INTO `phone_numbers` (`phoneNumber`, `type`, `userID`)\n' +
+        "VALUES ('111-111-1111', 'home', :userID);\n\n" +
+        'INSERT INTO `phone_numbers` (`phoneNumber`, `type`, `userID`)\n' +
+        "VALUES ('222-222-2222', 'mobile', :userID)"
+      );
     });
   });
 });

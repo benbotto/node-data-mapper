@@ -4,18 +4,26 @@ var mysql = require('mysql');
 
 var connection = mysql.createConnection
 ({
-  host     : 'localhost',
-  user     : 'testUser',
-  password : 'secret',
-  database : 'test'
+  host:      'localhost',
+  user:      'example',
+  password:  'secret',
+  database : 'bike_shop'
 });
+
+var query =
+  'INSERT INTO `bike_shops` (`name`, `address`)\n' +
+  "VALUES ('Joe\\'s Bike Shack', '1224 Tata Ln.')";
 
 connection.connect();
 
-connection.query('SELECT * FROM people p LEFT OUTER JOIN phoneNumbers pn ON p.personID = pn.personID', function(err)
+connection.query(query, function(err, result)
 {
-  if (err) throw err;
-  console.dir(arguments);
+  connection.end();
+  if (err)
+  {
+    console.log('Error');
+    console.log(err);
+  }
+  console.dir(result);
+  console.log(result.insertId);
 });
-
-connection.end();

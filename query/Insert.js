@@ -1,5 +1,10 @@
 'use strict';
 
+var assert = require('../util/assert');
+//var deferred = require('deferred');
+var MetaBuilder = require('./MetaBuilder');
+var traverse    = require('./modelTraverse');
+
 /**
  * Construct a new INSERT query.
  * @param database The database to insert into.
@@ -11,13 +16,21 @@
  *        table alias.  The value associated with the key should be an object
  *        (or an array of objects) wherein each key corresponds to a column
  *        alias.
+ * @param recurseType One of 'none', 'depth-first', or 'breadth-first'.  How
+ *        to traverse into sub models.
  */
-function Insert(database, escaper, queryExecuter, model)
+function Insert(database, escaper, queryExecuter, model, recurseType)
 {
   this._database      = database;
   this._escaper       = escaper;
   this._queryExecuter = queryExecuter;
   this._model         = model;
+  this._recurseType   = recurseType || 'none';
+
+  assert(this._recurseType === 'none'   ||
+    this._recurseType === 'depth-first' ||
+    this._recurseType === 'breadth-first',
+    'Invalid recurseType.');
 }
 
 /**
@@ -29,67 +42,79 @@ Insert.prototype.getDatabase = function()
 };
 
 /**
+ * Private helper to build an INSERT query.
+ * @param modelMeta A meta object with comes from a modelTraverse method.
+ */
+Insert.prototype._buildQuery = function(modelMeta)
+{
+  var meta = new MetaBuilder().buildMeta(this._database, modelMeta.tableAlias, modelMeta.model);
+  var sql, pTable, cTable, pPK;
+
+  sql  = 'INSERT INTO ';
+  sql += this._escaper.escapeProperty(meta.tableName);
+  sql += ' (';
+  sql += meta.fields.map(function(field)
+  {
+    return this._escaper.escapeProperty(field.columnName);
+  }.bind(this)).join(', ');
+
+  // If this model is the child of some other model, add the
+  // parent model's primary key (if possible).
+  if (modelMeta.parent)
+  {
+    // References to the parent and child tables.
+    pTable = this._database.getTableByAlias(modelMeta.parent.tableAlias);
+    cTable = this._database.getTableByAlias(modelMeta.tableAlias);
+
+    // The primary key from the parent table.
+    // TODO: Composite primary keys not supported.
+    pPK = pTable.getPrimaryKey();
+    assert(pPK.length === 1, 'Composite primary keys not implemented.');
+    pPK = pPK[0];
+
+    // If the primary key of the parent table matches a column name in the
+    // child table.
+    if (cTable.isColumnName(pPK.getName()))
+      sql += ', ' + this._escaper.escapeProperty(pPK.getName());
+  }
+
+  sql += ')\n';
+  sql += 'VALUES (';
+  sql += meta.fields.map(function(field)
+  {
+    return this._escaper.escapeLiteral(field.value);
+  }.bind(this)).join(', ');
+
+  if (modelMeta.parent)
+  {
+    if (cTable.isColumnName(pPK.getName()))
+      sql += ', :' + pPK.getName();
+  }
+
+  sql += ')';
+
+  return sql;
+};
+
+/**
  * Private helper to build an array of INSERT queries.
  */
 Insert.prototype._buildQueries = function()
 {
   var queries = [];
-  var table, columns, i, j, curModels, curModel, val, vals, cols, sql;
+  var self    = this;
 
-  for (var tblAlias in this._model)
+  function addQuery(modelMeta)
   {
-    // Properties that do not match a table alias in the db are skipped.
-    if (!this._database.isTableAlias(tblAlias))
-      continue;
-
-    table     = this._database.getTableByAlias(tblAlias);
-    columns   = table.getColumns();
-    curModels = this._model[tblAlias];
-
-    // The model(s) can be an array or an object.
-    if (!(curModels instanceof Array))
-      curModels = [curModels];
-
-    for (i = 0; i < curModels.length; ++i)
-    {
-      curModel = curModels[i];
-
-      // Store the columns and values to insert.
-      vals = [];
-      cols = [];
-
-      for (j = 0; j < columns.length; ++j)
-      {
-        val = curModel[columns[j].getAlias()];
-
-        // undefined values are skipped.
-        if (val !== undefined)
-        {
-          cols.push(columns[j].getName());
-
-          // If there is a converter associated with this column, use it.
-          if (val !== null && columns[j].getConverter().onSave)
-            val = columns[j].getConverter().onSave(val);
-          vals.push(val);
-        }
-      }
-
-      // Build the actual query.
-      if (cols.length !== 0)
-      {
-        sql  = 'INSERT INTO ';
-        sql += this._escaper.escapeProperty(table.getName());
-        sql += ' (';
-        sql += cols.map(this._escaper.escapeProperty.bind(this._escaper)).join(', ');
-        sql += ')\n';
-        sql += 'VALUES (';
-        sql += vals.map(this._escaper.escapeLiteral.bind(this._escaper)).join(', ');
-        sql += ')';
-
-        queries.push(sql);
-      }
-    }
+    queries.push(self._buildQuery(modelMeta));
   }
+
+  if (this._recurseType === 'none')
+    traverse.modelOnly(this._model, addQuery, this._database);
+  else if (this._recurseType === 'depth-first')
+    console.log('temp');
+  else if (this._recurseType === 'breadth-first')
+    traverse.breadthFirst(this._model, addQuery, this._database);
 
   return queries;
 };
@@ -100,6 +125,42 @@ Insert.prototype._buildQueries = function()
 Insert.prototype.toString = function()
 {
   return this._buildQueries().join(';\n\n');
+};
+
+/**
+ * Execute the query.
+ */
+Insert.prototype.execute = function()
+{
+  /*var queries = this._buildQueries();
+  var defer   = deferred();
+
+  // Process the first query in the queries queue.
+  function processQuery()
+  {
+    if (queries.length === 0)
+    {
+      defer.resolve(this._model);
+      return;
+    }
+
+    this._queryExecuter.insert(queries.shift(), queryResult);
+  }
+
+  // Handle a query result.
+  function queryResult(err, result)
+  {
+    if (err)
+    {
+      defer.reject(err);
+      return;
+    }
+
+    console.log(result);
+  }
+
+  // A promise is returned.  It will be resolved with the updated models.
+  return defer.promise;*/
 };
 
 module.exports = Insert;
