@@ -18,10 +18,11 @@ var traverse    = require('./modelTraverse');
  */
 function Insert(database, escaper, queryExecuter, model)
 {
-  this._database      = database;
-  this._escaper       = escaper;
-  this._queryExecuter = queryExecuter;
-  this._model         = model;
+  this._database       = database;
+  this._escaper        = escaper;
+  this._queryExecuter  = queryExecuter;
+  this._model          = model;
+  this._updateChildren = true;
 }
 
 /**
@@ -30,6 +31,17 @@ function Insert(database, escaper, queryExecuter, model)
 Insert.prototype.getDatabase = function()
 {
   return this._database;
+};
+
+/**
+ * Set whether or not to update the foreign keys of children after
+ * a query is executed.  Defaults to true.
+ * @param update A boolean that determines whether or not to update children.
+ */
+Insert.prototype.setUpdateChildKeys = function(update)
+{
+  this._updateChildren = update;
+  return this;
 };
 
 /**
@@ -136,21 +148,24 @@ Insert.prototype.execute = function()
 
         queryDatum.modelMeta.model[pkAlias] = result.insertId;
 
-        // Update the related key on any children when possible.
-        traverse.modelOnly(queryDatum.modelMeta.model, function(childModelMeta)
+        if (self._updateChildren)
         {
-          var childTable = self._database.getTableByAlias(childModelMeta.tableAlias);
-          var pkName     = pk[0].getName();
-          var childColAlias;
-
-          // If the primary key of the inserted table is a valid column
-          // name on the child table, set the insertId on the child.
-          if (childTable.isColumnName(pkName))
+          // Update the related key on any children when possible.
+          traverse.modelOnly(queryDatum.modelMeta.model, function(childModelMeta)
           {
-            childColAlias = childTable.getColumnByName(pkName).getAlias();
-            childModelMeta.model[childColAlias] = result.insertId;
-          }
-        }, self._database);
+            var childTable = self._database.getTableByAlias(childModelMeta.tableAlias);
+            var pkName     = pk[0].getName();
+            var childColAlias;
+
+            // If the primary key of the inserted table is a valid column
+            // name on the child table, set the insertId on the child.
+            if (childTable.isColumnName(pkName))
+            {
+              childColAlias = childTable.getColumnByName(pkName).getAlias();
+              childModelMeta.model[childColAlias] = result.insertId;
+            }
+          }, self._database);
+        }
       }
 
       processQuery();

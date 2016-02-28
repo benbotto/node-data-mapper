@@ -306,6 +306,30 @@ describe('Insert test suite.', function()
         expect(result.users[1].phoneNumbers[0].userID).toBe(2);
       });
     });
+
+    // Verifies the option to not update foreign keys.
+    it('verifies the option to not update foreign keys.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users:
+        {
+          first: 'Sandy',
+          last: 'Perkins',
+          phoneNumbers:
+          [
+            {phoneNumber: '111-222-3333'}
+          ]
+        }
+      });
+
+      query.setUpdateChildKeys(false);
+      query.execute().then(function(result)
+      {
+        expect(result.users.ID).toBe(1);
+        expect(result.users.phoneNumbers[0].userID).not.toBeDefined();
+      });
+    });
   });
 });
 

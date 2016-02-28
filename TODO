@@ -1,4 +1,3 @@
-There should be an option in Insert not to update child models.  If, for example, all tables have a primary key named "ID" then updating the keys on child tables would be problematic.
 Add examples for Insert.
 Build update and delete.  Then, make the code work with node-mssql (probably need to fix parameters).
 The INSERT needs to be implemented with depth-first.
