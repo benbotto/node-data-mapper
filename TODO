@@ -1,3 +1,6 @@
+There should be an option in Insert not to update child models.  If, for example, all tables have a primary key named "ID" then updating the keys on child tables would be problematic.
+Add examples for Insert.
+Build update and delete.  Then, make the code work with node-mssql (probably need to fix parameters).
 The INSERT needs to be implemented with depth-first.
 Composite keys are not supported by the Schema and will not work.  Needs impl.
 When there are two top-level schemata two DataMappers are used.  This doubles the time because two loops are needed.  Performance would be better if the DataMapper could take an array of schemata and perform the mapping in a single loop.  On the other hand, two top-level schemata is a corner case.

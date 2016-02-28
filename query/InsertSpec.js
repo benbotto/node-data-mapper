@@ -28,30 +28,6 @@ describe('Insert test suite.', function()
       var query = new Insert(db, escaper, qryExec, {});
       expect(query.getDatabase()).toBe(db);
     });
-
-    // Checks that the recurseType must be valid.
-    it('checks that the recurseType must be valid.', function()
-    {
-      expect(function()
-      {
-        new Insert(db, escaper, qryExec, {}, 'none');
-      }).not.toThrow();
-
-      expect(function()
-      {
-        new Insert(db, escaper, qryExec, {}, 'depth-first');
-      }).not.toThrow();
-
-      expect(function()
-      {
-        new Insert(db, escaper, qryExec, {}, 'breadth-first');
-      }).not.toThrow();
-
-      expect(function()
-      {
-        new Insert(db, escaper, qryExec, {}, 'BAD TYPE');
-      }).toThrowError('Invalid recurseType.');
-    });
   });
 
   describe('Insert toString test suite.', function()
@@ -204,35 +180,131 @@ describe('Insert test suite.', function()
       // a call count of 2.
       expect(converter.onSave.calls.count()).toBe(2);
     });
+  });
 
-    // Checks a nested model.
-    it('checks a nested model.', function()
+  describe('Insert execute test suite.', function()
+  {
+    var insertId;
+
+    beforeEach(function()
+    {
+      insertId = 0;
+      qryExec  = jasmine.createSpyObj('qryExec', ['insert']);
+
+      // When the QueryExecuter.insert method is called return
+      // immediately with an insertId.  The insertId starts at
+      // 1 and is incremented on each query.
+      qryExec.insert.and.callFake(function(query, callback)
+      {
+        callback(undefined, {insertId: ++insertId});
+      });
+    });
+
+    // Makes sure that the query executer is called.
+    it('makes sure that the query executer is called.', function()
     {
       var query = new Insert(db, escaper, qryExec,
       {
         users:
-        {
-          first: 'Sandy',
-          last:  'Perkins',
-          phoneNumbers:
-          [
-            {phoneNumber: '111-111-1111', type: 'home'},
-            {phoneNumber: '222-222-2222', type: 'mobile'}
-          ]
-        }
-      }, 'breadth-first');
+        [
+          {first: 'Sandy', last: 'Perkins'}
+        ]
+      });
 
-      console.log(query.toString());
+      query.execute();
+      expect(qryExec.insert).toHaveBeenCalled();
+      expect(insertId).toBe(1);
+    });
 
-      expect(query.toString()).toEqual
-      (
-        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', 'Perkins');\n\n" +
-        'INSERT INTO `phone_numbers` (`phoneNumber`, `type`, `userID`)\n' +
-        "VALUES ('111-111-1111', 'home', :userID);\n\n" +
-        'INSERT INTO `phone_numbers` (`phoneNumber`, `type`, `userID`)\n' +
-        "VALUES ('222-222-2222', 'mobile', :userID)"
-      );
+    // Makes sure the query executer is called once for each model.
+    it('makes sure the query executer is called once for each model.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users:
+        [
+          {first: 'Sandy',  last: 'Perkins'},
+          {first: 'Cindy',  last: 'Perkins'},
+          {first: 'Donald', last: 'Perkins'}
+        ]
+      });
+
+      query.execute();
+      expect(qryExec.insert.calls.count()).toBe(3);
+      expect(insertId).toBe(3);
+    });
+
+    // Checks that the primary key gets updated.
+    it('checks that the primary key gets updated.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users: {first: 'Sandy', last: 'Perkins'}
+      });
+
+      query.execute().then(function(result)
+      {
+        expect(result.users.ID).toBe(1);
+      });
+    });
+
+    // Checks that the primary key gets updated on multiple models.
+    it('checks that the primary key gets updated on multiple models.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users:
+        [
+          {first: 'Sandy',  last: 'Perkins'},
+          {first: 'Cindy',  last: 'Perkins'},
+          {first: 'Donald', last: 'Perkins'}
+        ]
+      });
+
+      query.execute().then(function(result)
+      {
+        expect(result.users[0].ID).toBe(1);
+        expect(result.users[1].ID).toBe(2);
+        expect(result.users[2].ID).toBe(3);
+      });
+    });
+
+    // Checks that the primary key gets updated on children.
+    it('checks that the primary key gets updated on children.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users:
+        [
+          {
+            first: 'Sandy',
+            last: 'Perkins',
+            phoneNumbers:
+            [
+              {phoneNumber: '111-222-3333'},
+              {phoneNumber: '444-555-6666'}
+
+            ]
+          },
+          {
+            first: 'Randy',
+            last: 'Perkins',
+            phoneNumbers:
+            [
+              {phoneNumber: '777-888-9999'}
+            ]
+          }
+        ]
+      });
+
+      query.execute().then(function(result)
+      {
+        expect(result.users[0].ID).toBe(1);
+        expect(result.users[0].phoneNumbers[0].userID).toBe(1);
+        expect(result.users[0].phoneNumbers[1].userID).toBe(1);
+        expect(result.users[1].ID).toBe(2);
+        expect(result.users[1].phoneNumbers[0].userID).toBe(2);
+      });
     });
   });
 });

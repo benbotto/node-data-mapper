@@ -1,7 +1,6 @@
 'use strict';
 
-var assert = require('../util/assert');
-//var deferred = require('deferred');
+var deferred    = require('deferred');
 var MetaBuilder = require('./MetaBuilder');
 var traverse    = require('./modelTraverse');
 
@@ -16,21 +15,13 @@ var traverse    = require('./modelTraverse');
  *        table alias.  The value associated with the key should be an object
  *        (or an array of objects) wherein each key corresponds to a column
  *        alias.
- * @param recurseType One of 'none', 'depth-first', or 'breadth-first'.  How
- *        to traverse into sub models.
  */
-function Insert(database, escaper, queryExecuter, model, recurseType)
+function Insert(database, escaper, queryExecuter, model)
 {
   this._database      = database;
   this._escaper       = escaper;
   this._queryExecuter = queryExecuter;
   this._model         = model;
-  this._recurseType   = recurseType || 'none';
-
-  assert(this._recurseType === 'none'   ||
-    this._recurseType === 'depth-first' ||
-    this._recurseType === 'breadth-first',
-    'Invalid recurseType.');
 }
 
 /**
@@ -48,7 +39,7 @@ Insert.prototype.getDatabase = function()
 Insert.prototype._buildQuery = function(modelMeta)
 {
   var meta = new MetaBuilder().buildMeta(this._database, modelMeta.tableAlias, modelMeta.model);
-  var sql, pTable, cTable, pPK;
+  var sql;
 
   sql  = 'INSERT INTO ';
   sql += this._escaper.escapeProperty(meta.tableName);
@@ -57,49 +48,22 @@ Insert.prototype._buildQuery = function(modelMeta)
   {
     return this._escaper.escapeProperty(field.columnName);
   }.bind(this)).join(', ');
-
-  // If this model is the child of some other model, add the
-  // parent model's primary key (if possible).
-  if (modelMeta.parent)
-  {
-    // References to the parent and child tables.
-    pTable = this._database.getTableByAlias(modelMeta.parent.tableAlias);
-    cTable = this._database.getTableByAlias(modelMeta.tableAlias);
-
-    // The primary key from the parent table.
-    // TODO: Composite primary keys not supported.
-    pPK = pTable.getPrimaryKey();
-    assert(pPK.length === 1, 'Composite primary keys not implemented.');
-    pPK = pPK[0];
-
-    // If the primary key of the parent table matches a column name in the
-    // child table.
-    if (cTable.isColumnName(pPK.getName()))
-      sql += ', ' + this._escaper.escapeProperty(pPK.getName());
-  }
-
   sql += ')\n';
+
   sql += 'VALUES (';
   sql += meta.fields.map(function(field)
   {
     return this._escaper.escapeLiteral(field.value);
   }.bind(this)).join(', ');
-
-  if (modelMeta.parent)
-  {
-    if (cTable.isColumnName(pPK.getName()))
-      sql += ', :' + pPK.getName();
-  }
-
   sql += ')';
 
   return sql;
 };
 
 /**
- * Private helper to build an array of INSERT queries.
+ * Create the SQL string.
  */
-Insert.prototype._buildQueries = function()
+Insert.prototype.toString = function()
 {
   var queries = [];
   var self    = this;
@@ -109,22 +73,9 @@ Insert.prototype._buildQueries = function()
     queries.push(self._buildQuery(modelMeta));
   }
 
-  if (this._recurseType === 'none')
-    traverse.modelOnly(this._model, addQuery, this._database);
-  else if (this._recurseType === 'depth-first')
-    console.log('temp');
-  else if (this._recurseType === 'breadth-first')
-    traverse.breadthFirst(this._model, addQuery, this._database);
+  traverse.modelOnly(this._model, addQuery, this._database);
 
-  return queries;
-};
-
-/**
- * Create the SQL string.
- */
-Insert.prototype.toString = function()
-{
-  return this._buildQueries().join(';\n\n');
+  return queries.join(';\n\n');
 };
 
 /**
@@ -132,35 +83,82 @@ Insert.prototype.toString = function()
  */
 Insert.prototype.execute = function()
 {
-  /*var queries = this._buildQueries();
-  var defer   = deferred();
+  var defer     = deferred();
+  var self      = this;
+  var queryData = [];
 
-  // Process the first query in the queries queue.
-  function processQuery()
+  // Queue all the queries and model meta data.
+  traverse.modelOnly(this._model, queueQueryData, this._database);
+  function queueQueryData(modelMeta)
   {
-    if (queries.length === 0)
-    {
-      defer.resolve(this._model);
-      return;
-    }
-
-    this._queryExecuter.insert(queries.shift(), queryResult);
+    queryData.push
+    ({
+      modelMeta: modelMeta,
+      query:     self._buildQuery(modelMeta)
+    });
   }
 
-  // Handle a query result.
-  function queryResult(err, result)
+  // The queryData are executed in order.  processQuery() grabs the first query
+  // out of the queryData queue, executes it, and removes it from the array.
+  // The result of the query is passed to processQueryResult(), which in
+  // turn fires processQuery.  When the queue of queryData is empty, the
+  // defered is resolved.
+  // If an error occurs at any point, the deferred is rejected and processing
+  // halts.
+  processQuery();
+
+  // Process the first query in the queryData queue.
+  function processQuery()
   {
-    if (err)
+    var queryDatum;
+
+    if (queryData.length === 0)
     {
-      defer.reject(err);
+      defer.resolve(self._model);
       return;
     }
 
-    console.log(result);
+    queryDatum = queryData.shift();
+    self._queryExecuter.insert(queryDatum.query, function(err, result)
+    {
+      if (err)
+      {
+        defer.reject(err);
+        return;
+      }
+
+      // If there is an auto-generated ID, set it on the model.
+      if (result.insertId)
+      {
+        var table   = self._database.getTableByAlias(queryDatum.modelMeta.tableAlias);
+        var pk      = table.getPrimaryKey();
+        var pkAlias = pk[0].getAlias();
+
+        queryDatum.modelMeta.model[pkAlias] = result.insertId;
+
+        // Update the related key on any children when possible.
+        traverse.modelOnly(queryDatum.modelMeta.model, function(childModelMeta)
+        {
+          var childTable = self._database.getTableByAlias(childModelMeta.tableAlias);
+          var pkName     = pk[0].getName();
+          var childColAlias;
+
+          // If the primary key of the inserted table is a valid column
+          // name on the child table, set the insertId on the child.
+          if (childTable.isColumnName(pkName))
+          {
+            childColAlias = childTable.getColumnByName(pkName).getAlias();
+            childModelMeta.model[childColAlias] = result.insertId;
+          }
+        }, self._database);
+      }
+
+      processQuery();
+    });
   }
 
   // A promise is returned.  It will be resolved with the updated models.
-  return defer.promise;*/
+  return defer.promise;
 };
 
 module.exports = Insert;
