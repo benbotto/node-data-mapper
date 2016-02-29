@@ -6,6 +6,7 @@ describe('DataContext test suite', function()
   var Database     = require('../database/Database');
   var MySQLEscaper = require('../query/MySQLEscaper');
   var From         = require('../query/From');
+  var Insert       = require('../query/Insert');
   var db           = new Database(require('../spec/testDB'));
   var escaper      = new MySQLEscaper();
   var exec         = {};
@@ -27,5 +28,20 @@ describe('DataContext test suite', function()
     var from = dc.from({table: 'users'});
 
     expect(from instanceof From).toBe(true);
+  });
+
+  // Checks that an Insert query can be created.
+  it('checks that an Insert query can be created.', function()
+  {
+    var dc     = new DataContext(db, escaper);
+    var insert = dc.insert
+    ({
+      users:
+      [
+        {first: 'Sandy', last: 'Perkins'}
+      ]
+    });
+
+    expect(insert instanceof Insert).toBe(true);
   });
 });

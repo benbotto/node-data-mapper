@@ -1,6 +1,7 @@
 'use strict';
 
-var From = require('../query/From.js');
+var From   = require('../query/From.js');
+var Insert = require('../query/Insert.js');
 
 /**
  * The main interface to the ORM.  This class is expected to be extended by the
@@ -49,6 +50,18 @@ DataContext.prototype.getQueryExecuter = function()
 DataContext.prototype.from = function(meta)
 {
   return new From(this.getDatabase(), this._escaper, this._queryExecuter, meta);
+};
+
+/**
+ * Create a new INSERT query.
+ * @param model A model object to insert.  Each key in the object should be a
+ *        table alias.  The value associated with the key should be an object
+ *        (or an array of objects) wherein each key corresponds to a column
+ *        alias.
+ */
+DataContext.prototype.insert = function(model)
+{
+  return new Insert(this.getDatabase(), this._escaper, this._queryExecuter, model);
 };
 
 module.exports = DataContext;
