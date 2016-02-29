@@ -5,21 +5,25 @@
  */
 module.exports =
 {
-  Database:           require('./database/Database'),
-  Table:              require('./database/Table'),
-  Column:             require('./database/Column'),
-  DataContext:        require('./datacontext/DataContext'),
-  MySQLDataContext:   require('./datacontext/MySQLDataContext'),
-  Escaper:            require('./query/Escaper'),
-  MySQLEscaper:       require('./query/MySQLEscaper'),
-  ConditionParser:    require('./query/ConditionParser'),
-  ConditionLexer:     require('./query/ConditionLexer'),
-  ConditionCompiler:  require('./query/ConditionCompiler'),
-  From:               require('./query/From'),
-  QueryExecuter:      require('./query/QueryExecuter'),
-  MySQLQueryExecuter: require('./query/MySQLQueryExecuter'),
-  Schema:             require('./datamapper/Schema'),
-  DataMapper:         require('./datamapper/DataMapper'),
-  bitConverter:       require('./converter/bitConverter')
+  assert:             require('./util/assert.js'),
+  Database:           require('./database/Database.js'),
+  Table:              require('./database/Table.js'),
+  Column:             require('./database/Column.js'),
+  bitConverter:       require('./converter/bitConverter.js'),
+  MySQLDataContext:   require('./datacontext/MySQLDataContext.js'),
+  DataContext:        require('./datacontext/DataContext.js'),
+  Escaper:            require('./query/Escaper.js'),
+  MySQLEscaper:       require('./query/MySQLEscaper.js'),
+  ConditionCompiler:  require('./query/ConditionCompiler.js'),
+  ConditionLexer:     require('./query/ConditionLexer.js'),
+  ConditionParser:    require('./query/ConditionParser.js'),
+  From:               require('./query/From.js'),
+  Insert:             require('./query/Insert.js'),
+  MetaBuilder:        require('./query/MetaBuilder.js'),
+  modelTraverse:      require('./query/modelTraverse.js'),
+  QueryExecuter:      require('./query/QueryExecuter.js'),
+  MySQLQueryExecuter: require('./query/MySQLQueryExecuter.js'),
+  Schema:             require('./datamapper/Schema.js'),
+  DataMapper:         require('./datamapper/DataMapper.js')
 };
 
