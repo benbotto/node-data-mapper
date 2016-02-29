@@ -5,6 +5,7 @@ var bikeShopDC = require('../bikeShopDataContext');
 // Create a new bike shop.
 var query = bikeShopDC.insert
 ({
+  // This is the alias of the table, not the table name.
   bikeShops:
   {
     name:    "Phil Billy's Bikes",
@@ -12,15 +13,15 @@ var query = bikeShopDC.insert
   }
 });
 
-// This is the query that will be executed.
 console.log('Query:');
 console.log(query.toString(), '\n');
 
-// Executing a query returns a promise, as defined by the deferred API.
-// https://www.npmjs.com/package/deferred
+// Just like the selections, insertions return a promise.  The inserted model
+// is returned.
 query.execute().then(function(result)
 {
-  // Notice that the new ID is populated.
+  // Notice that the new identifier is populated if the table has an
+  // auto-incrementing primary key.
   console.log('Result:');
   console.log(result);
 })
@@ -29,6 +30,5 @@ query.execute().then(function(result)
   console.log(err);
 }).finally(function()
 {
-  // Close the connection.
   bikeShopDC.getQueryExecuter().getConnectionPool().end();
 });

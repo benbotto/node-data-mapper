@@ -8,6 +8,7 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
 ##### Table of Contents
 
 - [Getting Started](#getting-started)
+    - [Select all from a Single Table](#select-all-from-a-single-table)
     - [Install node-data-mapper](#install-node-data-mapper)
     - [Install a Supported Driver](#install-a-supported-driver)
     - [Define a Database](#define-a-database)
@@ -21,6 +22,8 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
       - [Conditions](#conditions)
       - [Joins](#joins)
       - [Relationships](#relationships)
+  - [Inserting](#inserting)
+    - [Insert a Single Model](#insert-a-single-model)
 - [Extending](#extending)
 
 ### Getting Started
@@ -174,6 +177,8 @@ The database contains a series of bike shops.  Each bike shop has staff, and sta
 The bike_shop.sql script creates a user "example" with a password of "secret." If you change the credentials then you will need to update the bikeShopDataContext.js file accordingly.
 
 ### Selecting
+
+##### Select all from a Single Table
 
 The simplest query one can perform is selecting all data from a single table.
 
@@ -680,6 +685,66 @@ Result:
           { bikeID: 10, brand: 'Firmstrong', model: 'Bella Classic' } ] } ] }
 ```
 
+### Inserting
+
+##### Insert a Single Model
+
+In its most basic form, the insert method takes a single object.  If a key matches a table alias in the database, then the associated model(s) are inserted.
+
+```js
+'use strict';
+
+var bikeShopDC = require('../bikeShopDataContext');
+
+// Create a new bike shop.
+var query = bikeShopDC.insert
+({
+  // This is the alias of the table, not the table name.
+  bikeShops:
+  {
+    name:    "Phil Billy's Bikes",
+    address: '432 Red Rider Rd.'
+  }
+});
+
+console.log('Query:');
+console.log(query.toString(), '\n');
+
+// Just like the selections, insertions return a promise.  The inserted model
+// is returned.
+query.execute().then(function(result)
+{
+  // Notice that the new identifier is populated if the table has an
+  // auto-incrementing primary key.
+  console.log('Result:');
+  console.log(result);
+})
+.catch(function(err)
+{
+  console.log(err);
+}).finally(function()
+{
+  bikeShopDC.getQueryExecuter().getConnectionPool().end();
+});
+```
+
+And here is the output (```$ node example/create/basicInsert.js```):
+
+```js
+Query:
+INSERT INTO `bike_shops` (`name`, `address`)
+VALUES ('Phil Billy\'s Bikes', '432 Red Rider Rd.') 
+
+Result:
+{ bikeShops: 
+   { name: 'Phil Billy\'s Bikes',
+     address: '432 Red Rider Rd.',
+     bikeShopID: 4 } }
+```
+
+If the table has an auto-increment primary key, then the ID is added to the model (the column alias is respected).
+
 ## Extending
 
 The node-data-mapper module is designed to be extendable.  Adding support for a new database dialect is simple, and involves extending and specializing the DataContext class.  The DataContext defines a standard interface for escaping and executing queries.  Refer to the MySQLDataContext implementation for an example.
+

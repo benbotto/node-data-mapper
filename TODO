@@ -1,4 +1,5 @@
 Add examples for Insert.
+DataContext.insert needs an optional Database parameter, otherwise the user can't modify aliases etc.
 Build update and delete.  Then, make the code work with node-mssql (probably need to fix parameters).
 The INSERT needs to be implemented with depth-first.
 Composite keys are not supported by the Schema and will not work.  Needs impl.
