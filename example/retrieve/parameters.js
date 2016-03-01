@@ -10,7 +10,8 @@ var query = bikeShopDC
 console.log('Query:');
 console.log(query.toString(), '\n');
 
-query.execute().then(function(result)
+query.execute()
+.then(function(result)
 {
   console.log('Result:');
   console.log(result);
@@ -18,7 +19,8 @@ query.execute().then(function(result)
 .catch(function(err)
 {
   console.log(err);
-}).finally(function()
+})
+.finally(function()
 {
   bikeShopDC.getQueryExecuter().getConnectionPool().end();
 });

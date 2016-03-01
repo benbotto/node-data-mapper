@@ -10,15 +10,17 @@ var query = bikeShopDC
 console.log('Query:');
 console.log(query.toString(), '\n');
 
-query.execute().then(function(result)
-{
-  console.log('Result:');
-  console.log(result);
-})
-.catch(function(err)
-{
-  console.log(err);
-}).finally(function()
-{
-  bikeShopDC.getQueryExecuter().getConnectionPool().end();
-});
+query.execute()
+  .then(function(result)
+  {
+    console.log('Result:');
+    console.log(result);
+  })
+  .catch(function(err)
+  {
+    console.log(err);
+  })
+  .finally(function()
+  {
+    bikeShopDC.getQueryExecuter().getConnectionPool().end();
+  });
