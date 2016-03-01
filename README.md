@@ -24,6 +24,7 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
       - [Relationships](#relationships)
   - [Inserting](#inserting)
     - [Insert a Single Model](#insert-a-single-model)
+    - [Insert Multiple Models](#insert-multiple-models)
 - [Extending](#extending)
 
 ### Getting Started
@@ -196,19 +197,21 @@ console.log(query.toString(), '\n');
 
 // Executing a query returns a promise, as defined by the deferred API.
 // https://www.npmjs.com/package/deferred
-query.execute().then(function(result)
-{
-  console.log('Result:');
-  console.log(result);
-})
-.catch(function(err)
-{
-  console.log(err);
-}).finally(function()
-{
-  // Close the connection.
-  bikeShopDC.getQueryExecuter().getConnectionPool().end();
-});
+query.execute()
+  .then(function(result)
+  {
+    console.log('Result:');
+    console.log(result);
+  })
+  .catch(function(err)
+  {
+    console.log(err);
+  })
+  .finally(function()
+  {
+    // Close the connection.
+    bikeShopDC.getQueryExecuter().getConnectionPool().end();
+  });
 ```
 Running this code (```$ node example/retrieve/allFromSingleTable.js```) yields the following output.
 ```js
@@ -712,20 +715,22 @@ console.log(query.toString(), '\n');
 
 // Just like the selections, insertions return a promise.  The inserted model
 // is returned.
-query.execute().then(function(result)
-{
-  // Notice that the new identifier is populated if the table has an
-  // auto-incrementing primary key.
-  console.log('Result:');
-  console.log(result);
-})
-.catch(function(err)
-{
-  console.log(err);
-}).finally(function()
-{
-  bikeShopDC.getQueryExecuter().getConnectionPool().end();
-});
+query.execute()
+  .then(function(result)
+  {
+    // Notice that the new identifier is populated if the table has an
+    // auto-incrementing primary key.
+    console.log('Result:');
+    console.log(result);
+  })
+  .catch(function(err)
+  {
+    console.log(err);
+  })
+  .finally(function()
+  {
+    bikeShopDC.getQueryExecuter().getConnectionPool().end();
+  });
 ```
 
 And here is the output (```$ node example/create/basicInsert.js```):
@@ -742,7 +747,60 @@ Result:
      bikeShopID: 4 } }
 ```
 
-If the table has an auto-increment primary key, then the ID is added to the model (the column alias is respected).
+If the table has an auto-increment primary key, then the ID is added to the model.  The primary key column's alias is used when adding the auto-generated ID field.
+
+##### Insert Multiple Models
+
+As described in the previous example, each key in the object passed to the ```insert``` method should match a table alias.  Multiple models can be passed to ```insert``` simultaneously.  Likewise, each key can correspond to a single model, or to an array of models.
+
+```js
+// Create two new bike shops and a new bike.
+var query = bikeShopDC.insert
+({
+  bikeShops:
+  [
+    {   
+      name:    'Cycle City',
+      address: '82 Bloom St.'
+    },  
+    {
+      name:    'Cadence and Clip',
+      address: '7712 Ackworth Barn Dr.'
+    }   
+  ],  
+  bikes:
+  {
+    brand: 'Gary Fisher',
+    model: 'Remedy',
+    msrp:  5499.99
+  }
+});
+```
+Running this example (```$ node example/create/insertMultiple.js```) shows the following output:
+
+```js
+Query:
+INSERT INTO `bike_shops` (`name`, `address`)
+VALUES ('Cycle City', '82 Bloom St.');
+
+INSERT INTO `bike_shops` (`name`, `address`)
+VALUES ('Cadence and Clip', '7712 Ackworth Barn Dr.');
+
+INSERT INTO `bikes` (`brand`, `model`, `msrp`)
+VALUES ('Gary Fisher', 'Remedy', 5499.99) 
+
+Result:
+{ bikeShops: 
+   [ { name: 'Cycle City', address: '82 Bloom St.', bikeShopID: 5 },
+     { name: 'Cadence and Clip',
+       address: '7712 Ackworth Barn Dr.',
+       bikeShopID: 6 } ],
+  bikes: 
+   { brand: 'Gary Fisher',
+     model: 'Remedy',
+     msrp: 5499.99,
+     bikeID: 11 } }
+```
 
 ## Extending
 
