@@ -58,10 +58,13 @@ DataContext.prototype.from = function(meta)
  *        table alias.  The value associated with the key should be an object
  *        (or an array of objects) wherein each key corresponds to a column
  *        alias.
+ * @param database An optional Database instance.  If passed, this parameter
+ *        is used instead of the Database that's provided to the ctor.
  */
-DataContext.prototype.insert = function(model)
+DataContext.prototype.insert = function(model, database)
 {
-  return new Insert(this.getDatabase(), this._escaper, this._queryExecuter, model);
+  database = database || this.getDatabase();
+  return new Insert(database, this._escaper, this._queryExecuter, model);
 };
 
 module.exports = DataContext;

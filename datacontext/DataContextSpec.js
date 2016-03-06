@@ -44,4 +44,21 @@ describe('DataContext test suite', function()
 
     expect(insert instanceof Insert).toBe(true);
   });
+
+  // Checks that a database can be passed as a second parameter.
+  it('checks that a database can be passed as a second parameter.', function()
+  {
+    var dc     = new DataContext(db, escaper);
+    var db2    = db.clone();
+    var insert = dc.insert
+    ({
+      users:
+      [
+        {first: 'Sandy', last: 'Perkins'}
+      ]
+    }, db2);
+
+    expect(insert instanceof Insert).toBe(true);
+    expect(insert.getDatabase()).toBe(db2);
+  });
 });
