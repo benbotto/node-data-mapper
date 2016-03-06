@@ -330,6 +330,70 @@ describe('Insert test suite.', function()
         expect(result.users.phoneNumbers[0].userID).not.toBeDefined();
       });
     });
+
+    // Checks the behavior of a failed execute.
+    it('checks the behavior of a failed execute.', function()
+    {
+      qryExec.insert.and.callFake(function(query, callback)
+      {
+        callback({error: 'An error occurred.'});
+      });
+
+      var err   = false;
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users: {first: 'Sandy', last: 'Perkins'}
+      });
+
+      query.execute().catch(function()
+      {
+        err = true;
+      });
+
+      expect(err).toBe(true);
+    });
+
+    // Checks that if an insertId is not returned, the model is not updated.
+    it('checks that if an insertId is not returned, the model is not updated.', function()
+    {
+      qryExec.insert.and.callFake(function(query, callback)
+      {
+        callback(undefined, {});
+      });
+
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users: {first: 'Sandy', last: 'Perkins'}
+      });
+
+      query.execute().then(function(result)
+      {
+        expect(result.users.ID).not.toBeDefined();
+      });
+    });
+
+    // Checks that unrelated children are not updated.
+    it('checks that unrelated children are not updated.', function()
+    {
+      var query = new Insert(db, escaper, qryExec,
+      {
+        users:
+        {
+          first: 'Sandy',
+          last: 'Perkins',
+          products:
+          {
+            productID: 8
+          }
+        }
+      });
+
+      query.execute().then(function(result)
+      {
+        expect(result.users.ID).toBe(1);
+        expect(result.users.bikeShops.userID).not.toBeDefined();
+      });
+    });
   });
 });
 
