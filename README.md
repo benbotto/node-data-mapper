@@ -25,6 +25,7 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
   - [Inserting](#inserting)
     - [Insert a Single Model](#insert-a-single-model)
     - [Insert Multiple Models](#insert-multiple-models)
+    - [Sub-Model Relationships](#sub-model-relationships)
 - [Extending](#extending)
 
 ### Getting Started
@@ -776,6 +777,7 @@ var query = bikeShopDC.insert
   }
 });
 ```
+
 Running this example (```$ node example/create/insertMultiple.js```) shows the following output:
 
 ```js
@@ -802,7 +804,56 @@ Result:
      bikeID: 11 } }
 ```
 
+##### Sub-Model Relationships
+
+When a model is inserted, node-data-mapper will attempt to set the new model's ID on any sub models.  This will only work if the sub model has a column name that matches the parent model's primary key column name.  For example, the primary key of the ```bike_shops``` table is ```bikeShopID```.  Each ```bike_shop``` has ```staff```, and the staff table has a column named ```bikeShopID```.  Hence, if a new ```bike_shop``` is created:
+
+```js
+var query = bikeShopDC.insert
+({
+  bikeShops:
+  {
+    name:    'Redwood Bikes',
+    address: '2929 Alberton Blvd.',
+    staff:
+    [
+      {
+        firstName:    'Stan',
+        lastName:     'Stark',
+        gender:       'male',
+        hasStoreKeys: false,
+        hireDate:     new Date(2016, 2, 4)
+      }
+    ]
+  }
+});
+```
+
+Then the staff member's ```bikeShopID``` will be set (```$ node example/create/subModels.js```):
+
+```js
+Query:
+INSERT INTO `bike_shops` (`name`, `address`)
+VALUES ('Redwood Bikes', '2929 Alberton Blvd.') 
+
+Result:
+{ bikeShops: 
+   { name: 'Redwood Bikes',
+     address: '2929 Alberton Blvd.',
+     staff: 
+      [ { firstName: 'Stan',
+          lastName: 'Stark',
+          gender: 'male',
+          hasStoreKeys: false,
+          hireDate: Fri Mar 04 2016 00:00:00 GMT-0800 (PST),
+          bikeShopID: 8 } ],
+     bikeShopID: 8 } }
+```
+
+This behavior can be disabled on an ```Insert``` query by executing ```query.setUpdateChildKeys(false)```.  Sub-models are are __not__ inserted.
+
 ## Extending
 
 The node-data-mapper module is designed to be extendable.  Adding support for a new database dialect is simple, and involves extending and specializing the DataContext class.  The DataContext defines a standard interface for escaping and executing queries.  Refer to the MySQLDataContext implementation for an example.
+
 
