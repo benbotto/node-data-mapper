@@ -733,6 +733,21 @@ describe('From (SELECT query) test suite.', function()
       );
     });
 
+    // Checks orderBy using an array (instead of variadic).
+    it('checks orderBy using an array (instead of variadic).', function()
+    {
+      var query = new From(db, escaper, qryExec, {table: 'users'})
+        .select(['users.userID', 'users.firstName', 'users.lastName'])
+        .orderBy(['users.userID', 'users.firstName', 'users.lastName']);
+
+      expect(query.toString()).toBe
+      (
+        'SELECT  `users`.`userID` AS `users.ID`, `users`.`firstName` AS `users.first`, `users`.`lastName` AS `users.last`\n' +
+        'FROM    `users` AS `users`\n' +
+        'ORDER BY `users.userID` ASC, `users.firstName` ASC, `users.lastName` ASC'
+      );
+    });
+
     // Checks the orderBy with multiple directions.
     it('checks the orderBy with multiple directions.', function()
     {
