@@ -889,7 +889,9 @@ Result:
      bikeShopID: 8 } }
 ```
 
-This behavior can be disabled on an ```Insert``` query by executing ```query.setUpdateChildKeys(false)```.  Sub-models are are __not__ inserted.
+This behavior can be disabled on an ```Insert``` query by executing ```query.setUpdateChildKeys(false)```.
+
+Note that child models are are __not__ inserted.  There are, however, some utility function to help with inserting recursively.  For an example, take a look at ```example/create/recursiveInsert.js```.
 
 ## Extending
 
