@@ -25,8 +25,8 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
   - [Inserting](#inserting)
     - [Insert a Single Model](#insert-a-single-model)
     - [Insert Multiple Models](#insert-multiple-models)
-    - [Sub-Model Relationships](#sub-model-relationships)
     - [Converters](#converters-1)
+    - [Sub-Model Relationships](#sub-model-relationships)
 - [Extending](#extending)
 
 ### Getting Started
@@ -804,10 +804,48 @@ Result:
      msrp: 5499.99,
      bikeID: 11 } }
 ```
+##### Converters
+
+When inserting a model, converters defined on the database schema are respected.  For example, notice that the ```staff``` schema definition has a ```bitConverter``` defined on the ```hasStoreKeys``` column.  Hence, when a ```staff``` model is inserted, the ```hasStoreKeys``` column will be transformed from a boolean to a bit.
+
+```js
+var query = bikeShopDC.insert
+({
+  staff:
+  {
+    firstName:    'Stan',
+    lastName:     'Stark',
+    gender:       'male',
+    hasStoreKeys: false,
+    hireDate:     new Date(2016, 2, 4),
+    bikeShopID:   8
+  }
+});
+```
+
+When run, this example prints the following (```$ node example/create/converters.js```):
+
+```js
+Query:
+INSERT INTO `staff` (`firstName`, `lastName`, `sex`, `hasStoreKeys`, `hireDate`, `bikeShopID`)
+VALUES ('Stan', 'Stark', 'male', 0, '2016-03-04 00:00:00.000', 8) 
+
+Result:
+{ staff: 
+   { firstName: 'Stan',
+     lastName: 'Stark',
+     gender: 'male',
+     hasStoreKeys: false,
+     hireDate: Fri Mar 04 2016 00:00:00 GMT-0800 (PST),
+     bikeShopID: 8,
+     staffID: 9 } }
+```
+
+Unlike retrieve, ad-hoc converters are not available on ```Insert``` queries.  ```Database```, ```Table```, and ```Column``` all have ```clone()``` and ```toObject()``` methods, however, so it's trivial to clone a schema and add a converter to the clone.  The ```DataContext.insert(model, db)``` method takes a ```Database``` instance as an optional second paramater.
 
 ##### Sub-Model Relationships
 
-When a model is inserted, node-data-mapper will attempt to set the new model's ID on any sub models.  This will only work if the sub model has a column name that matches the parent model's primary key column name.  For example, the primary key of the ```bike_shops``` table is ```bikeShopID```.  Each ```bike_shop``` has ```staff```, and the staff table has a column named ```bikeShopID```.  Hence, if a new ```bike_shop``` is created:
+When a model is inserted, node-data-mapper will attempt to set the new model's ID on any child models.  This will only work if the child model has a column name that matches the parent model's primary key column name.  For example, the primary key of the ```bike_shops``` table is ```bikeShopID```.  Each ```bike_shop``` has ```staff```, and the staff table has a column named ```bikeShopID```.  Hence, if a new ```bike_shop``` is created:
 
 ```js
 var query = bikeShopDC.insert
@@ -852,45 +890,6 @@ Result:
 ```
 
 This behavior can be disabled on an ```Insert``` query by executing ```query.setUpdateChildKeys(false)```.  Sub-models are are __not__ inserted.
-
-##### Converters
-
-When inserting a model, converters defined on the database schema are respected.  For example, notice that the ```staff``` schema definition has a ```bitConverter``` defined on the ```hasStoreKeys``` column.  Hence, when a ```staff``` model is inserted, the ```hasStoreKeys``` column will be transformed from a boolean to a bit.
-
-```js
-var query = bikeShopDC.insert
-({
-  staff:
-  {
-    firstName:    'Stan',
-    lastName:     'Stark',
-    gender:       'male',
-    hasStoreKeys: false,
-    hireDate:     new Date(2016, 2, 4),
-    bikeShopID:   8
-  }
-});
-```
-
-When run, this example prints the following (```$ node example/create/converters.js```):
-
-```js
-Query:
-INSERT INTO `staff` (`firstName`, `lastName`, `sex`, `hasStoreKeys`, `hireDate`, `bikeShopID`)
-VALUES ('Stan', 'Stark', 'male', 0, '2016-03-04 00:00:00.000', 8) 
-
-Result:
-{ staff: 
-   { firstName: 'Stan',
-     lastName: 'Stark',
-     gender: 'male',
-     hasStoreKeys: false,
-     hireDate: Fri Mar 04 2016 00:00:00 GMT-0800 (PST),
-     bikeShopID: 8,
-     staffID: 9 } }
-```
-
-Unlike retrieve, ad-hoc converters are not available on ```Insert``` queries.  ```Database```, ```Table```, and ```Column``` all have ```clone()``` and ```toObject()``` methods, however, so it's trivial to clone a schema and add a converter to the clone.  The ```DataContext.insert(model, db)``` method takes a ```Database``` instance as an optional second paramater.
 
 ## Extending
 
