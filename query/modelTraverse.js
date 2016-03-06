@@ -32,7 +32,7 @@ function _depthFirst(callback, database, val, key, parent)
     // Don't fire the callback unless key is defined (if it is undefined it is
     // the top-level object).
     if (key && (!database || database.isTableAlias(key)))
-      callback({tableAlias: key || null, model: val, parent: parent || null});
+      callback({tableAlias: key, model: val, parent: parent || null});
   }
 }
 
