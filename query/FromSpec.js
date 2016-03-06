@@ -416,7 +416,7 @@ describe('From (SELECT query) test suite.', function()
     // Checks that converter functions can be added.
     it('checks that converter functions can be added.', function()
     {
-      var convert = function() {};
+      var convert = jasmine.createSpy('convert');
 
       new From(db, escaper, qryExec, {table: 'users'})
         .select({column: 'users.userID', convert: convert}, {column: 'users.firstName', convert: convert})
@@ -426,6 +426,9 @@ describe('From (SELECT query) test suite.', function()
       expect(schemata[0].getProperties()[0].convert).toBe(convert);
       expect(schemata[0].getProperties()[1].columnName).toBe('users.first');
       expect(schemata[0].getProperties()[1].convert).toBe(convert);
+
+      // Not called.  This spec only checks that the converter can be set.
+      expect(convert.calls.count()).toBe(0);
     });
 
     // Checks that converters can be added in the database definition.
