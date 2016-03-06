@@ -26,7 +26,7 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
     - [Insert a Single Model](#insert-a-single-model)
     - [Insert Multiple Models](#insert-multiple-models)
     - [Sub-Model Relationships](#sub-model-relationships)
-    - [Converters](#converters)
+    - [Converters](#converters-1)
 - [Extending](#extending)
 
 ### Getting Started
