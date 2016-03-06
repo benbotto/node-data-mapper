@@ -44,12 +44,15 @@ DataContext.prototype.getQueryExecuter = function()
 
 /**
  * Create a new SELECT query.
- * @param meta A meta object describing the table to select from.  Se the From
+ * @param meta A meta object describing the table to select from.  See the From
  *        constructor for details.
+ * @param database An optional Database instance.  If passed, this parameter
+ *        is used instead of the Database that's provided to the ctor.
  */
-DataContext.prototype.from = function(meta)
+DataContext.prototype.from = function(meta, database)
 {
-  return new From(this.getDatabase(), this._escaper, this._queryExecuter, meta);
+  database = database || this.getDatabase();
+  return new From(database, this._escaper, this._queryExecuter, meta);
 };
 
 /**
