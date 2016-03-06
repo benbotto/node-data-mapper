@@ -35,6 +35,13 @@ describe('From (SELECT query) test suite.', function()
       }).toThrowError('Table INVALID_NAME does not exist in database testDB.');
     });
 
+    // Checks that the database can be retrieved.
+    it('checks that the database can be retrieved.', function()
+    {
+      var from = new From(db, escaper, qryExec, {table: 'users'});
+      expect(from.getDatabase()).toBe(db);
+    });
+
     // Checks that the table alias cannot have non-word character characters.
     it('checks that the table alias cannot have non-word character characters.', function()
     {

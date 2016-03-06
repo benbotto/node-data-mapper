@@ -69,6 +69,14 @@ From.JOIN_TYPE =
 };
 
 /**
+ * Get the database instance.
+ */
+From.prototype.getDatabase = function()
+{
+  return this._database;
+};
+
+/**
  * Create a fully-qualified column name.
  * Column names must be unique, and the same column name could exist
  * multiple times (two tables could have the same column name, or the same
