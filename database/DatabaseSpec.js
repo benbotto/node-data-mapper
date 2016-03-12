@@ -16,6 +16,13 @@ describe('Database test suite', function()
       expect(db.getTables().length).toBe(0);
     });
 
+    // Checks the constructor with no name.
+    it('checks the constructor with no name.', function()
+    {
+      var db = new Database({});
+      expect(db.getName()).toBe('');
+    });
+
     // Checks the constructor with an array of tables.
     it('checks the constructor with an array of tables.', function()
     {

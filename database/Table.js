@@ -27,14 +27,14 @@ function Table(table)
   this._nameLookup  = {};
   this._aliasLookup = {};
 
-  if (table.columns)
-  {
-    table.columns.forEach(this.addColumn.bind(this));
+  assert(table.columns && (table.columns instanceof Array) && table.columns.length !== 0,
+    'columns is required.');
 
-    // Make sure there is at least one primary key.
-    assert(this._primaryKey.length !== 0,
-      'At least one column must be a primary key.');
-  }
+  table.columns.forEach(this.addColumn.bind(this));
+
+  // Make sure there is at least one primary key.
+  assert(this._primaryKey.length !== 0,
+    'At least one column must be a primary key.');
 }
 
 /**

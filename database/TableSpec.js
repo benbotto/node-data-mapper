@@ -22,11 +22,6 @@ describe('Table test suite', function()
     {
       expect(function()
       {
-        new Table({name: 'foo', columns: []});
-      }).toThrowError('At least one column must be a primary key.');
-
-      expect(function()
-      {
         new Table
         ({
           name:    'foo',
@@ -44,6 +39,15 @@ describe('Table test suite', function()
       expect(table.getAlias()).toBe('users');
       expect(table.getPrimaryKey().length).toBe(1);
       expect(table.getPrimaryKey()[0].getName()).toEqual(users.columns[0].name);
+    });
+
+    // Checks that columns is required.
+    it('checks that columns is required.', function()
+    {
+      expect(function()
+      {
+        new Table({name: 'foo'});
+      }).toThrowError('columns is required.');
     });
 
     // Checks the constructor with an alias.
