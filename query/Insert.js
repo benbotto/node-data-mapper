@@ -74,14 +74,9 @@ Insert.prototype._buildQuery = function(modelMeta)
 Insert.prototype.toString = function()
 {
   var queries = [];
-  var self    = this;
 
-  function addQuery(modelMeta)
-  {
-    queries.push(self._buildQuery(modelMeta));
-  }
-
-  traverse.modelOnly(this._model, addQuery, this._database);
+  traverse.modelOnly(this._model,
+    (mm) => queries.push(this._buildQuery(mm)), this._database);
 
   return queries.join(';\n\n');
 };
