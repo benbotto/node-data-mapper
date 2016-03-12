@@ -19,6 +19,7 @@ module.exports =
   ConditionParser:    require('./query/ConditionParser.js'),
   From:               require('./query/From.js'),
   Insert:             require('./query/Insert.js'),
+  Delete:             require('./query/Delete.js'),
   MetaBuilder:        require('./query/MetaBuilder.js'),
   modelTraverse:      require('./query/modelTraverse.js'),
   QueryExecuter:      require('./query/QueryExecuter.js'),
