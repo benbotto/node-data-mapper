@@ -10,10 +10,10 @@ module.exports = function(grunt, scripts)
       strict:    true,
       eqeqeq:    true,
       indent:    2,
-      /*quotmark:  'single',*/
       undef:     true,
       unused:    true,
-      node:      true
+      node:      true,
+      esnext:    true
     },
 
     /* Get the lint out of all app files. */
