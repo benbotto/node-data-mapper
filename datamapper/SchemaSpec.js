@@ -50,7 +50,7 @@ describe('Schema test suite.', function()
   // Adds a property with a converter.
   it('adds a property with a converter.', function()
   {
-    var convert = function() {};
+    var convert = {};
     var schema  = new Schema('pid', 'personID', convert)
       .addProperty('firstName', null, convert)
       .addProperty('lastName');
