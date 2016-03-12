@@ -1,6 +1,8 @@
 'use strict';
 
-var Query = require('./Query');
+var Query    = require('./Query');
+var traverse = require('./modelTraverse');
+var assert   = require('../util/assert');
 
 /**
  * Construct a new DELET query.
@@ -18,7 +20,23 @@ function Delete(database, escaper, queryExecuter, model)
 {
   Query.call(this, database, escaper, queryExecuter);
 
-  this._model = model;
+  this._model     = model;
+  this._modelMeta = [];
+
+  traverse.modelOnly(this._model, (mm) => this._modelMeta.push(mm), this._database);
+
+  // Make sure that the primary key is available on each model.
+  this._modelMeta.forEach(function(meta)
+  {
+    var table = this._database.getTableByAlias(meta.tableAlias);
+    var pk    = table.getPrimaryKey();
+
+    for (var i = 0; i < pk.length; ++i)
+    {
+      assert(meta.model[pk[i].getAlias()],
+        'Primary key not provided on model ' + meta.tableAlias + '.');
+    }
+  }, this);
 }
 
 // Delete extends Query.

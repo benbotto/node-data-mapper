@@ -31,6 +31,20 @@ describe('Delete test suite.', function()
       expect(del.getEscaper()).toBe(escaper);
       expect(del.getQueryExecuter()).toBe(qryExec);
     });
+
+    // Checks that the primary key for each model is required.
+    it('checks that the primary key for each model is required.', function()
+    {
+      expect(function()
+      {
+        new Delete(db, escaper, qryExec, {users: {ID: 1}});
+      }).not.toThrow();
+
+      expect(function()
+      {
+        new Delete(db, escaper, qryExec, {users: {firstName: 'Joe'}});
+      }).toThrowError('Primary key not provided on model users.');
+    });
   });
 });
 
