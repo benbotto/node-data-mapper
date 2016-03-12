@@ -7,6 +7,7 @@ describe('DataContext test suite', function()
   var MySQLEscaper = require('../query/MySQLEscaper');
   var From         = require('../query/From');
   var Insert       = require('../query/Insert');
+  var Delete       = require('../query/Delete');
   var db           = new Database(require('../spec/testDB'));
   var escaper      = new MySQLEscaper();
   var exec         = {};
@@ -45,13 +46,7 @@ describe('DataContext test suite', function()
   it('checks that an Insert query can be created.', function()
   {
     var dc     = new DataContext(db, escaper);
-    var insert = dc.insert
-    ({
-      users:
-      [
-        {first: 'Sandy', last: 'Perkins'}
-      ]
-    });
+    var insert = dc.insert({});
 
     expect(insert instanceof Insert).toBe(true);
   });
@@ -61,15 +56,28 @@ describe('DataContext test suite', function()
   {
     var dc     = new DataContext(db, escaper);
     var db2    = db.clone();
-    var insert = dc.insert
-    ({
-      users:
-      [
-        {first: 'Sandy', last: 'Perkins'}
-      ]
-    }, db2);
+    var insert = dc.insert({}, db2);
 
-    expect(insert instanceof Insert).toBe(true);
     expect(insert.getDatabase()).toBe(db2);
   });
+
+  // Checks that a Delete query can be created.
+  it('checks that a Delete query can be created.', function()
+  {
+    var dc  = new DataContext(db, escaper);
+    var del = dc.delete({});
+
+    expect(del instanceof Delete).toBe(true);
+  });
+
+  // Checks that a database can be passed as a second parameter to Delete.
+  it('checks that a database can be passed as a second parameter to Delete.', function()
+  {
+    var dc  = new DataContext(db, escaper);
+    var db2 = db.clone();
+    var del = dc.delete({}, db2);
+
+    expect(del.getDatabase()).toBe(db2);
+  });
 });
+
