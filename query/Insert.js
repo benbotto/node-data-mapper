@@ -55,14 +55,14 @@ Insert.prototype._buildQuery = function(modelMeta)
   sql += meta.fields.map(function(field)
   {
     return this._escaper.escapeProperty(field.columnName);
-  }.bind(this)).join(', ');
+  }, this).join(', ');
   sql += ')\n';
 
   sql += 'VALUES (';
   sql += meta.fields.map(function(field)
   {
     return this._escaper.escapeLiteral(field.value);
-  }.bind(this)).join(', ');
+  }, this).join(', ');
   sql += ')';
 
   return sql;

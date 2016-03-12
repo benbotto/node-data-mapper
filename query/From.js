@@ -157,7 +157,7 @@ From.prototype._addTable = function(meta, joinType)
     });
 
     this._availableColsLookup[fqColName] = this._availableCols[this._availableCols.length - 1];
-  }.bind(this));
+  }, this);
 
   return this;
 };
@@ -251,7 +251,7 @@ From.prototype.select = function(cols)
 
     // Store the list of tables that were selected from.
     selTables[availColMeta.tableAlias] = true;
-  }.bind(this));
+  }, this);
 
   // The primary key from each table must be selected.  The serialization
   // needs a way to uniquely identify each object; the primary key is used
@@ -367,7 +367,7 @@ From.prototype._join = function(meta, params, joinType)
     {
       assert(this.isColumnAvailable(col),
         'The column alias ' + col + ' is not available for an on condition.');
-    }.bind(this));
+    }, this);
   }
 
   return this;
@@ -456,7 +456,7 @@ From.prototype.orderBy = function(metas)
       '"' + meta.column + '" is not available for orderBy.');
 
     this._orderBy.push(this._escaper.escapeProperty(meta.column) + ' ' + meta.dir);
-  }.bind(this));
+  }, this);
 
   return this;
 };
@@ -482,7 +482,7 @@ From.prototype.toString = function()
     var tblAlias = this._escaper.escapeProperty(col.tableAlias);
 
     return tblAlias + '.' + colName + ' AS ' + colAlias;
-  }.bind(this)).join(', ');
+  }, this).join(', ');
 
   // Add the FROM portion.
   fromName  = this._escaper.escapeProperty(this._tables[0].table.getName());
@@ -574,7 +574,7 @@ From.prototype.execute = function(Schema)
       else
         schemaLookup[tblMeta.parent].addSchema(tblMeta.tableAlias, schema, tblMeta.relType);
     }
-  }.bind(this));
+  }, this);
 
   // Add each column/property to its schema.
   this._selectCols.forEach(function(colMeta)

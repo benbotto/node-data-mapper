@@ -226,7 +226,7 @@ ConditionParser.prototype._tokenIn = function(tokTypes)
   return tokTypes.some(function(type)
   {
     return this._token.type === type;
-  }.bind(this));
+  }, this);
 };
 
 // Helper to create an error string.

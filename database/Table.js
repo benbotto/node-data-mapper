@@ -30,7 +30,7 @@ function Table(table)
   assert(table.columns && (table.columns instanceof Array) && table.columns.length !== 0,
     'columns is required.');
 
-  table.columns.forEach(this.addColumn.bind(this));
+  table.columns.forEach(this.addColumn, this);
 
   // Make sure there is at least one primary key.
   assert(this._primaryKey.length !== 0,

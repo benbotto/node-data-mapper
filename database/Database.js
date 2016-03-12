@@ -21,7 +21,7 @@ function Database(database)
   this._aliasLookup = {};
 
   if (database.tables)
-    database.tables.forEach(this.addTable.bind(this));
+    database.tables.forEach(this.addTable, this);
 }
 
 /**
