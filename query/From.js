@@ -5,6 +5,7 @@ var ConditionLexer    = require('../query/ConditionLexer');
 var ConditionParser   = require('../query/ConditionParser');
 var ConditionCompiler = require('../query/ConditionCompiler');
 var DataMapper        = require('../datamapper/DataMapper');
+var Query             = require('./Query');
 var deferred          = require('deferred');
 
 /**
@@ -25,9 +26,7 @@ var deferred          = require('deferred');
  */
 function From(database, escaper, queryExecuter, meta)
 {
-  this._database      = database;
-  this._escaper       = escaper;
-  this._queryExecuter = queryExecuter;
+  Query.call(this, database, escaper, queryExecuter);
 
   // These are the tables that are being queried due to FROM our JOINs.  There
   // is also a lookup of alias->table.
@@ -61,19 +60,15 @@ function From(database, escaper, queryExecuter, meta)
   this._orderBy = [];
 }
 
+// From extends Query.
+From.prototype = Object.create(Query.prototype);
+From.prototype.constructor = Query;
+
 From.JOIN_TYPE =
 {
   INNER:       'INNER JOIN',
   LEFT_OUTER:  'LEFT OUTER JOIN',
   RIGHT_OUTER: 'RIGHT OUTER JOIN'
-};
-
-/**
- * Get the database instance.
- */
-From.prototype.getDatabase = function()
-{
-  return this._database;
 };
 
 /**

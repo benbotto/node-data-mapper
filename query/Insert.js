@@ -3,6 +3,7 @@
 var deferred    = require('deferred');
 var MetaBuilder = require('./MetaBuilder');
 var traverse    = require('./modelTraverse');
+var Query       = require('./Query');
 
 /**
  * Construct a new INSERT query.
@@ -18,20 +19,15 @@ var traverse    = require('./modelTraverse');
  */
 function Insert(database, escaper, queryExecuter, model)
 {
-  this._database       = database;
-  this._escaper        = escaper;
-  this._queryExecuter  = queryExecuter;
+  Query.call(this, database, escaper, queryExecuter);
+
   this._model          = model;
   this._updateChildren = true;
 }
 
-/**
- * Get the database instance.
- */
-Insert.prototype.getDatabase = function()
-{
-  return this._database;
-};
+// Insert extends Query.
+Insert.prototype = Object.create(Query.prototype);
+Insert.prototype.constructor = Query;
 
 /**
  * Set whether or not to update the foreign keys of children after
