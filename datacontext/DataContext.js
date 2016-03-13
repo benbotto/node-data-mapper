@@ -1,8 +1,8 @@
 'use strict';
 
-var From   = require('../query/From.js');
-var Insert = require('../query/Insert.js');
-var Delete = require('../query/Delete.js');
+var FromAdapter = require('../query/FromAdapter.js');
+var Insert      = require('../query/Insert.js');
+var Delete      = require('../query/Delete.js');
 
 /**
  * The main interface to the ORM.  This class is expected to be extended by the
@@ -44,7 +44,8 @@ DataContext.prototype.getQueryExecuter = function()
 };
 
 /**
- * Create a new SELECT query.
+ * Create a new FROM portion of a query, which can then be used to SELECT
+ * or DELETE.
  * @param meta A meta object describing the table to select from.  See the From
  *        constructor for details.
  * @param database An optional Database instance.  If passed, this parameter
@@ -53,7 +54,7 @@ DataContext.prototype.getQueryExecuter = function()
 DataContext.prototype.from = function(meta, database)
 {
   database = database || this.getDatabase();
-  return new From(database, this._escaper, this._queryExecuter, meta);
+  return new FromAdapter(database, this._escaper, meta, this._queryExecuter);
 };
 
 /**
