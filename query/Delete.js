@@ -1,47 +1,62 @@
 'use strict';
 
 var Query    = require('./Query');
-var traverse = require('./modelTraverse');
 var assert   = require('../util/assert');
+var deferred = require('deferred');
 
 /**
- * Construct a new DELET query.
- * @param database The database to delete from.
- * @param escaper An instance of an Escaper matching the database type (i.e.
- *        MySQLEscaper or MSSQLEscaper).
- * @param queryExecuter A QueryExecuter instance that implements the
- *        delete method.
- * @param model A model object to delete.  Each key in the object should be a
- *        table alias.  The value associated with the key should be an object
- *        (or an array of objects) wherein each key corresponds to a column
- *        alias.  The primary key is required for each model.
+ * Construct a new DELETE query.
+ * @param from An instance of a From.
+ * @param tableAlias The alias of the table to delete.  Optional,
+ *        defaults to the alias of the from table.
  */
-function Delete(database, escaper, queryExecuter, model)
+function Delete(from, tableAlias)
 {
-  Query.call(this, database, escaper, queryExecuter);
+  Query.call(this, from.getDatabase(), from.getEscaper(), from.getQueryExecuter());
 
-  this._model     = model;
-  this._modelMeta = [];
+  this._from         = from;
+  this._delTableMeta = (tableAlias) ?
+    this._from._tableAliasLookup[tableAlias] : this._from._tables[0];
 
-  traverse.modelOnly(this._model, (mm) => this._modelMeta.push(mm), this._database);
-
-  // Make sure that the primary key is available on each model.
-  this._modelMeta.forEach(function(meta)
-  {
-    var table = this._database.getTableByAlias(meta.tableAlias);
-    var pk    = table.getPrimaryKey();
-
-    for (var i = 0; i < pk.length; ++i)
-    {
-      assert(meta.model[pk[i].getAlias()],
-        'Primary key not provided on model ' + meta.tableAlias + '.');
-    }
-  }, this);
+  assert(this._delTableMeta,
+    'Table alias ' + tableAlias + ' is not a valid table alias.');
 }
 
 // Delete extends Query.
 Delete.prototype = Object.create(Query.prototype);
 Delete.prototype.constructor = Query;
+
+/**
+ * Create the delete SQL.
+ */
+Delete.prototype.toString = function()
+{
+  var fromAlias = this._escaper.escapeProperty(this._delTableMeta.tableAlias);
+  var sql  = 'DELETE  ' + fromAlias + '\n';
+
+  // Add the FROM (which includes the JOINS and WHERE).
+  sql += this._from.toString();
+
+  return sql;
+};
+
+/**
+ * Execute the query.
+ */
+Delete.prototype.execute = function()
+{
+  var defer = deferred();
+
+  this._queryExecuter.delete(this.toString(), function(err, result)
+  {
+    if (err)
+      defer.reject(err);
+    else
+      defer.resolve(result);
+  });
+
+  return defer.promise;
+};
 
 module.exports = Delete;
 
