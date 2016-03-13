@@ -12,6 +12,8 @@ var Query             = require('./Query');
  * @param database The database to select from.
  * @param escaper An instance of an Escaper matching the database type (i.e.
  *        MySQLEscaper or MSSQLEscaper).
+ * @param queryExecuter A QueryExecuter instance that implements the
+ *        select method.
  * @param meta Either the name of the table or a meta object describing the table:
  * {
  *   table:  string, // The name of the table to select from.
@@ -20,9 +22,9 @@ var Query             = require('./Query');
  *                   // This defaults to the table's alias.
  * }
  */
-function From(database, escaper, meta)
+function From(database, escaper, queryExecuter, meta)
 {
-  Query.call(this, database, escaper);
+  Query.call(this, database, escaper, queryExecuter);
 
   // These are the tables that are being queried due to FROM our JOINs.  There
   // is also a lookup of alias->table.

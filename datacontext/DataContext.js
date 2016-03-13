@@ -54,7 +54,7 @@ DataContext.prototype.getQueryExecuter = function()
 DataContext.prototype.from = function(meta, database)
 {
   database = database || this.getDatabase();
-  return new FromAdapter(database, this._escaper, meta, this._queryExecuter);
+  return new FromAdapter(database, this._escaper, this._queryExecuter, meta);
 };
 
 /**

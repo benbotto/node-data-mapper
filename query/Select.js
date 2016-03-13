@@ -9,12 +9,10 @@ var deferred   = require('deferred');
  * Construct a new SELECT query.  FROM and JOINs must come first so that
  * selected columns can be found.
  * @param from An instance of a From.
- * @param queryExecuter A QueryExecuter instance that implements the
- *        select method.
  */
-function Select(from, queryExecuter)
+function Select(from)
 {
-  Query.call(this, from.getDatabase(), from.getEscaper(), queryExecuter);
+  Query.call(this, from.getDatabase(), from.getEscaper(), from.getQueryExecuter());
 
   this._from = from;
 

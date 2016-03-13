@@ -7,6 +7,7 @@ describe('From test suite.', function()
   var MySQLEscaper = require('./MySQLEscaper');
   var db           = new Database(require('../spec/testDB'));
   var escaper      = new MySQLEscaper();
+  var qryExec      = {};
 
   describe('From constructor test suite.', function()
   {
@@ -15,24 +16,24 @@ describe('From test suite.', function()
     {
       expect(function()
       {
-        new From(db, escaper, {table: 'users'});
+        new From(db, escaper, qryExec, {table: 'users'});
       }).not.toThrow();
 
       expect(function()
       {
-        new From(db, escaper, 'users');
+        new From(db, escaper, qryExec, 'users');
       }).not.toThrow();
 
       expect(function()
       {
-        new From(db, escaper, {table: 'INVALID_NAME'});
+        new From(db, escaper, qryExec, {table: 'INVALID_NAME'});
       }).toThrowError('Table INVALID_NAME does not exist in database testDB.');
     });
 
     // Checks that the database can be retrieved.
     it('checks that the database can be retrieved.', function()
     {
-      var from = new From(db, escaper, {table: 'users'});
+      var from = new From(db, escaper, qryExec, {table: 'users'});
       expect(from.getDatabase()).toBe(db);
     });
 
@@ -41,12 +42,12 @@ describe('From test suite.', function()
     {
       expect(function()
       {
-        new From(db, escaper, {table: 'users', as: 'users alias'});
+        new From(db, escaper, qryExec, {table: 'users', as: 'users alias'});
       }).toThrowError('Alises must only contain word characters.');
 
       expect(function()
       {
-        new From(db, escaper, {table: 'users', as: 'users.alias'});
+        new From(db, escaper, qryExec, {table: 'users', as: 'users.alias'});
       }).toThrowError('Alises must only contain word characters.');
     });
   });
@@ -56,7 +57,7 @@ describe('From test suite.', function()
     // Makes sure that the where clause gets added correctly.
     it('makes sure that the where clause gets added correctly.', function()
     {
-      var query = new From(db, escaper, {table: 'users'})
+      var query = new From(db, escaper, qryExec, {table: 'users'})
         .where({$eq: {'users.userID': 4}});
 
       expect(query.toString()).toBe
@@ -71,7 +72,7 @@ describe('From test suite.', function()
     {
       expect(function()
       {
-        new From(db, escaper, {table: 'users'})
+        new From(db, escaper, qryExec, {table: 'users'})
           .where({$eq: {'users.userID': 4}})
           .where({$eq: {'users.userID': 4}});
       }).toThrowError('where already performed on query.');
@@ -82,7 +83,7 @@ describe('From test suite.', function()
     {
       expect(function()
       {
-        new From(db, escaper, {table: 'users'})
+        new From(db, escaper, qryExec, {table: 'users'})
           .where({$eq: {userID: 4}}); // Should be users.userID.
       }).toThrowError('The column alias userID is not available for a where condition.');
     });
@@ -90,7 +91,7 @@ describe('From test suite.', function()
     // Checks that parameters get replaced.
     it('checks that parameters get replaced.', function()
     {
-      var query = new From(db, escaper, {table: 'users'})
+      var query = new From(db, escaper, qryExec, {table: 'users'})
         .where({$eq: {'users.firstName':':firstName'}}, {firstName: 'Sally'});
       expect(query.toString()).toBe
       (
@@ -105,7 +106,7 @@ describe('From test suite.', function()
     // Inner joins on primary key.
     it('inner joins on primary key.', function()
     {
-      var query = new From(db, escaper, {table: 'users', as: 'u'})
+      var query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
         .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$eq: {'u.userID':'pn.userID'}}});
 
       expect(query.toString()).toBe
@@ -120,7 +121,7 @@ describe('From test suite.', function()
     {
       expect(function()
       {
-        new From(db, escaper, 'users')
+        new From(db, escaper, qryExec, 'users')
           .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'BAD_NAME'});
       }).toThrowError('Parent table alias BAD_NAME is not a valid table alias.');
     });
@@ -130,7 +131,7 @@ describe('From test suite.', function()
     {
       expect(function()
       {
-        new From(db, escaper, {table: 'users', as: 'u'})
+        new From(db, escaper, qryExec, {table: 'users', as: 'u'})
           .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$eq: {'u.INVALID':'pn.userID'}}});
       }).toThrowError('The column alias u.INVALID is not available for an on condition.');
     });
@@ -138,7 +139,7 @@ describe('From test suite.', function()
     // Checks a left outer join.
     it('checks a left outer join.', function()
     {
-      var query = new From(db, escaper, {table: 'users', as: 'u'})
+      var query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
         .leftOuterJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$eq: {'u.userID':'pn.userID'}}})
         .where({$is: {'pn.phoneNumberID':null}});
 
@@ -153,7 +154,7 @@ describe('From test suite.', function()
     // Checks a right outer join.
     it('checks a right outer join.', function()
     {
-      var query = new From(db, escaper, {table: 'users', as: 'u'})
+      var query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
         .rightOuterJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$and: [{$eq: {'u.userID':'pn.userID'}},{$eq: {'pn.type':':phoneType'}}]}}, {phoneType: 'mobile'});
 
       expect(query.toString()).toBe
@@ -166,7 +167,7 @@ describe('From test suite.', function()
     // Checks a join with no condition.
     it('checks a join with no condition.', function()
     {
-      var query = new From(db, escaper, {table: 'users', as: 'u'})
+      var query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
         .innerJoin({table: 'phone_numbers', as: 'pn'});
 
       expect(query.toString()).toBe

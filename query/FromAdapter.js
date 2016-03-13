@@ -9,6 +9,8 @@ var Select = require('./Select');
  * @param database The database to select from.
  * @param escaper An instance of an Escaper matching the database type (i.e.
  *        MySQLEscaper or MSSQLEscaper).
+ * @param queryExecuter A QueryExecuter instance that implements the
+ *        select method.
  * @param meta Either the name of the table or a meta object describing the table:
  * {
  *   table:  string, // The name of the table to select from.
@@ -16,13 +18,10 @@ var Select = require('./Select');
  *                   // the same table is joined in multiple times.
  *                   // This defaults to the table's alias.
  * }
- * @param queryExecuter A QueryExecuter instance that implements the
- *        select method.
  */
-function FromAdapter(database, escaper, meta, queryExecuter)
+function FromAdapter(database, escaper, queryExecuter, meta)
 {
-  From.call(this, database, escaper, meta);
-  this._queryExecuter = queryExecuter;
+  From.call(this, database, escaper, queryExecuter, meta);
 }
 
 // FromAdapter extends From.

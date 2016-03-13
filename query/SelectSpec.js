@@ -17,7 +17,7 @@ describe('SELECT test suite.', function()
 
   function getFrom(meta)
   {
-    return new From(db, escaper, meta);
+    return new From(db, escaper, qryExec, meta);
   }
 
   describe('Select constructor test suite.', function()

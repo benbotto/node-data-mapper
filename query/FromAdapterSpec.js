@@ -20,7 +20,7 @@ describe('FromAdapterAdapter test suite.', function()
     // Checks the constructor.
     it('checks the constructor.', function()
     {
-      var fa = new FromAdapter(db, escaper, {table: 'users'});
+      var fa = new FromAdapter(db, escaper, qryExec, {table: 'users'});
 
       expect(fa instanceof From).toBe(true);
     });
@@ -28,7 +28,7 @@ describe('FromAdapterAdapter test suite.', function()
     // Checks the basic getters.
     it('checks the basic getters.', function()
     {
-      var fa = new FromAdapter(db, escaper, {table: 'users'});
+      var fa = new FromAdapter(db, escaper, qryExec, {table: 'users'});
 
       expect(fa.getDatabase()).toBe(db);
       expect(fa.getEscaper()).toBe(escaper);
@@ -40,7 +40,7 @@ describe('FromAdapterAdapter test suite.', function()
     // Checks that select selects all by default.
     it('checks that select selects all by default.', function()
     {
-      var sel = new FromAdapter(db, escaper, {table: 'users'}, qryExec)
+      var sel = new FromAdapter(db, escaper, qryExec, {table: 'users'})
         .select();
 
       expect(sel.toString()).toBe
@@ -53,7 +53,7 @@ describe('FromAdapterAdapter test suite.', function()
     // Checks that columns can be limited.
     it('checks that columns can be limited.', function()
     {
-      var sel = new FromAdapter(db, escaper, {table: 'users'}, qryExec)
+      var sel = new FromAdapter(db, escaper, qryExec, {table: 'users'})
         .select('users.userID', 'users.firstName');
 
       expect(sel.toString()).toBe
@@ -63,7 +63,7 @@ describe('FromAdapterAdapter test suite.', function()
       );
 
       // As an array.
-      sel = new FromAdapter(db, escaper, {table: 'users'}, qryExec)
+      sel = new FromAdapter(db, escaper, qryExec, {table: 'users'})
         .select(['users.userID', 'users.firstName']);
 
       expect(sel.toString()).toBe
@@ -76,7 +76,7 @@ describe('FromAdapterAdapter test suite.', function()
     // Checks that a query can be executed.
     it('checks that a query can be executed.', function()
     {
-      new FromAdapter(db, escaper, {table: 'users'}, qryExec)
+      new FromAdapter(db, escaper, qryExec, {table: 'users'})
         .select('users.userID', 'users.firstName')
         .execute();
 
