@@ -82,6 +82,41 @@ describe('FromAdapterAdapter test suite.', function()
 
       expect(qryExec.select).toHaveBeenCalled();
     });
+
+    describe('FromAdapter delete test suite.', function()
+    {
+      // Checks that a delete can be conveted to a string correctly.
+      it('checks that a delete can be conveted to a string correctly.', function()
+      {
+        var del = new FromAdapter(db, escaper, qryExec, 'users')
+          .where({$eq: {'users.userID': 1}})
+          .delete();
+
+        expect(del.toString()).toBe
+        (
+          'DELETE  `users`\n' +
+          'FROM    `users` AS `users`\n' +
+          'WHERE   `users`.`userID` = 1'
+        );
+      });
+
+      // Uses a table alias.
+      it('uses a table alias.', function()
+      {
+        var del = new FromAdapter(db, escaper, qryExec, 'users')
+          .innerJoin({table: 'phone_numbers', parent: 'users', on: {$eq: {'users.userID':'phoneNumbers.userID'}}})
+          .where({$eq: {'users.userID': 1}})
+          .delete('phoneNumbers');
+
+        expect(del.toString()).toBe
+        (
+          'DELETE  `phoneNumbers`\n' +
+          'FROM    `users` AS `users`\n' +
+          'INNER JOIN `phone_numbers` AS `phoneNumbers` ON `users`.`userID` = `phoneNumbers`.`userID`\n' +
+          'WHERE   `users`.`userID` = 1'
+        );
+      });
+    });
   });
 });
 

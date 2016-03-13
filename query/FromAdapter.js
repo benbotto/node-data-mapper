@@ -2,6 +2,7 @@
 
 var From   = require('./From');
 var Select = require('./Select');
+var Delete = require('./Delete');
 
 /**
  * This is an adapter for the From class that provides the user with a
@@ -39,6 +40,16 @@ FromAdapter.prototype.select = function(/*cols*/)
   // This has to be applied because cols is optional.  If cols is not passed,
   // calling sel.select(cols) would pass undefined to select().
   return sel.select.apply(sel, arguments);
+};
+
+/**
+ * Delete from the table.
+ * @param tableAlias The alias of the table to delete from (optional, and
+ *        defaults from table).
+ */
+FromAdapter.prototype.delete = function(tableAlias)
+{
+  return new Delete(this, tableAlias);
 };
 
 module.exports = FromAdapter;
