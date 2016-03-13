@@ -191,7 +191,7 @@ The simplest query one can perform is selecting all data from a single table.
 var bikeShopDC = require('../bikeShopDataContext');
 
 // Select all columns from the bike_shops table.
-var query = bikeShopDC.from('bike_shops');
+var query = bikeShopDC.from('bike_shops').select();
 
 // This is the query that will be executed.
 console.log('Query:');
@@ -215,7 +215,9 @@ query.execute()
     bikeShopDC.getQueryExecuter().getConnectionPool().end();
   });
 ```
+
 Running this code (```$ node example/retrieve/allFromSingleTable.js```) yields the following output.
+
 ```js
 Query:
 SELECT  `bikeShops`.`bikeShopID` AS `bikeShops.bikeShopID`, `bikeShops`.`name` AS `bikeShops.name`, `bikeShops`.`address` AS `bikeShops.address`
@@ -462,7 +464,8 @@ Below is a WHERE condition that is used to find all staff that are older than 21
 ```js
 var query = bikeShopDC
   .from('staff')
-  .where({$gt: {'staff.age':21}});
+  .where({$gt: {'staff.age':21}})
+  .select();
 ```
 
 Here is an example that uses parameters.  Note that **string values have to be parameterized**, which helps prevent SQL injection.
@@ -471,7 +474,8 @@ Here is an example that uses parameters.  Note that **string values have to be p
 // Find employees with a firstName of "Valerie."
 var query = bikeShopDC
   .from('staff')
-  .where({$eq: {'staff.firstName':':firstName'}}, {firstName: 'Valerie'});
+  .where({$eq: {'staff.firstName':':firstName'}}, {firstName: 'Valerie'})
+  .select();
 ```
 
 For a more advanced example, let's say that cars can be rented to males 25 and older, or females 23 and over.  To find all staff members that satisfy these criteria:
@@ -479,7 +483,6 @@ For a more advanced example, let's say that cars can be rented to males 25 and o
 ```js
 var query = bikeShopDC
   .from('staff')
-  .select('staff.staffID', 'staff.firstName', 'staff.lastName', 'staff.sex', 'staff.age')
   .where
   ({
     $or:
@@ -488,7 +491,8 @@ var query = bikeShopDC
       {$and: [{$eq: {'staff.sex':':female'}}, {$gte: {'staff.age':23}}]}
     ]
   },
-  {male: 'male', female: 'female'});
+  {male: 'male', female: 'female'})
+  .select('staff.staffID', 'staff.firstName', 'staff.lastName', 'staff.sex', 'staff.age');
 ```
 
 Running this example (```$ node example/retrieve/advancedWhere.js```) yields the following output:
@@ -585,9 +589,9 @@ Let's consider another example.  To find all employees that have not received bo
 ```js
 var query = bikeShopDC
   .from('staff')
-  .leftOuterJoin({table: 'bonuses', on: {$eq: {'staff.staffID':'bonuses.bonusID'}}})
-  .select('staff.staffID', 'staff.firstName', 'staff.lastName')
-  .where({$is: {'bonuses.bonusID': null}});
+  .leftOuterJoin({table: 'bonuses', on: {$eq: {'staff.staffID':'bonuses.staffID'}}})
+  .where({$is: {'bonuses.bonusID': null}})
+  .select('staff.staffID', 'staff.firstName', 'staff.lastName');
 ```
 
 In this query, no columns from the bonuses table are selected because the query is designed to find staff members *without* bonuses.  Hence, the join does not need a parent, and the resulting staff objects do not have "bonuses" properties.  Running this example (```$ node example/retrieve/leftJoin.js```) prints the following:

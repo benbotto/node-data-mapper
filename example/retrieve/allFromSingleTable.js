@@ -3,7 +3,7 @@
 var bikeShopDC = require('../bikeShopDataContext');
 
 // Select all columns from the bike_shops table.
-var query = bikeShopDC.from('bike_shops');
+var query = bikeShopDC.from('bike_shops').select();
 
 // This is the query that will be executed.
 console.log('Query:');

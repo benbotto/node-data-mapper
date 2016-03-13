@@ -5,7 +5,8 @@ var bikeShopDC = require('../bikeShopDataContext');
 // Find all employees that can drink.
 var query = bikeShopDC
   .from('staff')
-  .where({$gt: {'staff.age':21}});
+  .where({$gt: {'staff.age':21}})
+  .select();
 
 console.log('Query:');
 console.log(query.toString(), '\n');

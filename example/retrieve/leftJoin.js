@@ -6,8 +6,8 @@ var bikeShopDC = require('../bikeShopDataContext');
 var query = bikeShopDC
   .from('staff')
   .leftOuterJoin({table: 'bonuses', on: {$eq: {'staff.staffID':'bonuses.staffID'}}})
-  .select('staff.staffID', 'staff.firstName', 'staff.lastName')
-  .where({$is: {'bonuses.bonusID': null}});
+  .where({$is: {'bonuses.bonusID': null}})
+  .select('staff.staffID', 'staff.firstName', 'staff.lastName');
 
 console.log('Query:');
 console.log(query.toString(), '\n');

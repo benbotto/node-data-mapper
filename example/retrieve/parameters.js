@@ -5,7 +5,8 @@ var bikeShopDC = require('../bikeShopDataContext');
 // Find employees with a firstName of "Valerie."
 var query = bikeShopDC
   .from('staff')
-  .where({$eq: {'staff.firstName':':firstName'}}, {firstName: 'Valerie'});
+  .where({$eq: {'staff.firstName':':firstName'}}, {firstName: 'Valerie'})
+  .select();
 
 console.log('Query:');
 console.log(query.toString(), '\n');

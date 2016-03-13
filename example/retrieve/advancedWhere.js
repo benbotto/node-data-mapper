@@ -5,7 +5,6 @@ var bikeShopDC = require('../bikeShopDataContext');
 // Find all employees that can rent cars.
 var query = bikeShopDC
   .from('staff')
-  .select('staff.staffID', 'staff.firstName', 'staff.lastName', 'staff.sex', 'staff.age')
   .where
   ({
     $or:
@@ -14,7 +13,8 @@ var query = bikeShopDC
       {$and: [{$eq: {'staff.sex':':female'}}, {$gte: {'staff.age':23}}]}
     ]
   },
-  {male: 'male', female: 'female'});
+  {male: 'male', female: 'female'})
+  .select('staff.staffID', 'staff.firstName', 'staff.lastName', 'staff.sex', 'staff.age');
 
 console.log('Query:');
 console.log(query.toString(), '\n');
