@@ -42,6 +42,10 @@ QueryExecuter.prototype.update = function()
 
 /**
  * Execute a delete query.
+ * @param query The SQL to execute.  The query is expected to be escaped.
+ * @param callback The callback function that is called when the query is executed.
+ *        function callback(err, result)
+ *        The result should have an affectedRows property.
  */
 QueryExecuter.prototype.delete = function()
 {
