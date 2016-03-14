@@ -2,7 +2,7 @@
 
 var FromAdapter = require('../query/FromAdapter.js');
 var Insert      = require('../query/Insert.js');
-var Delete      = require('../query/Delete.js');
+var DeleteModel = require('../query/DeleteModel.js');
 
 /**
  * The main interface to the ORM.  This class is expected to be extended by the
@@ -84,7 +84,7 @@ DataContext.prototype.insert = function(model, database)
 DataContext.prototype.delete = function(model, database)
 {
   database = database || this.getDatabase();
-  return new Delete(database, this._escaper, this._queryExecuter, model);
+  return new DeleteModel(database, this._escaper, this._queryExecuter, model);
 };
 
 module.exports = DataContext;

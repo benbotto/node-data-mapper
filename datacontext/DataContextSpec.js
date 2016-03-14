@@ -7,7 +7,7 @@ describe('DataContext test suite', function()
   var MySQLEscaper = require('../query/MySQLEscaper');
   var From         = require('../query/From');
   var Insert       = require('../query/Insert');
-  var Delete       = require('../query/Delete');
+  var DeleteModel  = require('../query/DeleteModel');
   var db           = new Database(require('../spec/testDB'));
   var escaper      = new MySQLEscaper();
   var exec         = {};
@@ -67,7 +67,7 @@ describe('DataContext test suite', function()
     var dc  = new DataContext(db, escaper);
     var del = dc.delete({});
 
-    expect(del instanceof Delete).toBe(true);
+    expect(del instanceof DeleteModel).toBe(true);
   });
 
   // Checks that a database can be passed as a second parameter to Delete.
