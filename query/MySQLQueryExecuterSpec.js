@@ -38,7 +38,7 @@ describe('MySQLQueryExecuter test suite.', function()
   {
     var callback = null;
     var query = 'DELETE FROM users WHERE userID = 1';
-    qe.insert(query, callback);
+    qe.delete(query, callback);
 
     expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
   });
