@@ -2,7 +2,7 @@
 
 var bikeShopDC = require('../bikeShopDataContext');
 
-// Find all employees that have received bonuses.
+// Find all employees that have not received bonuses.
 var query = bikeShopDC
   .from('staff')
   .leftOuterJoin({table: 'bonuses', on: {$eq: {'staff.staffID':'bonuses.staffID'}}})
