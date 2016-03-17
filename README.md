@@ -27,6 +27,8 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
     - [Insert Multiple Models](#insert-multiple-models)
     - [Converters](#converters-1)
     - [Sub-Model Relationships](#sub-model-relationships)
+  - [Deleting](#deleting)
+    - [Delete a Single Model](#delete-a-single-model)
 - [Extending](#extending)
 
 ### Getting Started
@@ -896,6 +898,61 @@ Result:
 This behavior can be disabled on an ```Insert``` query by executing ```query.setUpdateChildKeys(false)```.
 
 Note that child models are are __not__ inserted.  There are, however, some utility functions to help with inserting recursively.  For an example, take a look at ```example/create/recursiveInsert.js```.
+
+### Deleting
+
+##### Delete a Single Model
+
+To delete a single model, simply pass the model to the ```DataContext.delete(model, [database])``` method.  Each key in the object that corresponds to a table alias will be deleted.  The primary key is required to be set on the model, and all other properties are ignored.
+
+```js
+'use strict';
+
+var bikeShopDC = require('../bikeShopDataContext');
+
+// Delete a single model by ID.
+var query = bikeShopDC.delete
+({
+  // The key is a table alias, and the value can be
+  // an object or an array.
+  bonuses:
+  {
+    // The primary key is required when deleting a model.
+    bonusID: 1
+  }
+});
+
+console.log('Query:');
+console.log(query.toString(), '\n');
+
+// A promise is returned, and the result has an 'affectedRows' property.
+query.execute()
+  .then(function(result)
+  {
+    console.log('Result:');
+    console.log(result);
+  })
+  .catch(function(err)
+  {
+    console.log(err);
+  })
+  .finally(function()
+  {
+    bikeShopDC.getQueryExecuter().getConnectionPool().end();
+  });
+```
+
+Running the above example (```$ node example/delete/deleteSingleModel.js```) displays:
+
+```js
+Query:
+DELETE  `bonuses`
+FROM    `bonuses` AS `bonuses`
+WHERE   (`bonuses`.`bonusID` = 1) 
+
+Result:
+{ affectedRows: 1 }
+```
 
 ## Extending
 
