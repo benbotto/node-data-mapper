@@ -29,6 +29,7 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
     - [Sub-Model Relationships](#sub-model-relationships)
   - [Deleting](#deleting)
     - [Delete a Single Model](#delete-a-single-model)
+    - [Delete Multiple Models](#delete-multiple-models)
 - [Extending](#extending)
 
 ### Getting Started
@@ -952,6 +953,41 @@ WHERE   (`bonuses`.`bonusID` = 1)
 
 Result:
 { affectedRows: 1 }
+```
+##### Delete Multiple Models
+
+Like insert, multiple models can be passed to the ```DataContext.delete(model, [database])``` method.  For example, the following code deletes one record from the ```bonuses``` table and two records from the ```staff``` table:
+
+```js
+var query = bikeShopDC.delete
+({
+  bonuses: { bonusID: 3},
+  staff:
+  [
+    {staffID: 1},
+    {staffID: 3}
+  ]
+});
+```
+
+This example (```$ node example/delete/deleteMultipleModels.js```) prints:
+
+```js
+Query:
+DELETE  `bonuses`
+FROM    `bonuses` AS `bonuses`
+WHERE   (`bonuses`.`bonusID` = 3);
+
+DELETE  `staff`
+FROM    `staff` AS `staff`
+WHERE   (`staff`.`staffID` = 1);
+
+DELETE  `staff`
+FROM    `staff` AS `staff`
+WHERE   (`staff`.`staffID` = 3) 
+
+Result:
+{ affectedRows: 3 }
 ```
 
 ## Extending
