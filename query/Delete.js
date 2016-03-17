@@ -52,7 +52,7 @@ Delete.prototype.execute = function()
     if (err)
       defer.reject(err);
     else
-      defer.resolve(result);
+      defer.resolve({affectedRows: result.affectedRows});
   });
 
   return defer.promise;
