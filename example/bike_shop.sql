@@ -31,7 +31,9 @@ CREATE TABLE staff
   hasStoreKeys BIT NOT NULL DEFAULT 0,
   hireDate DATE NOT NULL,
   bikeShopID INT NOT NULL,
-  CONSTRAINT fk_staff_bikeShopID FOREIGN KEY (bikeShopID) REFERENCES bike_shops(bikeShopID)
+  CONSTRAINT fk_staff_bikeShopID
+    FOREIGN KEY (bikeShopID) REFERENCES bike_shops(bikeShopID)
+    ON DELETE CASCADE
 );
 
 INSERT INTO staff (firstName, lastName, age, sex, hasStorekeys, hireDate, bikeShopID) VALUES
@@ -53,7 +55,9 @@ CREATE TABLE bonuses
   amount DECIMAL(10, 2) NOT NULL,
   dateGiven DATE NOT NULL,
   staffID INT NOT NULL,
-  CONSTRAINT fk_bonuses_staffID FOREIGN KEY (staffID) REFERENCES staff(staffID)
+  CONSTRAINT fk_bonuses_staffID
+    FOREIGN KEY (staffID) REFERENCES staff(staffID)
+    ON DELETE CASCADE
 );
 
 INSERT INTO bonuses (reason, amount, dateGiven, staffID) VALUES
