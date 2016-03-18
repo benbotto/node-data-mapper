@@ -30,6 +30,7 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
   - [Deleting](#deleting)
     - [Delete a Single Model](#delete-a-single-model)
     - [Delete Multiple Models](#delete-multiple-models)
+    - [Delete From](#delete-from)
 - [Extending](#extending)
 
 ### Getting Started
@@ -989,6 +990,54 @@ WHERE   (`staff`.`staffID` = 3)
 Result:
 { affectedRows: 3 }
 ```
+
+##### Delete From
+
+While the previous examples of deleting models reflect common cases, often there is a need to perform more complex delete queries.  Deletions can be performed using the ```DataContext.from(meta, [database])``` interface, in the same manner as selections.  For example, to delete all staff members over the age of 50  (refer to the [Selecting->Conditions](#conditions) section for documentation on conditions):
+
+```js
+var query = bikeShopDC
+  .from('staff')
+  .where({$gt: {'staff.age': 50}})
+  .delete('staff');
+```
+
+Here is the result (```$ node example/delete/deleteFrom.js```):
+
+```js
+Query:
+DELETE  `staff`
+FROM    `staff` AS `staff`
+WHERE   `staff`.`age` > 50 
+
+Result:
+{ affectedRows: 2 }
+```
+
+Here's another example using a join; the example deletes all staff members that have not received a bonus:
+
+```js
+var query = bikeShopDC
+  .from('staff')
+  .leftOuterJoin({table: 'bonuses', on: {$eq: {'staff.staffID':'bonuses.staffID'}}})
+  .where({$is: {'bonuses.bonusID': null}})
+  .delete('staff');
+```
+
+This results in the following SQL (```$ node example/delete/deleteJoin.js```):
+
+```js
+Query:
+DELETE  `staff`
+FROM    `staff` AS `staff`
+LEFT OUTER JOIN `bonuses` AS `bonuses` ON `staff`.`staffID` = `bonuses`.`staffID`
+WHERE   `bonuses`.`bonusID` IS NULL 
+
+Result:
+{ affectedRows: 5 }
+```
+
+More thorough examples of using the ```From``` interface are available in the [Selecting](#selecting) section.
 
 ## Extending
 
