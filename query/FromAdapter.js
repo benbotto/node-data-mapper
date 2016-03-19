@@ -3,6 +3,7 @@
 var From   = require('./From');
 var Select = require('./Select');
 var Delete = require('./Delete');
+var Update = require('./Update');
 
 /**
  * This is an adapter for the From class that provides the user with a
@@ -50,6 +51,27 @@ FromAdapter.prototype.select = function(/*cols*/)
 FromAdapter.prototype.delete = function(tableAlias)
 {
   return new Delete(this, tableAlias);
+};
+
+/**
+ * Update a table.
+ * @param model A data model describing the fields to be updated.  The format
+ *        should be:
+ *        {
+ *          <table-alias1>:
+ *          {
+ *            <column-alias1>: <column-value>,
+ *            <column-aliasN>: <column-value>
+ *          },
+ *          <table-aliasN>:
+ *          {
+ *            ...
+ *          }
+ *        }
+ */
+FromAdapter.prototype.update = function(model)
+{
+  return new Update(this, model);
 };
 
 module.exports = FromAdapter;

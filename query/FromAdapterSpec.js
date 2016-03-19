@@ -85,8 +85,8 @@ describe('FromAdapterAdapter test suite.', function()
 
     describe('FromAdapter delete test suite.', function()
     {
-      // Checks that a delete can be conveted to a string correctly.
-      it('checks that a delete can be conveted to a string correctly.', function()
+      // Checks that a delete can be converted to a string correctly.
+      it('checks that a delete can be converted to a string correctly.', function()
       {
         var del = new FromAdapter(db, escaper, qryExec, 'users')
           .where({$eq: {'users.userID': 1}})
@@ -104,7 +104,7 @@ describe('FromAdapterAdapter test suite.', function()
       it('uses a table alias.', function()
       {
         var del = new FromAdapter(db, escaper, qryExec, 'users')
-          .innerJoin({table: 'phone_numbers', parent: 'users', on: {$eq: {'users.userID':'phoneNumbers.userID'}}})
+          .innerJoin({table: 'phone_numbers', on: {$eq: {'users.userID':'phoneNumbers.userID'}}})
           .where({$eq: {'users.userID': 1}})
           .delete('phoneNumbers');
 
@@ -113,6 +113,25 @@ describe('FromAdapterAdapter test suite.', function()
           'DELETE  `phoneNumbers`\n' +
           'FROM    `users` AS `users`\n' +
           'INNER JOIN `phone_numbers` AS `phoneNumbers` ON `users`.`userID` = `phoneNumbers`.`userID`\n' +
+          'WHERE   `users`.`userID` = 1'
+        );
+      });
+    });
+
+    describe('FromAdapter update test suite.', function()
+    {
+      // Checks that update can be converted to a string.
+      it('checks that update can be converted to a string.', function()
+      {
+        var upd = new FromAdapter(db, escaper, qryExec, 'users')
+          .where({$eq: {'users.userID': 1}})
+          .update({users: {first: 'Joe'}});
+
+        expect(upd.toString()).toBe
+        (
+          'UPDATE  `users` AS `users`\n' +
+          'SET\n' +
+          "`users`.`firstName` = 'Joe'\n" +
           'WHERE   `users`.`userID` = 1'
         );
       });
