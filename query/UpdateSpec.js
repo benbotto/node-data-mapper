@@ -153,5 +153,57 @@ describe('Update test suite.', function()
       );
     });
   });
+
+  describe('Update execute test suite.', function()
+  {
+    // Deletes a single model.
+    it('updates a single model.', function()
+    {
+      var from = getFrom('users')
+        .where({$eq: {'users.userID': 1}});
+      var upd  = new Update(from);
+
+      upd.execute();
+      expect(qryExec.update).toHaveBeenCalled();
+    });
+
+    // Checks that the promise is resolved.
+    it('checks that the promise is resolved.', function()
+    {
+      var upd = new Update(getFrom('users'));
+
+      qryExec.update.and.callFake(function(query, callback)
+      {
+        var result = {affectedRows: 1, changedRows: 0};
+        callback(null, result);
+      });
+
+      upd.execute().then(function(result)
+      {
+        expect(result.affectedRows).toBe(1);
+        expect(result.changedRows).toBe(0);
+      });
+
+      expect(qryExec.update).toHaveBeenCalled();
+    });
+
+    // Checks that the promise is rejected.
+    it('checks that the promise is rejected.', function()
+    {
+      var upd = new Update(getFrom('users'));
+
+      qryExec.update.and.callFake(function(query, callback)
+      {
+        callback('FAIL');
+      });
+
+      upd.execute().catch(function(err)
+      {
+        expect(err).toBe('FAIL');
+      });
+
+      expect(qryExec.update).toHaveBeenCalled();
+    });
+  });
 });
 

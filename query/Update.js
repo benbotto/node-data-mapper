@@ -108,6 +108,20 @@ Update.prototype.execute = function()
 {
   var defer = deferred();
 
+  this._queryExecuter.update(this.toString(), function(err, result)
+  {
+    if (err)
+      defer.reject(err);
+    else
+    {
+      defer.resolve
+      ({
+        affectedRows: result.affectedRows,
+        changedRows:  result.changedRows
+      });
+    }
+  });
+
   return defer.promise;
 };
 

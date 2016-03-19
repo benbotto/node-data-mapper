@@ -10,9 +10,7 @@ var connection = mysql.createConnection
   database : 'bike_shop'
 });
 
-var query =
-  'INSERT INTO `bike_shops` (`name`, `address`)\n' +
-  "VALUES ('Joe\\'s Bike Shack', '1224 Tata Ln.')";
+var query = 'UPDATE staff SET age = 78 WHERE staffID = 1';
 
 connection.connect();
 
