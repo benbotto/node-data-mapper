@@ -289,16 +289,22 @@ From.prototype.rightOuterJoin = function(meta, params)
 };
 
 /**
- * Get the SQL that represents the query.
+ * Get the FROM portion of the query string.
  */
-From.prototype.toString = function()
+From.prototype.getFromString = function()
 {
   var fromName  = this._escaper.escapeProperty(this._tables[0].table.getName());
   var fromAlias = this._escaper.escapeProperty(this._tables[0].tableAlias);
-  var sql, tblMeta, joinName, joinAlias;
 
-  // Add the FROM portion.
-  sql = 'FROM    ' + fromName + ' AS ' + fromAlias;
+  return 'FROM    ' + fromName + ' AS ' + fromAlias;
+};
+
+/**
+ * Get the JOIN parts of the query string.
+ */
+From.prototype.getJoinString = function()
+{
+  var joins = [], sql, tblMeta, joinName, joinAlias;
 
   // Add any JOINs.  The first table is the FROM table, hence the loop starts
   // at 1.
@@ -308,22 +314,40 @@ From.prototype.toString = function()
     joinName  = this._escaper.escapeProperty(tblMeta.table.getName());
     joinAlias = this._escaper.escapeProperty(tblMeta.tableAlias);
 
-    sql += '\n';
-    sql += tblMeta.joinType + ' ' + joinName + ' AS ' + joinAlias;
+    sql = tblMeta.joinType + ' ' + joinName + ' AS ' + joinAlias;
     
     if (tblMeta.cond)
-    {
       sql += ' ON ' + tblMeta.cond;
-    }
+    joins.push(sql);
   }
 
-  // Add the WHERE clause.
-  if (this._tables[0].cond !== null)
-  {
-    sql += '\n';
-    sql += 'WHERE   ';
-    sql += this._tables[0].cond;
-  }
+  return joins.join('\n');
+};
+
+/**
+ * Get the WHERE portion of the query string.
+ */
+From.prototype.getWhereString = function()
+{
+  return this._tables[0].cond ? 'WHERE   ' + this._tables[0].cond : '';
+};
+
+/**
+ * Get the SQL that represents the query.
+ */
+From.prototype.toString = function()
+{
+  var from  = this.getFromString();
+  var joins = this.getJoinString();
+  var where = this.getWhereString();
+
+  var sql = from;
+
+  if (joins)
+    sql += '\n' + joins;
+
+  if (where)
+    sql += '\n' + where;
 
   return sql;
 };
