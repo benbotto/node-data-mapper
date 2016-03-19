@@ -44,8 +44,8 @@ DataContext.prototype.getQueryExecuter = function()
 };
 
 /**
- * Create a new FROM portion of a query, which can then be used to SELECT
- * or DELETE.
+ * Create a new FROM portion of a query, which can then be used to SELECT,
+ * DELETE, or UPDATE.
  * @param meta A meta object describing the table to select from.  See the From
  *        constructor for details.
  * @param database An optional Database instance.  If passed, this parameter
