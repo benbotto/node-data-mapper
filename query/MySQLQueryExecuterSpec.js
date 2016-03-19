@@ -42,5 +42,15 @@ describe('MySQLQueryExecuter test suite.', function()
 
     expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
   });
+
+  // Checks the update method.
+  it('checks the update method.', function()
+  {
+    var callback = null;
+    var query = "UPDATE users SET firstName = 'Joe' WHERE userID = 2";
+    qe.update(query, callback);
+
+    expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
+  });
 });
 

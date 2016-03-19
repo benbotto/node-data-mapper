@@ -45,6 +45,18 @@ MySQLQueryExecuter.prototype.insert = function(query, callback)
 };
 
 /**
+ * Execute an update query.
+ * @param query The SQL to execute.  The query is expected to be escaped.
+ * @param callback The callback function that is called when the query is executed.
+ *        function callback(err, result)
+ *        result shall have an affectedRows property.
+ */
+MySQLQueryExecuter.prototype.update = function(query, callback)
+{
+  this._pool.query(query, callback);
+};
+
+/**
  * Execute a delete query.
  * @param query The SQL to execute.  The query is expected to be escaped.
  * @param callback The callback function that is called when the query is executed.
