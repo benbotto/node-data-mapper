@@ -2,7 +2,6 @@
 
 var Query       = require('./Query');
 var deferred    = require('deferred');
-//var traverse    = require('./modelTraverse');
 var MetaBuilder = require('./MetaBuilder');
 var assert      = require('../util/assert');
 
@@ -10,6 +9,18 @@ var assert      = require('../util/assert');
  * Construct a new UPDATE query.
  * @param from An instance of a From.
  * @param model A model object describing what to update.
+ *        The format should be as follows.
+ *        {
+ *          <table-alias1>:
+ *          {
+ *            <column-alias1>: <column-value>,
+ *            <column-aliasN>: <column-value>
+ *          },
+ *          <table-aliasN>:
+ *          {
+ *            ...
+ *          }
+ *        }
  */
 function Update(from, model)
 {
