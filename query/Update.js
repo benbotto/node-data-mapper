@@ -124,13 +124,7 @@ Update.prototype.execute = function()
     if (err)
       defer.reject(err);
     else
-    {
-      defer.resolve
-      ({
-        affectedRows: result.affectedRows,
-        changedRows:  result.changedRows
-      });
-    }
+      defer.resolve({affectedRows: result.affectedRows})
   });
 
   return defer.promise;

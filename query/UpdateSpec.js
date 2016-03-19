@@ -174,14 +174,13 @@ describe('Update test suite.', function()
 
       qryExec.update.and.callFake(function(query, callback)
       {
-        var result = {affectedRows: 1, changedRows: 0};
+        var result = {affectedRows: 1};
         callback(null, result);
       });
 
       upd.execute().then(function(result)
       {
         expect(result.affectedRows).toBe(1);
-        expect(result.changedRows).toBe(0);
       });
 
       expect(qryExec.update).toHaveBeenCalled();
