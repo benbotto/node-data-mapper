@@ -8,6 +8,7 @@ describe('DataContext test suite', function()
   var From         = require('../query/From');
   var Insert       = require('../query/Insert');
   var DeleteModel  = require('../query/DeleteModel');
+  var UpdateModel  = require('../query/UpdateModel');
   var db           = new Database(require('../spec/testDB'));
   var escaper      = new MySQLEscaper();
   var exec         = {};
@@ -76,6 +77,25 @@ describe('DataContext test suite', function()
     var dc  = new DataContext(db, escaper);
     var db2 = db.clone();
     var del = dc.delete({}, db2);
+
+    expect(del.getDatabase()).toBe(db2);
+  });
+
+  // Checks that a Update query can be created.
+  it('checks that a Update query can be created.', function()
+  {
+    var dc  = new DataContext(db, escaper);
+    var del = dc.update({});
+
+    expect(del instanceof UpdateModel).toBe(true);
+  });
+
+  // Checks that a database can be passed as a second parameter to Update.
+  it('checks that a database can be passed as a second parameter to Update.', function()
+  {
+    var dc  = new DataContext(db, escaper);
+    var db2 = db.clone();
+    var del = dc.update({}, db2);
 
     expect(del.getDatabase()).toBe(db2);
   });

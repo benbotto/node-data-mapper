@@ -12,8 +12,8 @@ var MutateModel = require('./MutateModel');
  *        update method.
  * @param model A model object to update.  Each key in the object should be a
  *        table alias.  The value associated with the key should be an object
- *        (or an array of objects) wherein each key corresponds to a column
- *        alias.  The primary key is required for each model.
+ *        wherein each key corresponds to a column alias.  The primary key is
+ *        required for each model.
  */
 function UpdateModel(database, escaper, queryExecuter, model)
 {

@@ -3,6 +3,7 @@
 var FromAdapter = require('../query/FromAdapter.js');
 var Insert      = require('../query/Insert.js');
 var DeleteModel = require('../query/DeleteModel.js');
+var UpdateModel = require('../query/UpdateModel.js');
 
 /**
  * The main interface to the ORM.  This class is expected to be extended by the
@@ -73,7 +74,8 @@ DataContext.prototype.insert = function(model, database)
 };
 
 /**
- * Create a new DELETE query.
+ * Create a new DELETE query to delete a model by ID.  For more complex DELETE
+ * statements, use the from method.
  * @param model A model object to delete.  Each key in the object should be a
  *        table alias.  The value associated with the key should be an object
  *        (or an array of objects) wherein each key corresponds to a column
@@ -85,6 +87,22 @@ DataContext.prototype.delete = function(model, database)
 {
   database = database || this.getDatabase();
   return new DeleteModel(database, this._escaper, this._queryExecuter, model);
+};
+
+/**
+ * Create a new UPDATE query to UPDATE a model by ID.  For more complex UPDATE
+ * statements, use the from method.
+ * @param model A model object to delete.  Each key in the object should be a
+ *        table alias.  The value associated with the key should be an object
+ *        wherein each key corresponds to a column alias.  The primary key is
+ *        required for each model.
+ * @param database An optional Database instance.  If passed, this parameter
+ *        is used instead of the Database that's provided to the ctor.
+ */
+DataContext.prototype.update = function(model, database)
+{
+  database = database || this.getDatabase();
+  return new UpdateModel(database, this._escaper, this._queryExecuter, model);
 };
 
 module.exports = DataContext;
