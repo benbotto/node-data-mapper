@@ -5,8 +5,8 @@ var bikeShopDC = require('../bikeShopDataContext');
 // Updatea single model by ID.
 var query = bikeShopDC.update
 ({
-  // The key is a table alias, and the value is an object containing key-value
-  // pairs corresponding to column aliases.
+  // The key is a table alias, and the value is an object (or array of objects)
+  // containing key-value pairs corresponding to column aliases.
   bonuses:
   {
     // The primary key is required when deleting a model.

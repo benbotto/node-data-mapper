@@ -15,7 +15,6 @@ var query = bikeShopDC.delete
 console.log('Query:');
 console.log(query.toString(), '\n');
 
-// A promise is returned, and the result has an 'affectedRows' property.
 query.execute()
   .then(function(result)
   {
