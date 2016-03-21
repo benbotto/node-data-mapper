@@ -33,6 +33,7 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
     - [Delete From](#delete-from)
   - [Updating](#updating)
     - [Update a Single Model](#update-a-single-model)
+    - [Update Multiple Models](#update-multiple-models)
 - [Extending](#extending)
 
 ### Getting Started
@@ -1099,6 +1100,59 @@ WHERE   (`bonuses`.`bonusID` = 3)
 Result:
 { affectedRows: 1 }
 ```
+
+##### Update Multiple Models
+
+As mentioned in the previous example, when calling ```DataContext.update(model, [database])``` the ```model``` parameter can be passed multiple models simultaneously.
+
+```js
+var query = bikeShopDC.update
+({
+  bonuses:
+  [
+    {
+      bonusID: 1,
+      amount:  300,
+      reason:  'Best salesperson ever.'
+    },
+    {
+      bonusID: 2,
+      amount: 400
+    }
+  ],
+  staff:
+  {
+    staffID:   1,
+    firstName: 'Rand'
+  },
+});
+```
+
+The above code snippet updates two ```bonus``` records and one ```staff``` record.  Running the code (```$ node example/update/updateMultipleModels.js```) results in the following output:
+
+```js
+Query:
+UPDATE  `bonuses` AS `bonuses`
+SET
+`bonuses`.`reason` = 'Best salesperson ever.',
+`bonuses`.`amount` = 300
+WHERE   (`bonuses`.`bonusID` = 1);
+
+UPDATE  `bonuses` AS `bonuses`
+SET
+`bonuses`.`amount` = 400
+WHERE   (`bonuses`.`bonusID` = 2);
+
+UPDATE  `staff` AS `staff`
+SET
+`staff`.`firstName` = 'Rand'
+WHERE   (`staff`.`staffID` = 1) 
+
+Result:
+{ affectedRows: 3 }
+```
+
+Note that the ```affectedRows``` is the total number of rows affected by the batch of updates (in this case, 3 records were updated).
 
 ## Extending
 
