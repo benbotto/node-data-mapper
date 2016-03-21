@@ -156,21 +156,38 @@ describe('Update test suite.', function()
 
   describe('Update execute test suite.', function()
   {
-    // Deletes a single model.
+    // Updates a single model.
     it('updates a single model.', function()
     {
       var from = getFrom('users')
         .where({$eq: {'users.userID': 1}});
-      var upd  = new Update(from);
+      var upd  = new Update(from, {users: {first: 'Joe', last: 'Simpson'}});
 
       upd.execute();
       expect(qryExec.update).toHaveBeenCalled();
     });
 
+    // Checks that an empty update resolves with zero affected rows.
+    it('checks that an empty update resolves with zero affected rows.', function()
+    {
+      var from = getFrom('users')
+        .where({$eq: {'users.userID': 1}});
+      var upd  = new Update(from, {users: {}});
+
+      expect(upd.toString()).toBe('');
+
+      upd.execute().then(function(result)
+      {
+        expect(result.affectedRows).toBe(0);
+      });
+
+      expect(qryExec.update).not.toHaveBeenCalled();
+    });
+
     // Checks that the promise is resolved.
     it('checks that the promise is resolved.', function()
     {
-      var upd = new Update(getFrom('users'));
+      var upd = new Update(getFrom('users'), {users: {first: 'Joe'}});
 
       qryExec.update.and.callFake(function(query, callback)
       {
@@ -189,7 +206,7 @@ describe('Update test suite.', function()
     // Checks that the promise is rejected.
     it('checks that the promise is rejected.', function()
     {
-      var upd = new Update(getFrom('users'));
+      var upd = new Update(getFrom('users'), {users: {first: 'Joe'}});
 
       qryExec.update.and.callFake(function(query, callback)
       {

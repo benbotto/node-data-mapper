@@ -118,14 +118,21 @@ Update.prototype.toString = function()
 Update.prototype.execute = function()
 {
   var defer = deferred();
+  var sql   = this.toString();
 
-  this._queryExecuter.update(this.toString(), function(err, result)
+  // If there is nothing to update, resolve the promise.
+  if (!sql)
+    defer.resolve({affectedRows: 0});
+  else
   {
-    if (err)
-      defer.reject(err);
-    else
-      defer.resolve({affectedRows: result.affectedRows});
-  });
+    this._queryExecuter.update(sql, function(err, result)
+    {
+      if (err)
+        defer.reject(err);
+      else
+        defer.resolve({affectedRows: result.affectedRows});
+    });
+  }
 
   return defer.promise;
 };
