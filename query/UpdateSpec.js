@@ -72,6 +72,13 @@ describe('Update test suite.', function()
       expect(upd.toString()).toBe('');
     });
 
+    // Checks a model that has not table aliases.
+    it('checks a model that has not table aliases.', function()
+    {
+      var upd = new Update(getFrom('users'), {});
+      expect(upd.toString()).toBe('');
+    });
+
     // Checks a single table update.
     it('checks a single table update.', function()
     {
