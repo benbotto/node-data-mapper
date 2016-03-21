@@ -1,3 +1,4 @@
+Provide a short-hand end method on the DataContext and update all the examples/doc.
 Make the code work with node-mssql (probably need to fix parameters).
 Composite keys are not supported by the Schema and will not work.  Needs impl.
 When there are two top-level schemata two DataMappers are used.  This doubles the time because two loops are needed.  Performance would be better if the DataMapper could take an array of schemata and perform the mapping in a single loop.  On the other hand, two top-level schemata is a corner case.
