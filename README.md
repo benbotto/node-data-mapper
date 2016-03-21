@@ -34,6 +34,7 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
   - [Updating](#updating)
     - [Update a Single Model](#update-a-single-model)
     - [Update Multiple Models](#update-multiple-models)
+    - [Update From](#update-from)
 - [Extending](#extending)
 
 ### Getting Started
@@ -1046,7 +1047,7 @@ More thorough examples of using the ```From``` interface are available in the [S
 
 ##### Update a Single Model
 
-To update a single model by ID, simply pass it to the ```DataContext.update(model, [database])``` method.  The ```model``` parameter is expected to be an object with keys that correspond to table aliases.  The value associated with each key should be an object (or array of objects) containing keys that correspond to column aliases, and the primary key is required.  For example, the following code updates a single ```bonus``` record:
+To update a single model by ID, simply pass the model to the ```DataContext.update(model, [database])``` method.  The ```model``` parameter is expected to be an object with keys that correspond to table aliases.  The value associated with each key should be an object (or array of objects) containing keys that correspond to column aliases, and the primary key is required.  For example, the following code updates a single ```bonus``` record:
 
 ```js
 'use strict';
@@ -1103,7 +1104,7 @@ Result:
 
 ##### Update Multiple Models
 
-As mentioned in the previous example, when calling ```DataContext.update(model, [database])``` the ```model``` parameter can be passed multiple models simultaneously.
+As mentioned in the previous example, when calling ```DataContext.update(model, [database])``` the ```model``` parameter can be passed as multiple models simultaneously.
 
 ```js
 var query = bikeShopDC.update
@@ -1154,7 +1155,55 @@ Result:
 
 Note that the ```affectedRows``` is the total number of rows affected by the batch of updates (in this case, 3 records were updated).
 
+##### Update From
+
+The last two examples are trivial cases where one or more models are updated by ID.  More complex updates can be done using the ```DataContext.from(meta, [database])``` interface, which allows for complex conditions and joins.  The following code snippet gives store keys to all exmployees over the age of 21.
+
+```js
+var query = bikeShopDC
+  .from('staff')
+  .where({$gt: {'staff.age':21}})
+  .update({staff: {hasStoreKeys: true}});
+```
+
+And here is the resulting output (```$ node example/update/updateFrom.js```):
+
+```js
+Query:
+UPDATE  `staff` AS `staff`
+SET
+`staff`.`hasStoreKeys` = 1
+WHERE   `staff`.`age` > 21 
+
+Result:
+{ affectedRows: 5 }
+```
+
+Extending this example, the proceeding example gives store keys to all employees over the age of 21 who have received a bonus.
+
+```js
+var query = bikeShopDC
+  .from('staff')
+  .innerJoin({table: 'bonuses', on: {$eq: {'staff.staffID':'bonuses.staffID'}}})
+  .where({$gt: {'staff.age':21}})
+  .update({staff: {hasStoreKeys: true}});
+```
+
+Here is the output (```$ node example/update/updateJoin.js```):
+
+```js
+Query:
+UPDATE  `staff` AS `staff`
+INNER JOIN `bonuses` AS `bonuses` ON `staff`.`staffID` = `bonuses`.`staffID`
+SET
+`staff`.`hasStoreKeys` = 1
+WHERE   `staff`.`age` > 21 
+
+Result:
+{ affectedRows: 2 }
+```
+
+Conditions, joins, and other examples of using the ```from``` interface are available in the [Selecting](#selecting) section.
 ## Extending
 
 The node-data-mapper module is designed to be extendable.  Adding support for a new database dialect is simple, and involves extending and specializing the DataContext class.  The DataContext defines a standard interface for escaping and executing queries.  Refer to the MySQLDataContext implementation for an example.
-
