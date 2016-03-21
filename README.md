@@ -1059,7 +1059,7 @@ var query = bikeShopDC.update
   // containing key-value pairs corresponding to column aliases.
   bonuses:
   {
-    // The primary key is required when deleting a model.
+    // The primary key is required when updating a model.
     bonusID: 3,
     amount: 600,
     reason: 'Super outstanding technical skills.'
