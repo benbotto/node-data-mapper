@@ -14,23 +14,6 @@ describe('DeleteModel test suite.', function()
     qryExec = jasmine.createSpyObj('qryExec', ['delete']);
   });
 
-  describe('DeleteModel constructor test suite.', function()
-  {
-    // Checks that the primary key for each model is required.
-    it('checks that the primary key for each model is required.', function()
-    {
-      expect(function()
-      {
-        new DeleteModel(db, escaper, qryExec, {users: {ID: 1}});
-      }).not.toThrow();
-
-      expect(function()
-      {
-        new DeleteModel(db, escaper, qryExec, {users: {firstName: 'Joe'}});
-      }).toThrowError('Primary key not provided on model users.');
-    });
-  });
-
   describe('DeleteModel toString test suite.', function()
   {
     // Checks that a single-model query is correct.
@@ -46,110 +29,8 @@ describe('DeleteModel test suite.', function()
       );
     });
 
-    // Checks a single model with a string for a primary key.
-    it('checks a single model with a string for a primary key.', function()
-    {
-      var db2 = new Database
-      ({
-        name: 'testDB',
-        tables:
-        [
-          {
-            name: 'example',
-            columns:
-            [
-              {
-                name: 'ex',
-                isPrimary: true
-              }
-            ]
-          }
-        ]
-      });
-      var model = {example: {ex: "Joe's Shop"}};
-      var del   = new DeleteModel(db2, escaper, qryExec, model);
-
-      expect(del.toString()).toBe
-      (
-        'DELETE  `example`\n' +
-        'FROM    `example` AS `example`\n' +
-        "WHERE   (`example`.`ex` = 'Joe\\'s Shop')"
-      );
-    });
-
-    // Checks a single model with a composite key.
-    it('checks a single model with a composite key.', function()
-    {
-      var db2 = new Database
-      ({
-        name: 'testDB',
-        tables:
-        [
-          {
-            name: 'example',
-            columns:
-            [
-              {
-                name: 'ex1',
-                isPrimary: true
-              },
-              {
-                name: 'ex2',
-                isPrimary: true
-              }
-            ]
-          }
-        ]
-      });
-      var model = {example: {ex1: 13, ex2: 44}};
-      var del   = new DeleteModel(db2, escaper, qryExec, model);
-
-      expect(del.toString()).toBe
-      (
-        'DELETE  `example`\n' +
-        'FROM    `example` AS `example`\n' +
-        'WHERE   (`example`.`ex1` = 13 AND `example`.`ex2` = 44)'
-      );
-    });
-
-    // Checks multiple models.
-    it('checks multiple models.', function()
-    {
-      var model =
-      {
-        users:
-        [
-          {ID: 12},
-          {ID: 44},
-        ],
-        phoneNumbers:
-        [
-          {ID: 1},
-          {ID: 8}
-        ]
-      };
-      
-      var del = new DeleteModel(db, escaper, qryExec, model);
-
-      expect(del.toString()).toBe
-      (
-        'DELETE  `users`\n' +
-        'FROM    `users` AS `users`\n' +
-        'WHERE   (`users`.`userID` = 12);\n\n' +
-
-        'DELETE  `users`\n' +
-        'FROM    `users` AS `users`\n' +
-        'WHERE   (`users`.`userID` = 44);\n\n' +
-
-        'DELETE  `phoneNumbers`\n' +
-        'FROM    `phone_numbers` AS `phoneNumbers`\n' +
-        'WHERE   (`phoneNumbers`.`phoneNumberID` = 1);\n\n' +
-
-        'DELETE  `phoneNumbers`\n' +
-        'FROM    `phone_numbers` AS `phoneNumbers`\n' +
-        'WHERE   (`phoneNumbers`.`phoneNumberID` = 8)'
-      );
-    });
+    // If one works, multiple will work.  A multi-model spec is in
+    // MutateModelSpec.js.
   });
 
   describe('DeleteModel execute test suite.', function()
@@ -187,7 +68,7 @@ describe('DeleteModel test suite.', function()
           expect(result.affectedRows).toBe(2);
         });
 
-      expect(qryExec.delete).toHaveBeenCalled();
+      expect(qryExec.delete.calls.count()).toBe(2);
     });
 
     // Checks that an error can be caught.
