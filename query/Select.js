@@ -179,6 +179,8 @@ Select.prototype.orderBy = function(metas)
 
   metas.forEach(function(meta)
   {
+    var col, tblAlias, colName;
+
     if (typeof meta === 'string')
       meta = {column: meta};
 
@@ -188,10 +190,16 @@ Select.prototype.orderBy = function(metas)
     assert(meta.column, 'orderBy column is required.');
     assert(meta.dir === 'ASC' || meta.dir === 'DESC',
       'dir must be either "ASC" or "DESC."');
-    assert(this._from._availableColsLookup[meta.column],
-      '"' + meta.column + '" is not available for orderBy.');
 
-    this._orderBy.push(this._escaper.escapeProperty(meta.column) + ' ' + meta.dir);
+    // Make sure the column is available for ordering.
+    col = this._from._availableColsLookup[meta.column];
+    assert(col, '"' + meta.column + '" is not available for orderBy.');
+
+    // The order by is in the format `<table-alias>`.`<column-name>`.
+    tblAlias = this._escaper.escapeProperty(col.tableAlias);
+    colName  = this._escaper.escapeProperty(col.column.getName());
+
+    this._orderBy.push(tblAlias + '.' + colName + ' ' + meta.dir);
   }, this);
 
   return this;

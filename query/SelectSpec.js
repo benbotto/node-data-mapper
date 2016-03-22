@@ -580,7 +580,7 @@ describe('SELECT test suite.', function()
       (
         'SELECT  `users`.`userID` AS `users.ID`, `users`.`firstName` AS `users.first`, `users`.`lastName` AS `users.last`\n' +
         'FROM    `users` AS `users`\n' +
-        'ORDER BY `users.firstName` ASC'
+        'ORDER BY `users`.`firstName` ASC'
       );
     });
 
@@ -595,7 +595,7 @@ describe('SELECT test suite.', function()
       (
         'SELECT  `users`.`userID` AS `users.ID`, `users`.`firstName` AS `users.first`, `users`.`lastName` AS `users.last`\n' +
         'FROM    `users` AS `users`\n' +
-        'ORDER BY `users.userID` ASC, `users.firstName` ASC, `users.lastName` ASC'
+        'ORDER BY `users`.`userID` ASC, `users`.`firstName` ASC, `users`.`lastName` ASC'
       );
     });
 
@@ -610,7 +610,7 @@ describe('SELECT test suite.', function()
       (
         'SELECT  `users`.`userID` AS `users.ID`, `users`.`firstName` AS `users.first`, `users`.`lastName` AS `users.last`\n' +
         'FROM    `users` AS `users`\n' +
-        'ORDER BY `users.userID` ASC, `users.firstName` ASC, `users.lastName` ASC'
+        'ORDER BY `users`.`userID` ASC, `users`.`firstName` ASC, `users`.`lastName` ASC'
       );
     });
 
@@ -625,7 +625,7 @@ describe('SELECT test suite.', function()
       (
         'SELECT  `users`.`userID` AS `users.ID`, `users`.`firstName` AS `users.first`, `users`.`lastName` AS `users.last`\n' +
         'FROM    `users` AS `users`\n' +
-        'ORDER BY `users.userID` ASC, `users.firstName` ASC, `users.lastName` DESC'
+        'ORDER BY `users`.`userID` ASC, `users`.`firstName` ASC, `users`.`lastName` DESC'
       );
     });
   });

@@ -338,7 +338,7 @@ Running this example (```$ node example/retrieve/advancedOrder.js```) displays:
 Query:
 SELECT  `staff`.`staffID` AS `staff.staffID`, `staff`.`hasStoreKeys` AS `staff.hasStoreKeys`, `staff`.`firstName` AS `staff.firstName`
 FROM    `staff` AS `staff`
-ORDER BY `staff.hasStoreKeys` DESC, `staff.firstName` ASC 
+ORDER BY `staff`.`hasStoreKeys` DESC, `staff`.`firstName` ASC 
 
 Result:
 { staff: 
