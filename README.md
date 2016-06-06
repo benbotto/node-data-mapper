@@ -8,13 +8,13 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
 ##### Table of Contents
 
 - [Getting Started](#getting-started)
-    - [Select all from a Single Table](#select-all-from-a-single-table)
     - [Install node-data-mapper](#install-node-data-mapper)
     - [Install a Supported Driver](#install-a-supported-driver)
     - [Define a Database](#define-a-database)
     - [Create a DataContext Instance](#create-a-datacontext-instance)
 - [Examples](#examples)
   - [Selecting](#selecting)
+      - [Select all from a Single Table](#select-all-from-a-single-table)
       - [Limiting Columns](#limiting-columns)
       - [Ad-Hoc Aliasing](#ad-hoc-aliasing)
       - [Ordering](#ordering)
