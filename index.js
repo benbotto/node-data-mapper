@@ -10,6 +10,7 @@ module.exports =
   Table:              require('./database/Table.js'),
   Column:             require('./database/Column.js'),
   bitConverter:       require('./converter/bitConverter.js'),
+  utcConverter:       require('./converter/utcConverter.js'),
   MySQLDataContext:   require('./datacontext/MySQLDataContext.js'),
   DataContext:        require('./datacontext/DataContext.js'),
   Escaper:            require('./query/Escaper.js'),
