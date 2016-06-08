@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "deferred": "^0.7.4",
+    "moment": "^2.13.0",
     "mysql": "^2.9.0"
   }
 }
