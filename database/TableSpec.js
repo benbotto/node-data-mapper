@@ -204,19 +204,31 @@ describe('Table test suite', function()
             name: 'userID',
             alias: 'ID',
             isPrimary: true,
-            converter: {}
+            converter: {},
+            isNullable: true,
+            dataType: null,
+            maxLength: null,
+            defaultValue: null
           },
           {
             name: 'firstName',
             alias: 'first',
             isPrimary: false,
-            converter: {}
+            converter: {},
+            isNullable: true,
+            dataType: null,
+            maxLength: null,
+            defaultValue: null
           },
           {
             name: 'lastName',
             alias: 'last',
             isPrimary: false,
-            converter: {}
+            converter: {},
+            isNullable: true,
+            dataType: null,
+            maxLength: null,
+            defaultValue: null
           }
         ]
       });

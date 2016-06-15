@@ -6,32 +6,35 @@ var assert = require('../util/assert');
  * Represents a database column.
  * @param column An object representing the column with the following properties.
  * {
- *   name:       string, // Required.  The name of the column.
- *   alias:      string, // Optional.  The column alias, used for serializing.
- *                       // Defaults to name.
- *   isPrimary:  bool,   // Optional.  Whether or not this column is a primary key.
- *                       // Defaults to false.
- *   dataType:   string, // The data type of the column as a string.  Defaults to null.
- *   maxLength:  int,    // The maximum length of the column.  Defaults to null.
- *   isNullable: bool,   // Whether or not null is acceptable for the column.
- *                       // Defaults to true.
- *   converter:  object  // An optional converter object containing onRetrieve
- *                       // and/or onSave methods.  These methods will be called
- *                       // when a column is serialized after a select, or before
- *                       // the column is saved to the database.
+ *   name:       string,   // Required.  The name of the column.
+ *   alias:      string,   // Optional.  The column alias, used for serializing.
+ *                         // Defaults to name.
+ *   isPrimary:  bool,     // Optional.  Whether or not this column is a primary key.
+ *                         // Defaults to false.
+ *   dataType:   string,   // The data type of the column as a string.  Defaults to null.
+ *   maxLength:  int,      // The maximum length of the column.  Defaults to null.
+ *   isNullable: bool,     // Whether or not null is acceptable for the column.
+ *                         // Defaults to true.
+ *   defaultValue: string, // The default value for the column (only for meta purposes).
+ *                         // Defaults to null
+ *   converter:    object  // An optional converter object containing onRetrieve
+ *                         // and/or onSave methods.  These methods will be called
+ *                         // when a column is serialized after a select, or before
+ *                         // the column is saved to the database.
  * }
  */
 function Column(column)
 {
   assert(column.name, 'Column name is required.');
 
-  this._name       = column.name;
-  this._alias      = column.alias     || this._name;
-  this._dataType   = column.dataType  || null;
-  this._maxLength  = column.maxLength || null;
-  this._converter  = column.converter || {};
-  this._isPrimary  = !!column.isPrimary;
-  this._isNullable = (column.isNullable === undefined) ? true : !!column.isNullable;
+  this._name         = column.name;
+  this._alias        = column.alias        || this._name;
+  this._dataType     = column.dataType     || null;
+  this._maxLength    = column.maxLength    || null;
+  this._defaultValue = column.defaultValue || null;
+  this._converter    = column.converter    || {};
+  this._isPrimary    = !!column.isPrimary;
+  this._isNullable   = (column.isNullable === undefined) ? true : !!column.isNullable;
 }
 
 /**
@@ -67,6 +70,14 @@ Column.prototype.getMaxLength = function()
 };
 
 /**
+ * Get the column's default value (only used for meta purposes).
+ */
+Column.prototype.getDefaultValue = function()
+{
+  return this._defaultValue;
+};
+
+/**
  * Check if the column is a nullable key.
  */
 Column.prototype.isNullable = function()
@@ -97,10 +108,14 @@ Column.prototype.toObject = function()
 {
   var obj =
   {
-    name:      this._name,
-    alias:     this._alias,
-    isPrimary: this._isPrimary,
-    converter: this._converter
+    name:         this._name,
+    alias:        this._alias,
+    isPrimary:    this._isPrimary,
+    converter:    this._converter,
+    dataType:     this._dataType,
+    maxLength:    this._maxLength,
+    defaultValue: this._defaultValue,
+    isNullable:   this._isNullable
   };
 
   return obj;

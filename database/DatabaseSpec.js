@@ -139,7 +139,11 @@ describe('Database test suite', function()
                 name: 'userID',
                 alias: 'ID',
                 isPrimary: true,
-                converter: {}
+                converter: {},
+                isNullable: true,
+                dataType: null,
+                maxLength: null,
+                defaultValue: null
               }
             ]
           },

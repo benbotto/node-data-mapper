@@ -50,6 +50,17 @@ describe('Column test suite', function()
     expect(col.getMaxLength()).toBe(100);
   });
 
+  // Checks the default value.
+  it('checks the default value.', function()
+  {
+    var col = new Column({name: 'personName'});
+
+    expect(col.getDefaultValue()).toBeNull();
+
+    col = new Column({name: 'personName', defaultValue: 'asdf'});
+    expect(col.getDefaultValue()).toBe('asdf');
+  });
+
   // Checks the isNullable method.
   it('checks the isNullable method.', function()
   {
@@ -66,18 +77,37 @@ describe('Column test suite', function()
   // Checks the toObject method.
   it('checks the toObject method.', function()
   {
-    var col = new Column({name: 'TestCol'});
-    expect(col.toObject()).toEqual({name: 'TestCol', alias: 'TestCol', isPrimary: false, converter: {}});
+    var colDef = {name: 'TestCol'};
+    var col = new Column(colDef);
+    expect(col.toObject()).toEqual
+    ({
+      name: 'TestCol',
+      alias: 'TestCol',
+      isPrimary: false,
+      converter: {},
+      isNullable: true,
+      dataType: null,
+      maxLength: null,
+      defaultValue: null
+    });
 
-    var col2 = new Column({name: 'TestCol2', alias: 'test', isPrimary: false});
-    expect(col2.toObject()).toEqual({name: 'TestCol2', alias: 'test', isPrimary: false, converter: {}});
-
-    var col3 = new Column({name: 'TestCol3', isPrimary: true});
-    expect(col3.toObject()).toEqual({name: 'TestCol3', alias: 'TestCol3', isPrimary: true, converter: {}});
-
-    var converter = {onSave: 'foo', onRetrieve: 'bar'};
-    var col4 = new Column({name: 'TestCol4', converter: converter});
-    expect(col4.toObject()).toEqual({name: 'TestCol4', alias: 'TestCol4', isPrimary: false, converter: converter});
+    colDef = 
+    {
+      name:         'createdOn',
+      alias:        'created',
+      dataType:     'timestamp',
+      maxLength:    100,
+      defaultValue: 'CURRENT_TIMESTAMP',
+      converter:
+      {
+        onSave:     {},
+        onRetrieve: {}
+      },
+      isPrimary:    true,
+      isNullable:   false
+    };
+    col = new Column(colDef);
+    expect(col.toObject()).toEqual(colDef);
   });
 
   // Checks the clone method.
