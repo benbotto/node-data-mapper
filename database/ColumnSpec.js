@@ -28,6 +28,41 @@ describe('Column test suite', function()
     expect(col4.getConverter()).toBe(converter);
   });
 
+  // Checks that the data type can be retrieved.
+  it('checks that the data type can be retrieved.', function()
+  {
+    var col = new Column({name: 'personName'});
+
+    expect(col.getDataType()).toBeNull();
+
+    col = new Column({name: 'personName', dataType: 'varchar'});
+    expect(col.getDataType()).toBe('varchar');
+  });
+
+  // Checks that the data type can be retrieved.
+  it('checks that the data type can be retrieved.', function()
+  {
+    var col = new Column({name: 'personName'});
+
+    expect(col.getMaxLength()).toBeNull();
+
+    col = new Column({name: 'personName', maxLength: 100});
+    expect(col.getMaxLength()).toBe(100);
+  });
+
+  // Checks the isNullable method.
+  it('checks the isNullable method.', function()
+  {
+    var col = new Column({name: 'personName'});
+
+    expect(col.isNullable()).toBe(true);
+
+    col = new Column({name: 'personName', isNullable: true});
+    expect(col.isNullable()).toBe(true);
+    col = new Column({name: 'personName', isNullable: false});
+    expect(col.isNullable()).toBe(false);
+  });
+
   // Checks the toObject method.
   it('checks the toObject method.', function()
   {
@@ -52,6 +87,5 @@ describe('Column test suite', function()
     var clone = col.clone();
 
     expect(col.toObject()).toEqual(clone.toObject());
-    
   });
 });

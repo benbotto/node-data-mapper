@@ -6,25 +6,32 @@ var assert = require('../util/assert');
  * Represents a database column.
  * @param column An object representing the column with the following properties.
  * {
- *   name:      string, // Required.  The name of the column.
- *   alias:     string, // Optional.  The column alias, used for serializing.
- *                      // Defaults to name.
- *   isPrimary: bool,   // Optional.  Whether or not this column is a primary key.
- *                      // Defaults to false.
- *   converter: object  // An optional converter object containing onRetrieve
- *                      // and/or onSave methods.  These methods will be called
- *                      // when a column is serialized after a select, or before
- *                      // the column is saved to the database.
+ *   name:       string, // Required.  The name of the column.
+ *   alias:      string, // Optional.  The column alias, used for serializing.
+ *                       // Defaults to name.
+ *   isPrimary:  bool,   // Optional.  Whether or not this column is a primary key.
+ *                       // Defaults to false.
+ *   dataType:   string, // The data type of the column as a string.  Defaults to null.
+ *   maxLength:  int,    // The maximum length of the column.  Defaults to null.
+ *   isNullable: bool,   // Whether or not null is acceptable for the column.
+ *                       // Defaults to true.
+ *   converter:  object  // An optional converter object containing onRetrieve
+ *                       // and/or onSave methods.  These methods will be called
+ *                       // when a column is serialized after a select, or before
+ *                       // the column is saved to the database.
  * }
  */
 function Column(column)
 {
   assert(column.name, 'Column name is required.');
 
-  this._name      = column.name;
-  this._alias     = column.alias || this._name;
-  this._isPrimary = !!column.isPrimary;
-  this._converter = column.converter || {};
+  this._name       = column.name;
+  this._alias      = column.alias     || this._name;
+  this._dataType   = column.dataType  || null;
+  this._maxLength  = column.maxLength || null;
+  this._converter  = column.converter || {};
+  this._isPrimary  = !!column.isPrimary;
+  this._isNullable = (column.isNullable === undefined) ? true : !!column.isNullable;
 }
 
 /**
@@ -41,6 +48,30 @@ Column.prototype.getName = function()
 Column.prototype.getAlias = function()
 {
   return this._alias;
+};
+
+/**
+ * Get the column's data type.
+ */
+Column.prototype.getDataType = function()
+{
+  return this._dataType;
+};
+
+/**
+ * Get the column's max length.
+ */
+Column.prototype.getMaxLength = function()
+{
+  return this._maxLength;
+};
+
+/**
+ * Check if the column is a nullable key.
+ */
+Column.prototype.isNullable = function()
+{
+  return this._isNullable;
 };
 
 /**
