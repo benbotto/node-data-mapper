@@ -462,7 +462,7 @@ Conditions are defined formally as a language, as described by the following gra
 <null-comparison-operator> ::= "$is" | "$isnt"
 <boolean-operator>         ::= "$and" | "$or"
 <nullable>                 ::= null | <parameter>
-<value>                    ::= <parameter> | <column> | <number> | null
+<value>                    ::= <parameter> | <column> | <number>
 <column>                   ::= <string>
 <parameter>                ::= :<string>
 

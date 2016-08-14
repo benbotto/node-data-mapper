@@ -8,7 +8,7 @@
 <null-comparison-operator> ::= "$is" | "$isnt"
 <boolean-operator>         ::= "$and" | "$or"
 <nullable>                 ::= null | <parameter>
-<value>                    ::= <parameter> | <column> | <number> | null
+<value>                    ::= <parameter> | <column> | <number>
 <column>                   ::= <string>
 <parameter>                ::= :<string>
 
