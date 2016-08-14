@@ -28,6 +28,12 @@ describe('ConditionParser test suite.', function()
         parser.parse(lexer.parse({$is: {name: null}}));
         parser.parse(lexer.parse({$isnt: {name: null}}));
       }).not.toThrow();
+
+      expect(function()
+      {
+        parser.parse(lexer.parse({$is: {name: ':name'}}));
+        parser.parse(lexer.parse({$isnt: {name: ':name'}}));
+      }).not.toThrow();
     });
 
     // Checks a valid in-comparison.
@@ -183,6 +189,13 @@ describe('ConditionParser test suite.', function()
 
       expect(function()
       {
+        // Valid {"$is":{"name":":name"}}
+        var tokens = lexer.parse({$is: {name: ':name'}});
+        parser.parse(tokens);
+      }).not.toThrow();
+
+      expect(function()
+      {
         // Missing colon.
         var tokens = lexer.parse('{"$is"{"name":null}}');
         parser.parse(tokens);
@@ -221,21 +234,21 @@ describe('ConditionParser test suite.', function()
         // Missing null.
         var tokens = lexer.parse('{"$is":{"name":}}');
         parser.parse(tokens);
-      }).toThrowError('At index 6.  Expected null but found type char with value }.');
+      }).toThrowError('At index 6.  Expected [null | parameter] but found type char with value }.');
 
       expect(function()
       {
         // String is not null.
-        var tokens = lexer.parse('{"$is":{"name":":name"}}');
+        var tokens = lexer.parse('{"$is":{"name":"foo"}}');
         parser.parse(tokens);
-      }).toThrowError('At index 6.  Expected null but found type parameter with value :name.');
+      }).toThrowError('At index 6.  Expected [null | parameter] but found type column with value foo.');
 
       expect(function()
       {
         // 123 is not null.
         var tokens = lexer.parse('{"$is":{"name":123}}');
         parser.parse(tokens);
-      }).toThrowError('At index 6.  Expected null but found type number with value 123.');
+      }).toThrowError('At index 6.  Expected [null | parameter] but found type number with value 123.');
 
       expect(function()
       {

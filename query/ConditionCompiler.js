@@ -63,7 +63,8 @@ ConditionCompiler.prototype.compile = function(parseTree, params)
       {
         // Find the value in the params list (the leading colon is removed).
         var value = params[token.value.substring(1)];
-        assert(value, 'Replacement value for parameter ' + token.value + ' not present.');
+        assert(value,
+          'Replacement value for parameter ' + token.value + ' not present.');
         return escaper.escapeLiteral(value);
       }
       else
@@ -82,7 +83,9 @@ ConditionCompiler.prototype.compile = function(parseTree, params)
         return column + ' ' + op + ' ' + value;
 
       case 'null-comparison-operator':
-        // <column> <null-operator> NULL (ex. `j`.`occupation` IS NULL).
+        // <column> <null-operator> <nullable> (ex. `j`.`occupation` IS NULL).
+        // Note that if a parameter is used (e.g. {occupation: null}) it's
+        // ignored.  NULL is blindly inserted since it's the only valid value.
         return escaper.escapeFullyQualifiedColumn(tree.children[0].token.value) + ' ' +
           nullOps[tree.token.value] + ' NULL';
 

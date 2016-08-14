@@ -91,7 +91,7 @@ describe('ConditionCompiler test suite.', function()
   // Compiles a single null condition.
   it('compiles a single null condition.', function()
   {
-    var cond, tokens, tree;
+    var cond, params, tokens, tree;
 
     // $is.
     cond   = {$is: {'j.occupation': null}};
@@ -103,6 +103,19 @@ describe('ConditionCompiler test suite.', function()
     cond   = {$isnt: {occupation: null}};
     tokens = lexer.parse(cond);
     tree   = parser.parse(tokens);
+    expect(compiler.compile(tree)).toBe('`occupation` IS NOT NULL');
+
+    // Using parameters.
+    cond   = {$isnt: {occupation: ':occupation'}};
+    params = {occupation: null};
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens, params);
+    expect(compiler.compile(tree)).toBe('`occupation` IS NOT NULL');
+
+    cond   = {$isnt: {occupation: ':occupation'}};
+    params = {occupation: 'Doctor'}; // Parameter is ignored: NULL is insterted blindly.
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens, params);
     expect(compiler.compile(tree)).toBe('`occupation` IS NOT NULL');
   });
 

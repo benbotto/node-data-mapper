@@ -33,17 +33,17 @@ ConditionParser.prototype.parse = function(tokens)
 //
 // <condition>                ::= "{" <comparison> | <null-comparison> | <in-comparison> | <logical-condition> "}"
 // <comparison>               ::= <comparison-operator> ":" "{" <column> ":" <value> "}"
-// <null-comparison>          ::= <null-comparison-operator> ":" "{" <column> ":" null "}"
+// <null-comparison>          ::= <null-comparison-operator> ":" "{" <column> ":" <nullable> "}"
 // <in-comparison>            ::= <in-comparison-operator> ":" "{" <column> ":" "[" <value> {"," <value>} "]" "}"
 // <logical-condition>        ::= <boolean-operator> ":" "[" <condition> {"," <condition>} "]"
-// <comparison-operator>      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte"
+// <comparison-operator>      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte" | "$like" | "$notlike"
 // <in-comparison-operator>   ::= "$in"
 // <null-comparison-operator> ::= "$is" | "$isnt"
 // <boolean-operator>         ::= "$and" | "$or"
-// <value>                    ::= <parameter> | <column> | <number>
+// <nullable>                 ::= null | <parameter>
+// <value>                    ::= <parameter> | <column> | <number> | null
 // <column>                   ::= <string>
 // <parameter>                ::= :<string>
-//
 ConditionParser.prototype._condition = function()
 {
   var pairParts = ['comparison-operator', 'null-comparison-operator', 'in-comparison-operator', 'boolean-operator'];
@@ -94,7 +94,7 @@ ConditionParser.prototype._inComparison = function()
   this._charTerminal('}');
 };
 
-// <null-comparison> ::= <null-comparison-operator> ":" "{" <column> ":" null "}"
+// <null-comparison> ::= <null-comparison-operator> ":" "{" <column> ":" <nullable> "}"
 ConditionParser.prototype._nullComparison = function()
 {
   this._nullComparisonOperator();
@@ -102,7 +102,7 @@ ConditionParser.prototype._nullComparison = function()
   this._charTerminal('{');
   this._column();
   this._charTerminal(':');
-  this._nullTerminal();
+  this._nullable();
   this._charTerminal('}');
 };
 
@@ -147,6 +147,18 @@ ConditionParser.prototype._nullComparisonOperator = function()
 ConditionParser.prototype._booleanOperator = function()
 {
   this._matchType('boolean-operator');
+};
+
+// <nullable> ::= null | <parameter>
+ConditionParser.prototype._nullable = function()
+{
+  var values = ['null', 'parameter'];
+  assert(this._tokenIn(values), this._errorString('[' + values.join(' | ') + ']'));
+
+  if (this._token.type === 'null')
+    this._nullTerminal();
+  else
+    this._parameter();
 };
 
 // <value> ::= <parameter> | <column> | <number>
