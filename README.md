@@ -10,7 +10,7 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
 - [Getting Started](#getting-started)
     - [Install node-data-mapper](#install-node-data-mapper)
     - [Install a Supported Driver](#install-a-supported-driver)
-    - [Define a Database](#define-a-database)
+    - [Define a Database Schema Object](#define-a-database-schema-object)
     - [Create a DataContext Instance](#create-a-datacontext-instance)
 - [Examples](#examples)
   - [Selecting](#selecting)
@@ -56,9 +56,11 @@ $ npm install mysql --save
 Support for other database drivers is underway, but at this time only mysql is supported.
 Extending node-data-mapper to support a new driver is trivial.  Refer the the [Extending](#extending) section.
 
-##### Define a Database
+##### Define a Database Schema Object
 
-The easiest way to define a database is using a simple object.  Here's a basic example for a bike shop database.  A database is made up of an array of tables, and each table is made up of an array of columns.  Each table must have a primary key column defined.  Tables and columns can be aliased; an alias defines how a table or column will be serialized.
+Like most ORMs, node-data-mapper needs metadata about a database before it can be queried.  It needs a schema definition object describing all of the tables and columns.  Below is an annotated example for a fictitious bike shop database (instructions for creating this database locally are laid out in the [Examples](#examples) section below).  A database is made up of an array of tables, and each table is made up of an array of columns.  Each table **must** have a primary key column defined.  Tables and columns can be aliased; an alias defines how a table or column will be serialized (more on this later).
+
+Emphatically, manually creating a database schema object is **not** recommended, as it is cumbersome to maintain and error prone.  Instead, the database schema object should be auto-generated using the metadata that's present in the database.  This can be done using the separate [ndm-schema-generator](https://github.com/benbotto/ndm-schema-generator) module.
 
 ```js
 'use strict';
