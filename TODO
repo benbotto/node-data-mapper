@@ -1,3 +1,22 @@
+There's no way to join the same table twice and use the same alias.  Consider this desired document with 'stage' repeated twice:
+
+assignment: {
+  assignmentID: 1
+  item: {
+    itemID: 1,
+    stage: {
+      stageID: 1,
+      name: 'Review
+    }
+  },
+  stage: {
+    stageID: 1,
+    name: 'Review'
+  }
+}
+
+Here the user is assigned to an item and needs to perform an action when the stage is reached, and the item is in a stage.
+
 Provide a short-hand end method on the DataContext and update all the examples/doc.
 Make the code work with node-mssql (probably need to fix parameters).
 Composite keys are not supported by the Schema and will not work.  Needs impl.
