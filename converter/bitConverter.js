@@ -6,8 +6,7 @@ module.exports =
    * Convert the "bit" to a boolean.
    * @param bit Either an instance of a Buffer containing a 1 or a 0, or a number.
    */
-  onRetrieve: function(bit)
-  {
+  onRetrieve: function(bit) {
     if (bit === null || bit === undefined || bit === '')
       return null;
 
@@ -21,8 +20,7 @@ module.exports =
    * Convert a boolean to a bit.
    * @param bool A boolean value.
    */
-  onSave: function(bool)
-  {
+  onSave: function(bool) {
     if (bool === null || bool === undefined || bool === '')
       return null;
     return bool ? 1 : 0;

@@ -3,8 +3,7 @@
 /**
  * This module just exports all the other modules.
  */
-module.exports =
-{
+module.exports = {
   assert:             require('./util/assert.js'),
   Database:           require('./database/Database.js'),
   Table:              require('./database/Table.js'),

@@ -1,11 +1,9 @@
-module.exports = function(grunt)
-{
+module.exports = function(grunt) {
   'use strict';
 
-  var scripts = (require('./grunt/scriptGarner.js'))();
+  const scripts = (require('./grunt/scriptGarner.js'))();
 
-  grunt.initConfig
-  ({
+  grunt.initConfig({
     jshint:         require('./grunt/jshint')(grunt, scripts),
     jasmine_nodejs: require('./grunt/jasmine-nodejs')(grunt, scripts),
     watch:          require('./grunt/watch')(grunt, scripts)
