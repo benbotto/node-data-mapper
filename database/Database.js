@@ -1,128 +1,101 @@
 'use strict';
 
-var assert = require('../util/assert');
-var Table  = require('./Table');
+const assert = require('../util/assert');
+const Table  = require('./Table');
 
-/**
- * Class for representing a database.
- * @param database An object in the following format.
- * {
- *   name:   string,      // The name of the database.  Optional.
- *   tables: array<Table> // Optional.  An array of Tables (or objects suitable for
- *                        // the Table constructor).
- *                        // See the Table constructor for property details.
- * }
- */
-function Database(database)
-{
-  this._name        = database.name || '';
-  this._tables      = [];
-  this._nameLookup  = {};
-  this._aliasLookup = {};
+/** Class for representing a database. */
+class Database {
+  /**
+   * Initialize the database from a schema object.
+   * @param {object} database - A schema object representing the database.  Any
+   *        custom properties on the database shall be preserved.
+   * @param {string} database.name - The name of the database.
+   * @param {Table[]} database.tables - An array of Tables.  If, instead, an
+   *        array of objects is passed in, each object shall be converted to a
+   *        Table instance.
+   */
+  constructor(database) {
+    assert(database.name, 'Database name is required.');
 
-  if (database.tables)
-    database.tables.forEach(this.addTable, this);
+    // Copy and preserve all properties from the database.
+    Object.assign(this, database);
+
+    this._nameLookup  = new Map();
+    this._mapToLookup = new Map();
+
+    // Ensure that all the tables are Table instances, and that
+    // each is uniquely identifiable.
+    this.tables = [];
+    if (database.tables)
+      database.tables.forEach(this.addTable, this);
+  }
+
+  /**
+   * Add a Table to the database.
+   * @param {Table|object} table - The new table, which must have a unique name
+   *        and mapping (mapTo property).
+   * @return {this}
+   */
+  addTable(table) {
+    if (!(table instanceof Table))
+      table = new Table(table);
+
+    assert(!this._nameLookup.has(table.name),
+      `Table ${table.name} already exists in database ${this.name}.`);
+    assert(!this._mapToLookup.has(table.mapTo),
+      `Table mapping ${table.mapTo} already exists in database ${this.name}.`);
+
+    this.tables.push(table);
+    this._nameLookup.set(table.name, table);
+    this._mapToLookup.set(table.mapTo,  table);
+
+    return this;
+  };
+
+  /**
+   * Get a table by name.
+   * @param {string} name - The name of the table.
+   * @return {Table} - The Table instance.
+   */
+  getTableByName(name) {
+    assert(this._nameLookup.has(name),
+      `Table ${name} does not exist in database ${this.name}.`);
+
+    return this._nameLookup.get(name);
+  };
+
+  /**
+   * Check if name is a valid table name.
+   * @param {string} name - The name of the table.
+   * @return {boolean} A flag indicating if name corresponds to a Table
+   *         instance.
+   */
+  isTableName(name) {
+    return this._nameLookup.has(name);
+  };
+
+  /**
+   * Get a table by alias.
+   * @param {string} mapping - The table mapping (mapTo property).
+   * @return {Table} - The Table instance.
+   */
+  getTableByMapping(mapping) {
+    assert(this._mapToLookup.has(mapping),
+      `Table mapping ${mapping} does not exist in database ${this.name}.`);
+
+    return this._mapToLookup.get(mapping);
+  };
+
+  /**
+   * Check if name is a valid table alias.
+   * @param {string} mapping - The table mapping (mapTo property).
+   * @return {boolean} A flag indicating if mapping corresponds to a Table
+   *         instance.
+   */
+  isTableMapping(mapping) {
+    return this._mapToLookup.has(mapping);
+  };
 }
-
-/**
- * Get the name of the database.
- */
-Database.prototype.getName = function()
-{
-  return this._name;
-};
-
-/**
- * Get the array of tables.
- */
-Database.prototype.getTables = function()
-{
-  return this._tables;
-};
-
-/**
- * Add a Table to the database.
- * @param table The new table, which must have a unique name.
- */
-Database.prototype.addTable = function(table)
-{
-  if (!(table instanceof Table))
-    table = new Table(table);
-
-  assert(this._nameLookup[table.getName()] === undefined,
-    'Table ' + table.getName() + ' already exists in database ' + this.getName() + '.');
-  assert(this._aliasLookup[table.getAlias()] === undefined,
-    'Table alias ' + table.getAlias() + ' already exists in database ' + this.getName() + '.');
-
-  this._tables.push(table);
-  this._nameLookup[table.getName()]   = table;
-  this._aliasLookup[table.getAlias()] = table;
-
-  return this;
-};
-
-/**
- * Get a table by name.
- * @param name The name of the table.
- */
-Database.prototype.getTableByName = function(name)
-{
-  assert(this._nameLookup[name],
-    'Table ' + name + ' does not exist in database ' + this.getName() + '.');
-
-  return this._nameLookup[name];
-};
-
-/**
- * Check if name is a valid table name.
- * @param name The name of a table.
- */
-Database.prototype.isTableName = function(name)
-{
-  return !!this._nameLookup[name];
-};
-
-/**
- * Get a table by alias.
- * @param alias The alias of the table.
- */
-Database.prototype.getTableByAlias = function(alias)
-{
-  assert(this._aliasLookup[alias],
-    'Table alias ' + alias + ' does not exist in database ' + this.getName() + '.');
-
-  return this._aliasLookup[alias];
-};
-
-/**
- * Check if name is a valid table alias.
- * @param alias The alias of a table.
- */
-Database.prototype.isTableAlias = function(alias)
-{
-  return !!this._aliasLookup[alias];
-};
-
-/**
- * Convert the Database instance back to an object.
- */
-Database.prototype.toObject = function()
-{
-  var obj = {name: this._name, tables: []};
-
-  for (var i = 0; i < this._tables.length; ++i)
-    obj.tables.push(this._tables[i].toObject());
-
-  return obj;
-};
-
-/**
- * Clone this Database instance.
- */
-Database.prototype.clone = function()
-{
-  return new Database(this.toObject());
-};
 
 module.exports = Database;
 
