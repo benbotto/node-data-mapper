@@ -1,29 +1,22 @@
-describe('Table test suite', function()
-{
+describe('Table test suite', function() {
   'use strict';
 
-  var Table  = require('./Table');
-  var Column = require('./Column');
-  var users  = require('../spec/testDB').tables[0];
+  const Table  = require('./Table');
+  const Column = require('./Column');
+  const users  = require('../spec/testDB').tables[0];
 
-  describe('Table constructor test suite.', function()
-  {
+  describe('Table constructor test suite.', function() {
     // Checks that name is required.
-    it('checks that name is required.', function()
-    {
-      expect(function()
-      {
+    it('checks that name is required.', function() {
+      expect(function() {
         new Table({});
       }).toThrowError('name is required.');
     });
 
     // Checks that the primary key is required.
-    it('checks that the primary key is required.', function()
-    {
-      expect(function()
-      {
-        new Table
-        ({
+    it('checks that the primary key is required.', function() {
+      expect(function() {
+        new Table({
           name:    'foo',
           columns: [{name: 'firstName', alias: 'first'}]
         });
@@ -31,9 +24,8 @@ describe('Table test suite', function()
     });
 
     // Checks the minimal constructor.
-    it('checks the minimal constructor.', function()
-    {
-      var table = new Table(users);
+    it('checks the minimal constructor.', function() {
+      const table = new Table(users);
 
       expect(table.getName()).toBe('users');
       expect(table.getAlias()).toBe('users');
@@ -42,19 +34,15 @@ describe('Table test suite', function()
     });
 
     // Checks that columns is required.
-    it('checks that columns is required.', function()
-    {
-      expect(function()
-      {
+    it('checks that columns is required.', function() {
+      expect(function() {
         new Table({name: 'foo'});
       }).toThrowError('columns is required.');
     });
 
     // Checks the constructor with an alias.
-    it('checks the constructor with an alias.', function()
-    {
-      var table = new Table
-      ({
+    it('checks the constructor with an alias.', function() {
+      const table = new Table({
         name:    'Test',
         alias:   'TestAlias',
         columns: users.columns
@@ -67,11 +55,9 @@ describe('Table test suite', function()
     });
 
     // Checks the constructor with multiple primary keys.
-    it('checks the constructor with multiple primary keys.', function()
-    {
-      var cols  = users.columns.concat({name: 'pk2', isPrimary: true});
-      var table = new Table
-      ({
+    it('checks the constructor with multiple primary keys.', function() {
+      const cols  = users.columns.concat({name: 'pk2', isPrimary: true});
+      const table = new Table({
         name:    'Test',
         columns: cols
       });
@@ -82,19 +68,16 @@ describe('Table test suite', function()
     });
   });
 
-  describe('Table columns test suite', function()
-  {
-    var usersTbl;
+  describe('Table columns test suite', function() {
+    let usersTbl;
 
     // Set up a dummy table.
-    beforeEach(function()
-    {
+    beforeEach(function() {
       usersTbl = new Table(users);
     });
 
     // Checks that three columns exist.
-    it('checks that three columns exist.', function()
-    {
+    it('checks that three columns exist.', function() {
       expect(usersTbl.getColumns().length).toBe(3);
       expect(usersTbl.getColumns()[0].getName()).toBe('userID');
       expect(usersTbl.getColumns()[1].getName()).toBe('firstName');
@@ -102,25 +85,21 @@ describe('Table test suite', function()
     });
 
     // Tries to add a column that already exists.
-    it('tries to add a column that already exists.', function()
-    {
-      expect(function()
-      {
+    it('tries to add a column that already exists.', function() {
+      expect(function() {
         usersTbl.addColumn(new Column({name: 'userID'}));
       }).toThrowError('Column userID already exists in table users.');
 
-      expect(function()
-      {
+      expect(function() {
         usersTbl.addColumn(new Column({name: 'foo', alias: 'ID'}));
       }).toThrowError('Column alias ID already exists in table users.');
     });
 
     // Checks that columns can be retrieved by name.
-    it('checks that columns can be retrieved by name.', function()
-    {
-      var userID    = usersTbl.getColumnByName('userID');
-      var firstName = usersTbl.getColumnByName('firstName');
-      var lastName  = usersTbl.getColumnByName('lastName');
+    it('checks that columns can be retrieved by name.', function() {
+      const userID    = usersTbl.getColumnByName('userID');
+      const firstName = usersTbl.getColumnByName('firstName');
+      const lastName  = usersTbl.getColumnByName('lastName');
 
       expect(userID.getName()).toBe('userID');
       expect(userID.getAlias()).toBe('ID');
@@ -131,20 +110,17 @@ describe('Table test suite', function()
     });
 
     // Tries to retrieve an invalid column by name.
-    it('tries to retrieve an invalid column by name.', function()
-    {
-      expect(function()
-      {
+    it('tries to retrieve an invalid column by name.', function() {
+      expect(function() {
         usersTbl.getColumnByName('INVALID_NAME');
       }).toThrowError('Column INVALID_NAME does not exist in table users.');
     });
 
     // Checks that columns can be retrieved by alias.
-    it('checks that columns can be retrieved by alias.', function()
-    {
-      var userID    = usersTbl.getColumnByAlias('ID');
-      var firstName = usersTbl.getColumnByAlias('first');
-      var lastName  = usersTbl.getColumnByAlias('last');
+    it('checks that columns can be retrieved by alias.', function() {
+      const userID    = usersTbl.getColumnByAlias('ID');
+      const firstName = usersTbl.getColumnByAlias('first');
+      const lastName  = usersTbl.getColumnByAlias('last');
 
       expect(userID.getName()).toBe('userID');
       expect(userID.getAlias()).toBe('ID');
@@ -155,23 +131,19 @@ describe('Table test suite', function()
     });
 
     // Tries to retrieve an invalid column by alias.
-    it('tries to retrieve an invalid column by alias.', function()
-    {
-      expect(function()
-      {
+    it('tries to retrieve an invalid column by alias.', function() {
+      expect(function() {
         usersTbl.getColumnByAlias('INVALID_ALIAS');
       }).toThrowError('Column alias INVALID_ALIAS does not exist in table users.');
     });
 
     // Makes sure that addColumn returns this (the table)
-    it('makes sure that addColumn returns this (the table).', function()
-    {
+    it('makes sure that addColumn returns this (the table).', function() {
       expect(usersTbl.addColumn(new Column({name: 'surname'}))).toBe(usersTbl);
     });
 
     // Checks the isColumnName function.
-    it('checks the isColumnName function.', function()
-    {
+    it('checks the isColumnName function.', function() {
       expect(usersTbl.isColumnName('userID')).toBe(true);
       expect(usersTbl.isColumnName('firstName')).toBe(true);
       expect(usersTbl.isColumnName('lastName')).toBe(true);
@@ -179,8 +151,7 @@ describe('Table test suite', function()
     });
 
     // Checks the isColumnAlias function.
-    it('checks the isColumnAlias function.', function()
-    {
+    it('checks the isColumnAlias function.', function() {
       expect(usersTbl.isColumnAlias('ID')).toBe(true);
       expect(usersTbl.isColumnAlias('first')).toBe(true);
       expect(usersTbl.isColumnAlias('last')).toBe(true);
@@ -188,18 +159,14 @@ describe('Table test suite', function()
     });
   });
 
-  describe('Table toObject test suite.', function()
-  {
+  describe('Table toObject test suite.', function() {
     // Converts the users table to an object.
-    it('converts the users table to an object.', function()
-    {
-      var usersTbl = new Table(users);
-      expect(usersTbl.toObject()).toEqual
-      ({
+    it('converts the users table to an object.', function() {
+      const usersTbl = new Table(users);
+      expect(usersTbl.toObject()).toEqual({
         name: 'users',
         alias: 'users',
-        columns:
-        [
+        columns: [
           {
             name: 'userID',
             alias: 'ID',
@@ -235,13 +202,11 @@ describe('Table test suite', function()
     });
   });
 
-  describe('Table clone test suite.', function()
-  {
+  describe('Table clone test suite.', function() {
     // Clones a table.
-    it('clones a table.', function()
-    {
-      var table = new Table(users);
-      var clone = table.clone();
+    it('clones a table.', function() {
+      const table = new Table(users);
+      const clone = table.clone();
 
       expect(table.toObject()).toEqual(clone.toObject());
     });

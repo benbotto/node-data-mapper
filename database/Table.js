@@ -1,7 +1,7 @@
 'use strict';
 
-var assert = require('../util/assert');
-var Column = require('./Column');
+const assert = require('../util/assert');
+const Column = require('./Column');
 
 /**
  * Represents a database table.
@@ -16,8 +16,7 @@ var Column = require('./Column');
  *                              // Defaults to the table name.
  * }
  */
-function Table(table)
-{
+function Table(table) {
   assert(table.name, 'name is required.');
 
   this._name        = table.name;
@@ -40,32 +39,28 @@ function Table(table)
 /**
  * Get the name of the table.
  */
-Table.prototype.getName = function()
-{
+Table.prototype.getName = function() {
   return this._name;
 };
 
 /**
  * Get the table's alias.
  */
-Table.prototype.getAlias = function()
-{
+Table.prototype.getAlias = function() {
   return this._alias;
 };
 
 /**
  * Get the array of columns.
  */
-Table.prototype.getColumns = function()
-{
+Table.prototype.getColumns = function() {
   return this._columns;
 };
 
 /**
  * Get the primary key, which is of type array<Column>;
  */
-Table.prototype.getPrimaryKey = function()
-{
+Table.prototype.getPrimaryKey = function() {
   return this._primaryKey;
 };
 
@@ -73,8 +68,7 @@ Table.prototype.getPrimaryKey = function()
  * Add a column.
  * @param column The Column, or suitable Column constructor object.
  */
-Table.prototype.addColumn = function(column)
-{
+Table.prototype.addColumn = function(column) {
   // Either an instance of Column or an object can be used.  If an object is
   // passed it, then a Column instance is created.
   if (!(column instanceof Column))
@@ -99,8 +93,7 @@ Table.prototype.addColumn = function(column)
  * Get a column by name.
  * @param name The column name.
  */
-Table.prototype.getColumnByName = function(name)
-{
+Table.prototype.getColumnByName = function(name) {
   assert(this._nameLookup[name],
     'Column ' + name + ' does not exist in table ' + this.getName() + '.');
 
@@ -111,8 +104,7 @@ Table.prototype.getColumnByName = function(name)
  * Check if name is a valid column name.
  * @param name The column name.
  */
-Table.prototype.isColumnName = function(name)
-{
+Table.prototype.isColumnName = function(name) {
   return !!this._nameLookup[name];
 };
 
@@ -120,8 +112,7 @@ Table.prototype.isColumnName = function(name)
  * Get a column by alias.
  * @param alias The column alias.
  */
-Table.prototype.getColumnByAlias = function(alias)
-{
+Table.prototype.getColumnByAlias = function(alias) {
   assert(this._aliasLookup[alias],
     'Column alias ' + alias + ' does not exist in table ' + this.getName() + '.');
 
@@ -132,24 +123,21 @@ Table.prototype.getColumnByAlias = function(alias)
  * Check if alias is a valid column alias.
  * @param alias The column alias.
  */
-Table.prototype.isColumnAlias = function(alias)
-{
+Table.prototype.isColumnAlias = function(alias) {
   return !!this._aliasLookup[alias];
 };
 
 /**
  * Convert the Table instance to an object.
  */
-Table.prototype.toObject = function()
-{
-  var obj =
-  {
+Table.prototype.toObject = function() {
+  const obj = {
     name:    this._name,
     alias:   this._alias,
     columns: []
   };
 
-  for (var i = 0; i < this._columns.length; ++i)
+  for (let i = 0; i < this._columns.length; ++i)
     obj.columns.push(this._columns[i].toObject());
 
   return obj;
@@ -158,8 +146,7 @@ Table.prototype.toObject = function()
 /**
  * Clone this Table.
  */
-Table.prototype.clone = function()
-{
+Table.prototype.clone = function() {
   return new Table(this.toObject());
 };
 
