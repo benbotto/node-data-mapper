@@ -13,27 +13,27 @@ var db =
       [
         {
           name: 'userID',
-          alias: 'ID',
+          mapTo: 'ID',
           isPrimary: true
         },
         {
           name: 'firstName',
-          alias: 'first'
+          mapTo: 'first'
         },
         {
           name: 'lastName',
-          alias: 'last'
+          mapTo: 'last'
         }
       ]
     },
     {
       name: 'phone_numbers',
-      alias: 'phoneNumbers',
+      mapTo: 'phoneNumbers',
       columns:
       [
         {
           name: 'phoneNumberID',
-          alias: 'ID',
+          mapTo: 'ID',
           isPrimary: true
         },
         {
