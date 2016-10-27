@@ -5,6 +5,7 @@ const assert = require('../util/assert');
 /** Represents a database column. */
 class Column {
   /**
+   * Initialize the column.
    * @param {object} column - An object representing the database column.  Any
    *        custom properties on the object shall be preserved.
    * @param {string} column.name - The name of the column.
