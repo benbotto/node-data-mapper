@@ -9,6 +9,12 @@ describe('Database()', function() {
    * Constructor.
    */
   describe('.constructor()', function() {
+    let db;
+
+    beforeEach(function() {
+      db = new Database(testDB);
+    });
+
     it('checks the minimal constructor.', function() {
       const db = new Database({name: 'test'});
       expect(db.name).toBe('test');
@@ -29,17 +35,6 @@ describe('Database()', function() {
       expect(db.tables[0].name).toBe('users');
       expect(db.tables[1].name).toBe('phone_numbers');
       expect(db.tables[2].name).toBe('products');
-    });
-  });
-
-  /**
-   * Tables.
-   */
-  describe('Database tables test suite.', function() {
-    let db;
-
-    beforeEach(function() {
-      db = new Database(testDB);
     });
 
     it('makes sure the tables exist.', function() {
@@ -72,7 +67,7 @@ describe('Database()', function() {
       }).toThrowError('Table INVALID_NAME does not exist in database testDB.');
     });
 
-    it('tries to get an invalid table by alias.', function() {
+    it('tries to get an invalid table by mapping.', function() {
       expect(function() {
         db.getTableByMapping('INVALID_MAPPING');
       }).toThrowError('Table mapping INVALID_MAPPING does not exist in database testDB.');

@@ -9,6 +9,12 @@ describe('Table()', function() {
    * Ctor.
    */
   describe('.constructor()', function() {
+    let usersTbl;
+
+    beforeEach(function() {
+      usersTbl = new Table(users);
+    });
+
     it('checks that name is required.', function() {
       expect(function() {
         new Table({});
@@ -61,17 +67,8 @@ describe('Table()', function() {
       expect(table.primaryKey[0].name).toBe(cols[0].name);
       expect(table.primaryKey[1].name).toBe(cols[3].name);
     });
-  });
-
-  /**
-   * Columns.
-   */
-  describe('Table columns test suite', function() {
-    let usersTbl;
-
-    beforeEach(function() {
-      usersTbl = new Table(users);
-    });
+    
+    // Columns tests.
 
     it('checks that three columns exist.', function() {
       expect(usersTbl.columns.length).toBe(3);

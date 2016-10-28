@@ -8,11 +8,11 @@ class Database {
   /**
    * Initialize the database from a schema object.
    * @param {object} database - A schema object representing the database.  Any
-   *        custom properties on the database shall be preserved.
+   * custom properties on the database shall be preserved.
    * @param {string} database.name - The name of the database.
    * @param {Table[]} database.tables - An array of Tables.  If, instead, an
-   *        array of objects is passed in, each object shall be converted to a
-   *        Table instance.
+   * array of objects is passed in, each object shall be converted to a Table
+   * instance.
    */
   constructor(database) {
     assert(database.name, 'Database name is required.');
@@ -75,7 +75,7 @@ class Database {
   };
 
   /**
-   * Get a table by alias.
+   * Get a table by mapping.
    * @param {string} mapping - The table mapping (mapTo property).
    * @return {Table} - The Table instance.
    */
@@ -87,10 +87,10 @@ class Database {
   };
 
   /**
-   * Check if name is a valid table alias.
+   * Check if name is a valid table mapping.
    * @param {string} mapping - The table mapping (mapTo property).
    * @return {boolean} A flag indicating if mapping corresponds to a Table
-   *         instance.
+   * instance.
    */
   isTableMapping(mapping) {
     return this._mapToLookup.has(mapping);
