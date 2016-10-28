@@ -26,6 +26,8 @@ Need to add foreign keys to the tables, and keep a lookup in the database.  Then
 
 On insert, children get the new ID from parents.  Foreign keys should be used instead as it's better than name matching.  Also, foreign keys could be used to dictate insertion order (e.g. parent first or child first depends on which way the key goes).
 
+Implement grunt-jsdoc.
+
 Provide a short-hand end() method on the DataContext and update all the examples/doc.
 Make the code work with node-mssql (probably need to fix parameters).
 Composite keys are not supported by the Schema and will not work.  Needs impl.
