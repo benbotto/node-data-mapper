@@ -10,17 +10,12 @@ class Table {
    * @param {object} table - An object containing a table definition.
    * @param {string} table.name - The name of the table.
    * @param {string} [table.mapTo=table.name] - When a resource is pulled from
-   *        this table and serialized, this mapping will be used in the
-   *        resulting object.
-   * @param {string} [table.alias=table.name] - An optional alias for the
-   *        table.  This is a convenient short-hand that is used when querying
-   *        a table (e.g.  users AS u, u is the alias).  This lessens the
-   *        amount of typing when adding where clauses to a query, or when
-   *        selecting columns explicitly.
-   * @param {Column[]} table.columns - An array of Columns--or object suitable for
-   *        the Column constructor--that make up the table.  Refer to the
-   *        Column constructor for property details.  At least one of the
-   *        columns must be a primary key.
+   * this table and serialized, this mapping will be used in the resulting
+   * object.
+   * @param {Column[]} table.columns - An array of Columns--or object suitable
+   * for the Column constructor--that make up the table.  Refer to the Column
+   * constructor for property details.  At least one of the columns must be a
+   * primary key.
    */
   constructor(table) {
     assert(table.name, 'name is required.');
@@ -31,8 +26,7 @@ class Table {
     // table will be preserved.
     Object.assign(this, table);
 
-    // Alias and mapTo both default to name.
-    this.alias = this.alias || this.name;
+    // mapTo defaults to name.
     this.mapTo = this.mapTo || this.name;
 
     this._nameLookup  = new Map();
@@ -51,7 +45,7 @@ class Table {
   /**
    * Add a column.
    * @param {Column|object} column - The Column, or a suitable schema object
-   *        for the Column constructor.
+   * for the Column constructor.
    * @return {this}
    */
   addColumn(column) {

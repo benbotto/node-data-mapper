@@ -19,7 +19,7 @@ describe('Table()', function() {
       expect(function() {
         new Table({
           name:    'foo',
-          columns: [{name: 'firstName', alias: 'first'}]
+          columns: [{name: 'firstName'}]
         });
       }).toThrowError('At least one column must be a primary key.');
     });
@@ -28,7 +28,6 @@ describe('Table()', function() {
       const table = new Table(users);
 
       expect(table.name).toBe('users');
-      expect(table.alias).toBe('users');
       expect(table.mapTo).toBe('users');
       expect(table.primaryKey.length).toBe(1);
       expect(table.primaryKey[0].name).toEqual(users.columns[0].name);
@@ -38,17 +37,6 @@ describe('Table()', function() {
       expect(function() {
         new Table({name: 'foo'});
       }).toThrowError('columns is required.');
-    });
-
-    it('checks the constructor with an alias.', function() {
-      const table = new Table({
-        name:    'Test',
-        alias:   'TestAlias',
-        columns: users.columns
-      });
-
-      expect(table.name).toBe('Test');
-      expect(table.alias).toBe('TestAlias');
     });
 
     it('checks the constructor with a mapping.', function() {
@@ -134,7 +122,7 @@ describe('Table()', function() {
       expect(lastName.mapTo).toBe('last');
     });
 
-    it('tries to retrieve an invalid column by alias.', function() {
+    it('tries to retrieve an invalid column by mapping.', function() {
       expect(function() {
         usersTbl.getColumnByMapping('INVALID');
       }).toThrowError('Column mapping INVALID does not exist in table users.');
