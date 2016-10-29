@@ -1,31 +1,27 @@
-xdescribe('bitConverter converter test.', function()
-{
+describe('bitConverter', function() {
   'use strict';
 
-  const bitConverter = require('./bitConverter');
+  const insulin      = require('insulin');
+  const bitConverter = insulin.get('ndm_bitConverter');
 
-  xdescribe('bitConverter onRetrieve test suite.', function() {
-    // Checks with null values.
-    it('checks with null values.', function() {
+  describe('.onRetrieve()', function() {
+    it('returns null when null or undefined is passed in.', function() {
       expect(bitConverter.onRetrieve(null)).toBe(null);
       expect(bitConverter.onRetrieve(undefined)).toBe(null);
       expect(bitConverter.onRetrieve('')).toBe(null);
     });
 
-    // Checks with a 0 buffer.
-    it('checks with a 0 buffer.', function() {
+    it('returns false when a Buffer holding 0 is passed in.', function() {
       const b = new Buffer([0]);
       expect(bitConverter.onRetrieve(b)).toBe(false);
     });
 
-    // Checks with a 1 buffer.
-    it('checks with a 1 buffer.', function() {
+    it('returns true when a Buffer containing 1 is passed in.', function() {
       const b = new Buffer([1]);
       expect(bitConverter.onRetrieve(b)).toBe(true);
     });
 
-    // Checks with numbers.
-    it('checks with numbers.', function() {
+    it('converts 1 and 0 to true and false, respectively.', function() {
       expect(bitConverter.onRetrieve(0)).toBe(false);
       expect(bitConverter.onRetrieve(1)).toBe(true);
       expect(bitConverter.onRetrieve('1')).toBe(true);
@@ -33,16 +29,14 @@ xdescribe('bitConverter converter test.', function()
     });
   });
 
-  xdescribe('bitConverter onSave test suite.', function() {
-    // Checks with null values.
-    it('checks with null values.', function() {
+  describe('.onSave()', function() {
+    it('returns null when null or undefined is passed in.', function() {
       expect(bitConverter.onSave(null)).toBe(null);
       expect(bitConverter.onSave(undefined)).toBe(null);
       expect(bitConverter.onSave('')).toBe(null);
     });
 
-    // Checks with boolean values.
-    it('checks with boolean values.', function() {
+    it('converts booleans to 1 and 0.', function() {
       expect(bitConverter.onSave(true)).toBe(1);
       expect(bitConverter.onSave(1)).toBe(1);
       expect(bitConverter.onSave(false)).toBe(0);
