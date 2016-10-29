@@ -1,6 +1,4 @@
 'use strict';
 
-beforeAll(function() {
-  require('../bootstrap');
-});
+require('../bootstrap');
 
