@@ -1,41 +1,37 @@
 'use strict';
 
 module.exports = function(verbose) {
-  const glob  = require('glob');
-  const files = {};
-  let   opts;
+  const glob    = require('glob');
+  const files   = {};
+  const ignores = [
+    'node_modules/**',
+    'grunt/**',
+    'out/**',
+    'coverage/**',
+    'example/**',
+    'scratch/**',
+    'spec/**',
+    'bootstrap.js',
+    'Gruntfile.js',
+    'index.js'
+  ];
+
+  let opts = {};
 
   // Application files.
-  opts = {
-    ignore: [
-      'node_modules/**',
-      'grunt/**',
-      'out/**',
-      'coverage/**',
-      'example/**',
-      'scratch/**',
-      'Gruntfile.js',
-      '**/*Spec.js'
-    ]
-  };
-  files.app = glob.sync('**/*.js', opts);
+  opts.ignore = ignores.concat(['**/*Spec.js']);
+  files.app   = glob.sync('**/*.js', opts);
 
   // Specs.
-  opts = {
-    ignore: [
-      'node_modules/**',
-      'grunt/**',
-      'out/**',
-      'coverage/**',
-      'example/**',
-      'scratch/**',
-      'Gruntfile.js'
-    ]
-  };
-  files.spec = glob.sync('**/*Spec.js', opts);
+  opts.ignore = ignores;
+  files.spec  = glob.sync('**/*Spec.js', opts);
+
+  // Test helpers.
+  opts.ignore  = [];
+  files.helper = glob.sync('spec/*Helper.js');
 
   // Grunt files.
-  opts = {};
+  opts.ignore = [];
   files.grunt = ['Gruntfile.js'].concat(glob.sync('grunt/*.js', opts));
 
   if (verbose) {
