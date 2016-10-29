@@ -4,7 +4,7 @@
   "description": "An object-relational mapper for node.js using the data mapper pattern.",
   "main": "index.js",
   "scripts": {
-    "test": "grunt",
+    "test": "grunt jasmine_nodejs",
     "coverage": "./node_modules/.bin/istanbul cover -x 'grunt/*' `which grunt` && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "author": "Ben Botto",
