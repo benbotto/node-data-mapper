@@ -21,7 +21,7 @@ function ndm_DataMapperProducer(Schema) {
         schemata, relationshipType) {
         const keyCol = schema._keyColumnName;
         const keyVal = queryRow[keyCol];
-        let doc, i, subProps, subSchemata;
+        let doc, subProps, subSchemata;
 
         // The keyCol is null, meaning this was an outer join and there is no
         // related data.
@@ -39,7 +39,7 @@ function ndm_DataMapperProducer(Schema) {
             doc = collection;
 
           // Add each property->column value to the document.
-          for (i = 0; i < properties.length; ++i) {
+          for (let i = 0; i < properties.length; ++i) {
             if (properties[i].convert)
               doc[properties[i].propertyName] = properties[i].convert(queryRow[properties[i].columnName]);
             else
@@ -60,7 +60,7 @@ function ndm_DataMapperProducer(Schema) {
           doc = lookup[keyVal].document;
 
         // Now serialize each sub schema.
-        for (i = 0; i < schemata.length; ++i) {
+        for (let i = 0; i < schemata.length; ++i) {
           subProps    = schemata[i].schema._properties;
           subSchemata = schemata[i].schema._schemata;
           
