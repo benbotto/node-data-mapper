@@ -1,4 +1,4 @@
-describe('modelTraverse test suite.', function()
+xdescribe('modelTraverse test suite.', function()
 {
   'use strict';
 
@@ -12,7 +12,7 @@ describe('modelTraverse test suite.', function()
     callback = jasmine.createSpy('callback');
   });
 
-  describe('modelTraverse modelOnly test suite.', function()
+  xdescribe('modelTraverse modelOnly test suite.', function()
   {
     // Traverses a basic model.
     it('traverses a basic model.', function()
@@ -119,7 +119,7 @@ describe('modelTraverse test suite.', function()
     });
   });
 
-  describe('modelTraverse depthFirst test suite.', function()
+  xdescribe('modelTraverse depthFirst test suite.', function()
   {
     // Traverses a basic object.
     it('traverses a basic object.', function()
@@ -341,7 +341,7 @@ describe('modelTraverse test suite.', function()
     });
   });
 
-  describe('modelTraverse breadthFirst test suite.', function()
+  xdescribe('modelTraverse breadthFirst test suite.', function()
   {
     // Traverses a basic object.
     it('traverses a basic object.', function()

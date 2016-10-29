@@ -1,11 +1,11 @@
-describe('ConditionLexer test suite.', function()
+xdescribe('ConditionLexer test suite.', function()
 {
   'use strict';
 
   var ConditionLexer = require('./ConditionLexer');
   var cl             = new ConditionLexer();
 
-  describe('ConditionLexer parse test suite.', function()
+  xdescribe('ConditionLexer parse test suite.', function()
   {
     // Checks that the lexer can take an object or a string.
     it('checks that the lexer can take an object or a string.', function()
@@ -15,7 +15,7 @@ describe('ConditionLexer test suite.', function()
     });
   });
 
-  describe('ConditionLexer terminal test suite.', function()
+  xdescribe('ConditionLexer terminal test suite.', function()
   {
     var terminals = ['{', '}', '[', ']', ':', ','];
 
@@ -47,7 +47,7 @@ describe('ConditionLexer test suite.', function()
     });
   });
 
-  describe('ConditionLexer string test suite.', function()
+  xdescribe('ConditionLexer string test suite.', function()
   {
     // Checks a basic string.
     it('checks a basic string.', function()
@@ -98,7 +98,7 @@ describe('ConditionLexer test suite.', function()
     });
   });
 
-  describe('ConditionLexer number test suite.', function()
+  xdescribe('ConditionLexer number test suite.', function()
   {
     // Checks a basic number.
     it('checks a basic number.', function()
@@ -146,7 +146,7 @@ describe('ConditionLexer test suite.', function()
     });
   });
 
-  describe('ConditionLexer null test suite.', function()
+  xdescribe('ConditionLexer null test suite.', function()
   {
     // Checks the null terminal.
     it('checks the null terminal.', function()
@@ -177,7 +177,7 @@ describe('ConditionLexer test suite.', function()
     });
   });
 
-  describe('ConditionLexer operator test suite.', function()
+  xdescribe('ConditionLexer operator test suite.', function()
   {
     // Checks the basic operators.
     it('checks the basic operators.', function()
@@ -240,7 +240,7 @@ describe('ConditionLexer test suite.', function()
     });
   });
 
-  describe('ConditionLexer parameter test suite.', function()
+  xdescribe('ConditionLexer parameter test suite.', function()
   {
     // Checks a basic terminal.
     it('checks a basic terminal.', function()
@@ -262,7 +262,7 @@ describe('ConditionLexer test suite.', function()
     });
   });
 
-  describe('ConditionLexer bad terminal test suite.', function()
+  xdescribe('ConditionLexer bad terminal test suite.', function()
   {
     // Checks that other characters throw an exception.
     it('checks that other characters throw an exception.', function()

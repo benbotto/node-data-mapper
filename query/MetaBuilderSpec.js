@@ -1,4 +1,4 @@
-describe('MetaBuilder test suite.', function()
+xdescribe('MetaBuilder test suite.', function()
 {
   'use strict';
 
@@ -7,7 +7,7 @@ describe('MetaBuilder test suite.', function()
   var metaBuilder  = new MetaBuilder();
   var db           = new Database(require('../spec/testDB'));
 
-  describe('MetaBuilder buildMeta test suite.', function()
+  xdescribe('MetaBuilder buildMeta test suite.', function()
   {
     // Checks a basic model.
     it('checks a basic model.', function()

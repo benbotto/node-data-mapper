@@ -1,4 +1,4 @@
-describe('MySQLDataContext test suite', function()
+xdescribe('MySQLDataContext test suite', function()
 {
   'use strict';
 

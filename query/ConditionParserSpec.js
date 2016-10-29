@@ -1,4 +1,4 @@
-describe('ConditionParser test suite.', function()
+xdescribe('ConditionParser test suite.', function()
 {
   'use strict';
 
@@ -7,7 +7,7 @@ describe('ConditionParser test suite.', function()
   var lexer           = new ConditionLexer();
   var parser          = new ConditionParser();
 
-  describe('ConditionParser language validation test suite.', function()
+  xdescribe('ConditionParser language validation test suite.', function()
   {
     // Checks a valid comparison.
     it('checks a valid comparison.', function()
@@ -93,7 +93,7 @@ describe('ConditionParser test suite.', function()
     });
   });
 
-  describe('ConditionParser invalid condition test suite.', function()
+  xdescribe('ConditionParser invalid condition test suite.', function()
   {
     // Fails in initial condition.
     it('fails in initial condition.', function()
@@ -435,7 +435,7 @@ describe('ConditionParser test suite.', function()
     });
   });
 
-  describe('ConditionParser parse tree spec.', function()
+  xdescribe('ConditionParser parse tree spec.', function()
   {
     // Checks the tree from a comparison.
     it('checks the tree from a comparison.', function()

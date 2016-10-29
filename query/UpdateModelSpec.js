@@ -1,4 +1,4 @@
-describe('UpdateModel test suite.', function()
+xdescribe('UpdateModel test suite.', function()
 {
   'use strict';
 
@@ -14,7 +14,7 @@ describe('UpdateModel test suite.', function()
     qryExec = jasmine.createSpyObj('qryExec', ['update']);
   });
 
-  describe('UpdateModel toString test suite.', function()
+  xdescribe('UpdateModel toString test suite.', function()
   {
     // Checks that a model with nothing to update results in a blank query.
     it('checks that a model with nothing to update results in a blank query.', function()
@@ -46,7 +46,7 @@ describe('UpdateModel test suite.', function()
     });
   });
 
-  describe('UpdateModel execute test suite.', function()
+  xdescribe('UpdateModel execute test suite.', function()
   {
     // Updates a single model.
     it('updates a single model.', function()

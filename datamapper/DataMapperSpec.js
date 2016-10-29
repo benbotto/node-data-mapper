@@ -1,4 +1,4 @@
-describe('DataMapper test suite.', function()
+xdescribe('DataMapper test suite.', function()
 {
   'use strict';
 

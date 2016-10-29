@@ -1,4 +1,4 @@
-describe('DeleteModel test suite.', function()
+xdescribe('DeleteModel test suite.', function()
 {
   'use strict';
 
@@ -14,7 +14,7 @@ describe('DeleteModel test suite.', function()
     qryExec = jasmine.createSpyObj('qryExec', ['delete']);
   });
 
-  describe('DeleteModel toString test suite.', function()
+  xdescribe('DeleteModel toString test suite.', function()
   {
     // Checks that a single-model query is correct.
     it('checks that a single-model query is correct.', function()
@@ -33,7 +33,7 @@ describe('DeleteModel test suite.', function()
     // MutateModelSpec.js.
   });
 
-  describe('DeleteModel execute test suite.', function()
+  xdescribe('DeleteModel execute test suite.', function()
   {
     // Deletes a single model.
     it('deletes a single model.', function()

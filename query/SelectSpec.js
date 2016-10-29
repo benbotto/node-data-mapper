@@ -1,4 +1,4 @@
-describe('SELECT test suite.', function()
+xdescribe('SELECT test suite.', function()
 {
   'use strict';
 
@@ -20,7 +20,7 @@ describe('SELECT test suite.', function()
     return new From(db, escaper, qryExec, meta);
   }
 
-  describe('Select constructor test suite.', function()
+  xdescribe('Select constructor test suite.', function()
   {
     // Checks the constructor.
     it('checks the constructor.', function()
@@ -42,7 +42,7 @@ describe('SELECT test suite.', function()
     });
   });
 
-  describe('Select select test suite.', function()
+  xdescribe('Select select test suite.', function()
   {
     // Checks that a basic select without columns specified is correct.
     it('checks that a basic select without columns specified is correct.', function()
@@ -209,7 +209,7 @@ describe('SELECT test suite.', function()
     });
   });
 
-  describe('Select execute test suite.', function()
+  xdescribe('Select execute test suite.', function()
   {
     var Schema = require('../datamapper/Schema');
     var schemata, SchemaProxy;
@@ -522,7 +522,7 @@ describe('SELECT test suite.', function()
     });
   });
 
-  describe('Select orderBy test suite.', function()
+  xdescribe('Select orderBy test suite.', function()
   {
     // Checks that orderBy can only be called once.
     it('checks that orderBy can only be called once.', function()

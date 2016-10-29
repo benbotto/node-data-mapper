@@ -1,4 +1,4 @@
-describe('MySQLQueryExecuter test suite.', function()
+xdescribe('MySQLQueryExecuter test suite.', function()
 {
   'use strict';
 

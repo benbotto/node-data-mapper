@@ -1,4 +1,4 @@
-describe('MySQLEscaper test suite.', function()
+xdescribe('MySQLEscaper test suite.', function()
 {
   'use strict';
 
@@ -6,7 +6,7 @@ describe('MySQLEscaper test suite.', function()
   var MySQLEscaper = require('./MySQLEscaper');
   var escaper      = new MySQLEscaper();
 
-  describe('constructor test suite.', function()
+  xdescribe('constructor test suite.', function()
   {
     // Makes sure that MySQLEscaper extends Escaper.
     it('makes sure that MySQLEscaper extends Escaper.', function()
@@ -16,7 +16,7 @@ describe('MySQLEscaper test suite.', function()
     });
   });
 
-  describe('property escape test suite.', function()
+  xdescribe('property escape test suite.', function()
   {
     // Escapes a property.
     it('escapes a property.', function()
@@ -25,7 +25,7 @@ describe('MySQLEscaper test suite.', function()
     });
   });
 
-  describe('literal escape test suite.', function()
+  xdescribe('literal escape test suite.', function()
   {
     // Escapes a string.
     it('escapes strings.', function()
@@ -53,7 +53,7 @@ describe('MySQLEscaper test suite.', function()
     // Note: See node-mysql for escape details.
   });
 
-  describe('fully-qualified column escape test suite.', function()
+  xdescribe('fully-qualified column escape test suite.', function()
   {
     // Escapes a fully-qualified column.
     it('escapes a fully-qualified column.', function()

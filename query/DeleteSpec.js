@@ -1,4 +1,4 @@
-describe('Delete test suite.', function()
+xdescribe('Delete test suite.', function()
 {
   'use strict';
 
@@ -20,7 +20,7 @@ describe('Delete test suite.', function()
     return new From(db, escaper, qryExec, meta);
   }
 
-  describe('Delete constructor test suite.', function()
+  xdescribe('Delete constructor test suite.', function()
   {
     // Checks the basic constructor.
     it('checks the basic constructor.', function()
@@ -47,7 +47,7 @@ describe('Delete test suite.', function()
     });
   });
 
-  describe('Delete toString test suite.', function()
+  xdescribe('Delete toString test suite.', function()
   {
     // Checks the single-item delete string.
     it('checks the single-item delete string.', function()
@@ -99,7 +99,7 @@ describe('Delete test suite.', function()
     });
   });
 
-  describe('Delete execute test suite.', function()
+  xdescribe('Delete execute test suite.', function()
   {
     // Deletes a single model.
     it('deletes a single model.', function()

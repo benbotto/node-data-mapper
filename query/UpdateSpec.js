@@ -1,4 +1,4 @@
-describe('Update test suite.', function()
+xdescribe('Update test suite.', function()
 {
   'use strict';
 
@@ -20,7 +20,7 @@ describe('Update test suite.', function()
     return new From(db, escaper, qryExec, meta);
   }
 
-  describe('Update constructor test suite.', function()
+  xdescribe('Update constructor test suite.', function()
   {
     // Checks the basic constructor.
     it('checks the basic constructor.', function()
@@ -63,7 +63,7 @@ describe('Update test suite.', function()
     });
   });
 
-  describe('Update toString test suite.', function()
+  xdescribe('Update toString test suite.', function()
   {
     // Checks an empty model.
     it('checks an empty model.', function()
@@ -161,7 +161,7 @@ describe('Update test suite.', function()
     });
   });
 
-  describe('Update execute test suite.', function()
+  xdescribe('Update execute test suite.', function()
   {
     // Updates a single model.
     it('updates a single model.', function()

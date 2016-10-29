@@ -1,4 +1,4 @@
-describe('MutateModel test suite.', function()
+xdescribe('MutateModel test suite.', function()
 {
   'use strict';
 
@@ -12,7 +12,7 @@ describe('MutateModel test suite.', function()
   var escaper      = new MySQLEscaper();
   var qryExec      = {};
 
-  describe('MutateModel constructor test suite.', function()
+  xdescribe('MutateModel constructor test suite.', function()
   {
     // Checks that the constructor functions.
     it('checks that the constructor functions.', function()
@@ -38,7 +38,7 @@ describe('MutateModel test suite.', function()
     });
   });
 
-  describe('MutateModel createQueryInstance test suite.', function()
+  xdescribe('MutateModel createQueryInstance test suite.', function()
   {
     // Note: createQueryInstance is called from the constuctor.
     
@@ -52,7 +52,7 @@ describe('MutateModel test suite.', function()
     });
   });
 
-  describe('MutateModel toString test suite.', function()
+  xdescribe('MutateModel toString test suite.', function()
   {
     // Checks a single model with a string for a primary key.
     it('checks a single model with a string for a primary key.', function()

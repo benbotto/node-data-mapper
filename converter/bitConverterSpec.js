@@ -1,10 +1,10 @@
-describe('bitConverter converter test.', function()
+xdescribe('bitConverter converter test.', function()
 {
   'use strict';
 
   const bitConverter = require('./bitConverter');
 
-  describe('bitConverter onRetrieve test suite.', function() {
+  xdescribe('bitConverter onRetrieve test suite.', function() {
     // Checks with null values.
     it('checks with null values.', function() {
       expect(bitConverter.onRetrieve(null)).toBe(null);
@@ -33,7 +33,7 @@ describe('bitConverter converter test.', function()
     });
   });
 
-  describe('bitConverter onSave test suite.', function() {
+  xdescribe('bitConverter onSave test suite.', function() {
     // Checks with null values.
     it('checks with null values.', function() {
       expect(bitConverter.onSave(null)).toBe(null);

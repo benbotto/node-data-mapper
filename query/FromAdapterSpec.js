@@ -1,4 +1,4 @@
-describe('FromAdapterAdapter test suite.', function()
+xdescribe('FromAdapterAdapter test suite.', function()
 {
   'use strict';
 
@@ -15,7 +15,7 @@ describe('FromAdapterAdapter test suite.', function()
     qryExec = jasmine.createSpyObj('qryExec', ['select', 'delete']);
   });
 
-  describe('FromAdapter constructor test suite.', function()
+  xdescribe('FromAdapter constructor test suite.', function()
   {
     // Checks the constructor.
     it('checks the constructor.', function()
@@ -35,7 +35,7 @@ describe('FromAdapterAdapter test suite.', function()
     });
   });
 
-  describe('FromAdapter select test suite.', function()
+  xdescribe('FromAdapter select test suite.', function()
   {
     // Checks that select selects all by default.
     it('checks that select selects all by default.', function()
@@ -83,7 +83,7 @@ describe('FromAdapterAdapter test suite.', function()
       expect(qryExec.select).toHaveBeenCalled();
     });
 
-    describe('FromAdapter delete test suite.', function()
+    xdescribe('FromAdapter delete test suite.', function()
     {
       // Checks that a delete can be converted to a string correctly.
       it('checks that a delete can be converted to a string correctly.', function()
@@ -118,7 +118,7 @@ describe('FromAdapterAdapter test suite.', function()
       });
     });
 
-    describe('FromAdapter update test suite.', function()
+    xdescribe('FromAdapter update test suite.', function()
     {
       // Checks that update can be converted to a string.
       it('checks that update can be converted to a string.', function()

@@ -1,4 +1,4 @@
-describe('Schema test suite.', function()
+xdescribe('Schema test suite.', function()
 {
   'use strict';
 

@@ -1,11 +1,11 @@
-describe('utcConverter converter test.', function()
+xdescribe('utcConverter converter test.', function()
 {
   'use strict';
 
   const utcConverter = require('./utcConverter');
   const moment       = require('moment');
 
-  describe('utcConverter onSave test suite.', function() {
+  xdescribe('utcConverter onSave test suite.', function() {
     // Checks with null values.
     it('checks with null values.', function() {
       expect(utcConverter.onSave(null)).toBe(null);

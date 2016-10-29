@@ -1,4 +1,4 @@
-describe('Query test suite.', function()
+xdescribe('Query test suite.', function()
 {
   'use strict';
 

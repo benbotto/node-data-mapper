@@ -1,4 +1,4 @@
-describe('assert function test suite.', function()
+xdescribe('assert function test suite.', function()
 {
   'use strict';
 

@@ -1,4 +1,4 @@
-describe('From test suite.', function()
+xdescribe('From test suite.', function()
 {
   'use strict';
 
@@ -9,7 +9,7 @@ describe('From test suite.', function()
   var escaper      = new MySQLEscaper();
   var qryExec      = {};
 
-  describe('From constructor test suite.', function()
+  xdescribe('From constructor test suite.', function()
   {
     // Checks the constructor.
     it('checks the constructor.', function()
@@ -52,7 +52,7 @@ describe('From test suite.', function()
     });
   });
 
-  describe('From where test suite.', function()
+  xdescribe('From where test suite.', function()
   {
     // Makes sure that the where clause gets added correctly.
     it('makes sure that the where clause gets added correctly.', function()
@@ -101,7 +101,7 @@ describe('From test suite.', function()
     });
   });
 
-  describe('From join test suite.', function()
+  xdescribe('From join test suite.', function()
   {
     // Inner joins on primary key.
     it('inner joins on primary key.', function()

@@ -1,4 +1,4 @@
-describe('Insert test suite.', function()
+xdescribe('Insert test suite.', function()
 {
   'use strict';
 
@@ -14,7 +14,7 @@ describe('Insert test suite.', function()
     qryExec = jasmine.createSpyObj('qryExec', ['insert']);
   });
 
-  describe('Insert constructor test suite.', function()
+  xdescribe('Insert constructor test suite.', function()
   {
     // Checks the basic constructor.
     it('checks the basic constructor.', function()
@@ -30,7 +30,7 @@ describe('Insert test suite.', function()
     });
   });
 
-  describe('Insert toString test suite.', function()
+  xdescribe('Insert toString test suite.', function()
   {
     // Converts a basic model to a string.
     it('converts a basic model to a string.', function()
@@ -182,7 +182,7 @@ describe('Insert test suite.', function()
     });
   });
 
-  describe('Insert execute test suite.', function()
+  xdescribe('Insert execute test suite.', function()
   {
     var insertId;
 

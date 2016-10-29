@@ -1,4 +1,4 @@
-describe('ConditionCompiler test suite.', function()
+xdescribe('ConditionCompiler test suite.', function()
 {
   'use strict';
 
@@ -257,7 +257,7 @@ describe('ConditionCompiler test suite.', function()
     }).toThrowError('Replacement value for parameter :gender not present.');
   });
 
-  describe('ConditionCompiler parseColumns test suite', function()
+  xdescribe('ConditionCompiler parseColumns test suite', function()
   {
     // Parses the columns from trivial queries.
     it('parses the columns from trivial queries.', function()
