@@ -1,143 +1,150 @@
-xdescribe('Schema test suite.', function()
-{
+describe('Schema()', function() {
   'use strict';
 
-  var Schema = require('./Schema');
+  const insulin = require('insulin');
+  const Schema  = insulin.get('ndm_Schema');
 
-  // Checks the constructor.
-  it('checks the constructor.', function()
-  {
-    var schema = new Schema('pid', 'personID');
-    var props  = schema.getProperties();
+  /**
+   * Ctor.
+   */
+  describe('.constructor()', function() {
+    it('stores the column name and alias.', function() {
+      const schema = new Schema('pid', 'personID');
+      const props  = schema.getProperties();
 
-    expect(props.length).toBe(1);
-    expect(props[0].propertyName).toBe('personID');
-    expect(props[0].columnName).toBe('pid');
-    expect(schema.getKeyColumnName()).toBe('pid');
+      expect(props.length).toBe(1);
+      expect(props[0].propertyName).toBe('personID');
+      expect(props[0].columnName).toBe('pid');
+      expect(schema.getKeyColumnName()).toBe('pid');
+    });
   });
 
-  // Adds a few properties.
-  it('adds a few properties.', function()
-  {
-    var schema = new Schema('pid', 'personID')
-      .addProperty('firstName')
-      .addProperty('lastName');
-    var props  = schema.getProperties();
+  /**
+   * Add properties.
+   */
+  describe('.addProperty()', function() {
+    it('defaults the property name to the column name.', function() {
+      const schema = new Schema('pid', 'personID')
+        .addProperty('firstName')
+        .addProperty('lastName');
+      const props  = schema.getProperties();
 
-    expect(props.length).toBe(3);
-    expect(props[0].propertyName).toBe('personID');
-    expect(props[0].columnName).toBe('pid');
-    expect(props[1].propertyName).toBe('firstName');
-    expect(props[1].columnName).toBe('firstName');
-    expect(props[2].propertyName).toBe('lastName');
-    expect(props[2].columnName).toBe('lastName');
+      expect(props.length).toBe(3);
+      expect(props[0].propertyName).toBe('personID');
+      expect(props[0].columnName).toBe('pid');
+      expect(props[1].propertyName).toBe('firstName');
+      expect(props[1].columnName).toBe('firstName');
+      expect(props[2].propertyName).toBe('lastName');
+      expect(props[2].columnName).toBe('lastName');
+    });
+
+    it('allows for custom property names.', function() {
+      const schema = new Schema('pid', 'personID')
+        .addProperty('firstName', 'name');
+      const props  = schema.getProperties();
+
+      expect(props.length).toBe(2);
+      expect(props[0].propertyName).toBe('personID');
+      expect(props[0].columnName).toBe('pid');
+      expect(props[1].propertyName).toBe('name');
+      expect(props[1].columnName).toBe('firstName');
+    });
+
+    it('stores the column converter.', function() {
+      const convert = {};
+      const schema  = new Schema('pid', 'personID', convert)
+        .addProperty('firstName', null, convert)
+        .addProperty('lastName');
+      const props   = schema.getProperties();
+
+      expect(props.length).toBe(3);
+      expect(props[0].propertyName).toBe('personID');
+      expect(props[0].columnName).toBe('pid');
+      expect(props[0].convert).toBe(convert);
+      expect(props[1].propertyName).toBe('firstName');
+      expect(props[1].columnName).toBe('firstName');
+      expect(props[1].convert).toBe(convert);
+      expect(props[2].propertyName).toBe('lastName');
+      expect(props[2].columnName).toBe('lastName');
+      expect(props[2].convert).toBe(undefined);
+    });
+
+    it('throw if the property name has been used.', function() {
+      expect(function() {
+        new Schema('pid', 'personID')
+          .addProperty('pid', 'personID');
+      }).toThrowError('Property "personID" already present in schema.');
+    });
   });
 
-  // Adds a property with an alias.
-  it('adds a property with an alias.', function()
-  {
-    var schema = new Schema('pid', 'personID')
-      .addProperty('firstName', 'name');
-    var props  = schema.getProperties();
-
-    expect(props.length).toBe(2);
-    expect(props[0].propertyName).toBe('personID');
-    expect(props[0].columnName).toBe('pid');
-    expect(props[1].propertyName).toBe('name');
-    expect(props[1].columnName).toBe('firstName');
-  });
-
-  // Adds a property with a converter.
-  it('adds a property with a converter.', function()
-  {
-    var convert = {};
-    var schema  = new Schema('pid', 'personID', convert)
-      .addProperty('firstName', null, convert)
-      .addProperty('lastName');
-    var props   = schema.getProperties();
-
-    expect(props.length).toBe(3);
-    expect(props[0].propertyName).toBe('personID');
-    expect(props[0].columnName).toBe('pid');
-    expect(props[0].convert).toBe(convert);
-    expect(props[1].propertyName).toBe('firstName');
-    expect(props[1].columnName).toBe('firstName');
-    expect(props[1].convert).toBe(convert);
-    expect(props[2].propertyName).toBe('lastName');
-    expect(props[2].columnName).toBe('lastName');
-    expect(props[2].convert).toBe(undefined);
-  });
-
-  // Adds some sub schemata.
-  it('adds some sub schemata.', function()
-  {
-    var schema = new Schema('pid', 'personID')
-      .addSchema('phoneNumbers', new Schema('phoneNumberID'));
-    var schemata = schema.getSchemata();
-
-    expect(schemata.length).toBe(1);
-    expect(schemata[0].propertyName).toBe('phoneNumbers');
-    expect(schemata[0].schema.getKeyColumnName()).toBe('phoneNumberID');
-  });
-
-  // Adds an array of properties.
-  it('adds an array of properties.', function()
-  {
-    var schema = new Schema('pid', 'personID')
-      .addProperties(['firstName', 'lastName']);
-    var props  = schema.getProperties();
-
-    expect(props.length).toBe(3);
-    expect(props[0].propertyName).toBe('personID');
-    expect(props[0].columnName).toBe('pid');
-    expect(props[1].propertyName).toBe('firstName');
-    expect(props[1].columnName).toBe('firstName');
-    expect(props[2].propertyName).toBe('lastName');
-    expect(props[2].columnName).toBe('lastName');
-  });
-
-  // Adds properties variadically.
-  it('adds properties variadically.', function()
-  {
-    var schema = new Schema('pid', 'personID')
-      .addProperties('firstName', 'lastName');
-    var props  = schema.getProperties();
-
-    expect(props.length).toBe(3);
-    expect(props[0].propertyName).toBe('personID');
-    expect(props[0].columnName).toBe('pid');
-    expect(props[1].propertyName).toBe('firstName');
-    expect(props[1].columnName).toBe('firstName');
-    expect(props[2].propertyName).toBe('lastName');
-    expect(props[2].columnName).toBe('lastName');
-  });
-
-  // Adds a sub schema with a relationship type.
-  it('adds a sub schema with a relationship type.', function()
-  {
-    var schema = new Schema('personID')
-      .addSchema('phoneNumbers', new Schema('phoneNumberID'))
-      .addSchema('primaryPhone', new Schema('phoneNumberID'), Schema.RELATIONSHIP_TYPE.SINGLE);
-    var schemata = schema.getSchemata();
-
-    expect(schemata[0].relationshipType).toBe(Schema.RELATIONSHIP_TYPE.MANY);
-    expect(schemata[1].relationshipType).toBe(Schema.RELATIONSHIP_TYPE.SINGLE);
-  });
-
-  // Checks that the same property name cannot be used twice.
-  it('checks that the same property name cannot be used twice.', function()
-  {
-    expect(function()
-    {
-      new Schema('personID').addProperty('personID');
-    }).toThrowError('Property "personID" already present in schema.');
-
-    expect(function()
-    {
-      new Schema('personID')
-        .addSchema('phoneNumbers', new Schema('phoneNumberID'))
+  /**
+   * Add schema.
+   */
+  describe('.addSchema()', function() {
+    it('stores sub-schemata object with a property name.', function() {
+      const schema = new Schema('pid', 'personID')
         .addSchema('phoneNumbers', new Schema('phoneNumberID'));
-    }).toThrowError('Property "phoneNumbers" already present in schema.');
+      const schemata = schema.getSchemata();
+
+      expect(schemata.length).toBe(1);
+      expect(schemata[0].propertyName).toBe('phoneNumbers');
+      expect(schemata[0].schema.getKeyColumnName()).toBe('phoneNumberID');
+    });
+
+    it('stores the relationship type of sub-schemata.', function() {
+      const schema = new Schema('personID')
+        .addSchema('phoneNumbers', new Schema('phoneNumberID'))
+        .addSchema('primaryPhone', new Schema('phoneNumberID'), Schema.RELATIONSHIP_TYPE.SINGLE);
+      const schemata = schema.getSchemata();
+
+      expect(schemata[0].relationshipType).toBe(Schema.RELATIONSHIP_TYPE.MANY);
+      expect(schemata[1].relationshipType).toBe(Schema.RELATIONSHIP_TYPE.SINGLE);
+    });
+
+    it('throws if a property name is in use when adding a sub-schema.', function() {
+      expect(function() {
+        new Schema('personID').addProperty('personID');
+      }).toThrowError('Property "personID" already present in schema.');
+
+      expect(function() {
+        new Schema('personID')
+          .addSchema('phoneNumbers', new Schema('phoneNumberID'))
+          .addSchema('phoneNumbers', new Schema('phoneNumberID'));
+      }).toThrowError('Property "phoneNumbers" already present in schema.');
+    });
+  });
+
+  /**
+   * Add properties.
+   */
+  describe('.addProperties()', function() {
+    it('allows an array of properties to be added.', function() {
+      const schema = new Schema('pid', 'personID')
+        .addProperties(['firstName', 'lastName']);
+      const props  = schema.getProperties();
+
+      expect(props.length).toBe(3);
+      expect(props[0].propertyName).toBe('personID');
+      expect(props[0].columnName).toBe('pid');
+      expect(props[1].propertyName).toBe('firstName');
+      expect(props[1].columnName).toBe('firstName');
+      expect(props[2].propertyName).toBe('lastName');
+      expect(props[2].columnName).toBe('lastName');
+    });
+
+    it('can be called variadically.', function() {
+      const schema = new Schema('pid', 'personID')
+        .addProperties('firstName', 'lastName');
+      const props  = schema.getProperties();
+
+      expect(props.length).toBe(3);
+      expect(props[0].propertyName).toBe('personID');
+      expect(props[0].columnName).toBe('pid');
+      expect(props[1].propertyName).toBe('firstName');
+      expect(props[1].columnName).toBe('firstName');
+      expect(props[2].propertyName).toBe('lastName');
+      expect(props[2].columnName).toBe('lastName');
+    });
   });
 });
 
