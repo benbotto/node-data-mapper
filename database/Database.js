@@ -21,8 +21,11 @@ function ndm_DatabaseProducer(assert, Table) {
       // Copy and preserve all properties from the database.
       Object.assign(this, database);
 
-      this._nameLookup  = new Map();
-      this._mapToLookup = new Map();
+      // Objects are used instead of Maps for performance reasons.  Objects
+      // simply perform faster, especially on gets, and performance is
+      // important here.
+      this._nameLookup  = {};
+      this._mapToLookup = {};
 
       // Ensure that all the tables are Table instances, and that
       // each is uniquely identifiable.
@@ -41,14 +44,14 @@ function ndm_DatabaseProducer(assert, Table) {
       if (!(table instanceof Table))
         table = new Table(table);
 
-      assert(!this._nameLookup.has(table.name),
+      assert(this._nameLookup[table.name] === undefined,
         `Table ${table.name} already exists in database ${this.name}.`);
-      assert(!this._mapToLookup.has(table.mapTo),
+      assert(this._mapToLookup[table.mapTo] === undefined,
         `Table mapping ${table.mapTo} already exists in database ${this.name}.`);
 
       this.tables.push(table);
-      this._nameLookup.set(table.name, table);
-      this._mapToLookup.set(table.mapTo,  table);
+      this._nameLookup[table.name]   = table;
+      this._mapToLookup[table.mapTo] = table;
 
       return this;
     }
@@ -59,10 +62,10 @@ function ndm_DatabaseProducer(assert, Table) {
      * @return {Table} - The Table instance.
      */
     getTableByName(name) {
-      assert(this._nameLookup.has(name),
+      assert(this._nameLookup[name] !== undefined,
         `Table ${name} does not exist in database ${this.name}.`);
 
-      return this._nameLookup.get(name);
+      return this._nameLookup[name];
     }
 
     /**
@@ -72,7 +75,7 @@ function ndm_DatabaseProducer(assert, Table) {
      *         instance.
      */
     isTableName(name) {
-      return this._nameLookup.has(name);
+      return this._nameLookup[name] !== undefined;
     }
 
     /**
@@ -81,10 +84,10 @@ function ndm_DatabaseProducer(assert, Table) {
      * @return {Table} - The Table instance.
      */
     getTableByMapping(mapping) {
-      assert(this._mapToLookup.has(mapping),
+      assert(this._mapToLookup[mapping] !== undefined,
         `Table mapping ${mapping} does not exist in database ${this.name}.`);
 
-      return this._mapToLookup.get(mapping);
+      return this._mapToLookup[mapping];
     }
 
     /**
@@ -94,7 +97,7 @@ function ndm_DatabaseProducer(assert, Table) {
      * instance.
      */
     isTableMapping(mapping) {
-      return this._mapToLookup.has(mapping);
+      return this._mapToLookup[mapping] !== undefined;
     }
   }
 

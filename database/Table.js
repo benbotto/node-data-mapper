@@ -30,8 +30,9 @@ function ndm_TableProducer(assert, Column) {
       // mapTo defaults to name.
       this.mapTo = this.mapTo || this.name;
 
-      this._nameLookup  = new Map();
-      this._mapToLookup = new Map();
+      // Objects are used here instead of Maps for efficiency reasons.
+      this._nameLookup  = {};
+      this._mapToLookup = {};
 
       // Add all the columns.
       this.columns    = [];
@@ -56,15 +57,15 @@ function ndm_TableProducer(assert, Column) {
         column = new Column(column);
 
       // Name and mapTo have to be unique.
-      assert(!this._nameLookup.has(column.name),
+      assert(this._nameLookup[column.name] === undefined,
         `Column ${column.name} already exists in table ${this.name}.`);
-      assert(!this._mapToLookup.has(column.mapTo),
+      assert(this._mapToLookup[column.mapTo] === undefined,
         `Column mapping ${column.mapTo} already exists in table ${this.name}.`);
 
       // Store the column, and keep some lookups.
       this.columns.push(column);
-      this._nameLookup.set(column.name, column);
-      this._mapToLookup.set(column.mapTo, column);
+      this._nameLookup[column.name]   = column;
+      this._mapToLookup[column.mapTo] = column;
 
       if (column.isPrimary)
         this.primaryKey.push(column);
@@ -78,10 +79,10 @@ function ndm_TableProducer(assert, Column) {
      * @return {Column} - The Column instance.
      */
     getColumnByName(name) {
-      assert(this._nameLookup.has(name),
+      assert(this._nameLookup[name] !== undefined,
         `Column ${name} does not exist in table ${this.name}.`);
 
-      return this._nameLookup.get(name);
+      return this._nameLookup[name];
     }
 
     /**
@@ -90,7 +91,7 @@ function ndm_TableProducer(assert, Column) {
      * @return {boolean}
      */
     isColumnName(name) {
-      return this._nameLookup.has(name);
+      return this._nameLookup[name] !== undefined;
     }
 
     /**
@@ -99,10 +100,10 @@ function ndm_TableProducer(assert, Column) {
      * @return {Column} - The column instance.
      */
     getColumnByMapping(mapping) {
-      assert(this._mapToLookup.has(mapping),
+      assert(this._mapToLookup[mapping] !== undefined,
         `Column mapping ${mapping} does not exist in table ${this.name}.`);
 
-      return this._mapToLookup.get(mapping);
+      return this._mapToLookup[mapping];
     }
 
     /**
@@ -111,7 +112,7 @@ function ndm_TableProducer(assert, Column) {
      * @return {boolean}
      */
     isColumnMapping(mapping) {
-      return this._mapToLookup.has(mapping);
+      return this._mapToLookup[mapping] !== undefined;
     }
   }
 

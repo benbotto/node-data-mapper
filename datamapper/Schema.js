@@ -22,10 +22,13 @@ function ndm_SchemaProducer(assert) {
     constructor(keyColumnName, propertyName, convert) {
       // Note that these properties are treated as package private.  The DataMapper
       // accesses them directly for efficiency reasons.
-      this._keyColumnName  = keyColumnName;
-      this._properties     = [];
-      this._schemata       = [];
-      this._propertyLookup = new Map();
+      this._keyColumnName = keyColumnName;
+      this._properties    = [];
+      this._schemata      = [];
+
+      // An object is used instead of a Map because it performs better,
+      // especially on gets, and performance is important here.
+      this._propertyLookup = {};
       
       this.addProperty(keyColumnName, propertyName, convert);
     }
@@ -51,10 +54,10 @@ function ndm_SchemaProducer(assert) {
       propertyName = propertyName || columnName;
 
       // The property names must be unique.
-      assert(!this._propertyLookup.has(propertyName),
+      assert(this._propertyLookup[propertyName] === undefined,
         `Property "${propertyName}" already present in schema.`);
 
-      this._propertyLookup.set(propertyName, true);
+      this._propertyLookup[propertyName] = true;
       this._properties.push({
         propertyName: propertyName,
         columnName:   columnName,
@@ -103,10 +106,10 @@ function ndm_SchemaProducer(assert) {
      */
     addSchema(propertyName, schema, relationshipType) {
       // The property names must be unique.
-      assert(!this._propertyLookup.has(propertyName),
+      assert(this._propertyLookup[propertyName] === undefined,
         `Property "${propertyName}" already present in schema.`);
 
-      this._propertyLookup.set(propertyName, true);
+      this._propertyLookup[propertyName] = true;
 
       this._schemata.push({
         propertyName:     propertyName,
