@@ -3,12 +3,14 @@
 module.exports = function(grunt, scripts) {
   const jasmineNode = {
     options: {
-      specNameSuffix: 'Spec.js',
-      useHelpers:     false,
-      stopOnFailure:  false
+      specNameSuffix:   'Spec.js',
+      useHelpers:       true,
+      helperNameSuffix: 'Helper.js',
+      stopOnFailure:    false
     },
     all: {
-      specs: scripts.spec
+      specs: scripts.spec,
+      helpers: scripts.helper
     }
   };
 
