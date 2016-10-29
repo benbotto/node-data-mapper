@@ -7,26 +7,32 @@ describe('Column()', function() {
    * Constructor.
    */
   describe('.constructor()', function() {
-    it('checks the constructor.', function() {
+    it('only needs a name.', function() {
       const col = new Column({name: 'TestCol'});
       expect(col.name).toBe('TestCol');
       expect(col.mapTo).toBe('TestCol');
       expect(col.isPrimary).toBe(false);
       expect(col.converter).toEqual({});
+    });
 
-      const col2 = new Column({name: 'TestCol2', mapTo: 'test', isPrimary: false});
-      expect(col2.name).toBe('TestCol2');
-      expect(col2.mapTo).toBe('test');
-      expect(col2.isPrimary).toBe(false);
-      expect(col2.converter).toEqual({});
+    it('can accept a mapTo.', function() {
+      const col = new Column({name: 'Testcol', mapTo: 'test', isPrimary: false});
+      expect(col.name).toBe('Testcol');
+      expect(col.mapTo).toBe('test');
+      expect(col.isPrimary).toBe(false);
+      expect(col.converter).toEqual({});
+    });
 
-      const col3 = new Column({name: 'TestCol3', isPrimary: true});
-      expect(col3.isPrimary).toBe(true);
+    it('stores the isPrimary flag.', function() {
+      const col = new Column({name: 'Testcol', isPrimary: true});
+      expect(col.isPrimary).toBe(true);
+    });
 
+    it('can have converters attached.', function() {
       const converter = {};
-      const col4 = new Column({name: 'TestCol4', converter: converter});
+      const col = new Column({name: 'Testcol', converter: converter});
 
-      expect(col4.converter).toBe(converter);
+      expect(col.converter).toBe(converter);
     });
   });
 });

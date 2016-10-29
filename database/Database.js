@@ -50,7 +50,7 @@ class Database {
     this._mapToLookup.set(table.mapTo,  table);
 
     return this;
-  };
+  }
 
   /**
    * Get a table by name.
@@ -62,7 +62,7 @@ class Database {
       `Table ${name} does not exist in database ${this.name}.`);
 
     return this._nameLookup.get(name);
-  };
+  }
 
   /**
    * Check if name is a valid table name.
@@ -72,7 +72,7 @@ class Database {
    */
   isTableName(name) {
     return this._nameLookup.has(name);
-  };
+  }
 
   /**
    * Get a table by mapping.
@@ -84,7 +84,7 @@ class Database {
       `Table mapping ${mapping} does not exist in database ${this.name}.`);
 
     return this._mapToLookup.get(mapping);
-  };
+  }
 
   /**
    * Check if name is a valid table mapping.
@@ -94,7 +94,7 @@ class Database {
    */
   isTableMapping(mapping) {
     return this._mapToLookup.has(mapping);
-  };
+  }
 }
 
 module.exports = Database;
