@@ -1,9 +1,10 @@
 describe('Table()', function() {
   'use strict';
 
-  const Table  = require('./Table');
-  const Column = require('./Column');
-  const users  = require('../spec/testDB').tables[0];
+  const insulin = require('insulin');
+  const Table   = insulin.get('ndm_Table');
+  const Column  = insulin.get('ndm_Column');
+  const users   = require('../spec/testDB').tables[0];
 
   let usersTbl;
 
@@ -164,6 +165,10 @@ describe('Table()', function() {
 
     it('allows calls to be chained.', function() {
       expect(usersTbl.addColumn(new Column({name: 'surname'}))).toBe(usersTbl);
+    });
+
+    it('allows Column instances to be added.', function() {
+      usersTbl.addColumn(new Column({name: 'foo'}));
     });
   });
 });

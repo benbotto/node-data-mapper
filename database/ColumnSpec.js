@@ -1,7 +1,10 @@
 describe('Column()', function() {
   'use strict';
 
-  const Column = require('./Column');
+  require('../bootstrap');
+
+  const insulin = require('insulin');
+  const Column  = insulin.get('ndm_Column');
 
   /**
    * Constructor.

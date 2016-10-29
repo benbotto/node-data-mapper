@@ -1,8 +1,9 @@
 describe('Database()', function() {
   'use strict';
 
-  const Database = require('./Database');
-  const Table    = require('./Table');
+  const insulin  = require('insulin');
+  const Database = insulin.get('ndm_Database');
+  const Table    = insulin.get('ndm_Table');
   const testDB   = require('../spec/testDB');
 
   let db;
@@ -15,7 +16,6 @@ describe('Database()', function() {
    * Constructor.
    */
   describe('.constructor()', function() {
-
     it('only needs a name.', function() {
       const db = new Database({name: 'test'});
       expect(db.name).toBe('test');
