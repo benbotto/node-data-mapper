@@ -1,17 +1,13 @@
-module.exports = function(grunt, scripts)
-{
-  'use strict';
+'use strict';
 
-  var jasmineNode =
-  {
-    options:
-    {
+module.exports = function(grunt, scripts) {
+  const jasmineNode = {
+    options: {
       specNameSuffix: 'Spec.js',
       useHelpers:     false,
       stopOnFailure:  false
     },
-    all:
-    {
+    all: {
       specs: scripts.spec
     }
   };

@@ -1,7 +1,8 @@
 module.exports = function(grunt) {
   'use strict';
 
-  const scripts = (require('./grunt/scriptGarner.js'))();
+  const VERBOSE = false;
+  const scripts = (require('./grunt/scriptGarner.js'))(VERBOSE);
 
   grunt.initConfig({
     jshint:         require('./grunt/jshint')(grunt, scripts),

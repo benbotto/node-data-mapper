@@ -1,33 +1,44 @@
 'use strict';
 
-module.exports = function(verbose)
-{
-  var files    = {};
-  var glob     = require('glob');
-  var globOpts = {cwd: __dirname + '/../'};
+module.exports = function(verbose) {
+  const glob  = require('glob');
+  const files = {};
+  let   opts;
 
   // Application files.
-  files.app = glob.sync('**/*.js', globOpts).filter(function(script)
-  {
-    return !script.match(/node_modules/) &&
-           !script.match(/coverage/i) &&
-           !script.match(/grunt/i) &&
-           !script.match(/Spec.js$/);
-  });
-
-  // Grunt files.
-  files.grunt = ['Gruntfile.js'].concat(glob.sync('grunt/*.js', globOpts));
+  opts = {
+    ignore: [
+      'node_modules/**',
+      'grunt/**',
+      'out/**',
+      'coverage/**',
+      'example/**',
+      'scratch/**',
+      'Gruntfile.js',
+      '**/*Spec.js'
+    ]
+  };
+  files.app = glob.sync('**/*.js', opts);
 
   // Specs.
-  files.spec = glob.sync('**/*Spec.js', globOpts).filter(function(script)
-  {
-    return !script.match(/node_modules/) &&
-           !script.match(/coverage/i) &&
-           !script.match(/grunt/i);
-  });
+  opts = {
+    ignore: [
+      'node_modules/**',
+      'grunt/**',
+      'out/**',
+      'coverage/**',
+      'example/**',
+      'scratch/**',
+      'Gruntfile.js'
+    ]
+  };
+  files.spec = glob.sync('**/*Spec.js', opts);
 
-  if (verbose)
-  {
+  // Grunt files.
+  opts = {};
+  files.grunt = ['Gruntfile.js'].concat(glob.sync('grunt/*.js', opts));
+
+  if (verbose) {
     console.log('Script garner gathered the following files.');
     console.dir(files);
   }
