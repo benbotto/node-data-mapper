@@ -4,6 +4,9 @@ describe('bitConverter', function() {
   const insulin      = require('insulin');
   const bitConverter = insulin.get('ndm_bitConverter');
 
+  /**
+   * Retrieve.
+   */
   describe('.onRetrieve()', function() {
     it('returns null when null or undefined is passed in.', function() {
       expect(bitConverter.onRetrieve(null)).toBe(null);
@@ -29,6 +32,9 @@ describe('bitConverter', function() {
     });
   });
 
+  /**
+   * Save.
+   */
   describe('.onSave()', function() {
     it('returns null when null or undefined is passed in.', function() {
       expect(bitConverter.onSave(null)).toBe(null);
