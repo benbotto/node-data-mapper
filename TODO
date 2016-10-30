@@ -1,3 +1,6 @@
+Move the parser/lexer/compiler to a condition folder.
+Migrate condition builder to this project.
+
 There's no way to join the same table twice and use the same alias.  Consider this desired document with 'stage' repeated twice:
 
 assignment: {
