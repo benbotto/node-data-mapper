@@ -10,7 +10,23 @@ function ndm_ConditionParserProducer(assert) {
   an exception is raised.  Otherwise, a parse tree is created. */
   class ConditionParser {
     /**
-     * Parse the condition (as an object) and return a parse tree.
+     * Parse the condition (as an object) and return a parse tree.  The
+     * condition must follow the following grammar.
+     *
+     * <condition>                ::= "{" <comparison> | <null-comparison> | <in-comparison> | <logical-condition> "}"
+     * <comparison>               ::= <comparison-operator> ":" "{" <column> ":" <value> "}"
+     * <null-comparison>          ::= <null-comparison-operator> ":" "{" <column> ":" <nullable> "}"
+     * <in-comparison>            ::= <in-comparison-operator> ":" "{" <column> ":" "[" <value> {"," <value>} "]" "}"
+     * <logical-condition>        ::= <boolean-operator> ":" "[" <condition> {"," <condition>} "]"
+     * <comparison-operator>      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte" | "$like" | "$notlike"
+     * <in-comparison-operator>   ::= "$in"
+     * <null-comparison-operator> ::= "$is" | "$isnt"
+     * <boolean-operator>         ::= "$and" | "$or"
+     * <nullable>                 ::= null | <parameter>
+     * <value>                    ::= <parameter> | <column> | <number> | null
+     * <column>                   ::= <string>
+     * <parameter>                ::= :<string>
+     *
      * @param {object[]} tokens - An array of tokens, as created by a
      * ConditionLexer.
      * @return {object} - A parse tree.  Each node in the tree has a token and
@@ -29,21 +45,7 @@ function ndm_ConditionParserProducer(assert) {
       return this._tree;
     }
 
-    // Entry point, the entire condition sentence.  BNF follows.
-    //
-    // <condition>                ::= "{" <comparison> | <null-comparison> | <in-comparison> | <logical-condition> "}"
-    // <comparison>               ::= <comparison-operator> ":" "{" <column> ":" <value> "}"
-    // <null-comparison>          ::= <null-comparison-operator> ":" "{" <column> ":" <nullable> "}"
-    // <in-comparison>            ::= <in-comparison-operator> ":" "{" <column> ":" "[" <value> {"," <value>} "]" "}"
-    // <logical-condition>        ::= <boolean-operator> ":" "[" <condition> {"," <condition>} "]"
-    // <comparison-operator>      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte" | "$like" | "$notlike"
-    // <in-comparison-operator>   ::= "$in"
-    // <null-comparison-operator> ::= "$is" | "$isnt"
-    // <boolean-operator>         ::= "$and" | "$or"
-    // <nullable>                 ::= null | <parameter>
-    // <value>                    ::= <parameter> | <column> | <number> | null
-    // <column>                   ::= <string>
-    // <parameter>                ::= :<string>
+    // <condition> ::= "{" <comparison> | <null-comparison> | <in-comparison> | <logical-condition> "}"
     _condition() {
       var pairParts = ['comparison-operator', 'null-comparison-operator', 'in-comparison-operator', 'boolean-operator'];
 
@@ -181,7 +183,7 @@ function ndm_ConditionParserProducer(assert) {
     // the passed-in type.  If not, an exception is raised.  If so, the token is
     // advanced.
     _matchType(type) {
-      assert(this._token !== null && this._token.type === type, this._errorString('<' + type + '>'));
+      assert(this._token !== null && this._token.type === type, this._errorString(`<${type}>`));
       this._addNode();
       this._advance();
     }
@@ -224,8 +226,8 @@ function ndm_ConditionParserProducer(assert) {
       var type  = this._token ? this._token.type  : 'EOL';
       var value = this._token ? this._token.value : 'EOL';
 
-      return 'At index ' + this._tokenInd + '.  Expected ' + expected +
-        ' but found type ' + type + ' with value ' + value + '.';
+      return `At index ${this._tokenInd}.  Expected ${expected} but found type ` +
+             `${type} with value ${value}.`;
     }
 
     // Helper function to add a node to the parse tree.

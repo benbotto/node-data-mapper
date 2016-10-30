@@ -8,9 +8,8 @@ describe('ConditionParser()', function() {
   const parser          = new ConditionParser();
 
   describe('.parse()', function() {
-    describe('ConditionParser language validation test suite.', function() {
-      // Checks a valid comparison.
-      it('checks a valid comparison.', function() {
+    describe('valid comparisons -', function() {
+      it('parses valid comparisons.', function() {
         expect(function() {
           parser.parse(lexer.parse({$eq: {name: ':name'}}));
           parser.parse(lexer.parse({$eq: {name: 'user.name'}}));
@@ -18,8 +17,7 @@ describe('ConditionParser()', function() {
         }).not.toThrow();
       });
 
-      // Checks a valid null-comparison.
-      it('checks a valid null-comparison.', function() {
+      it('parses valid null-comparisons.', function() {
         expect(function() {
           parser.parse(lexer.parse({$is: {name: null}}));
           parser.parse(lexer.parse({$isnt: {name: null}}));
@@ -31,8 +29,7 @@ describe('ConditionParser()', function() {
         }).not.toThrow();
       });
 
-      // Checks a valid in-comparison.
-      it('checks a valid in-comparison.', function() {
+      it('parses valid in-comparisons.', function() {
         expect(function() {
           parser.parse(lexer.parse({$in: {age: [45]}}));
           parser.parse(lexer.parse({$in: {age: [45, 46]}}));
@@ -42,8 +39,7 @@ describe('ConditionParser()', function() {
         }).not.toThrow();
       });
 
-      // Checks a valid comparison-list.
-      it('checks a valid comparison-list.', function() {
+      it('parses valid logical-conditions.', function() {
         expect(function() {
           const cond =  {
             $and: [
@@ -76,9 +72,8 @@ describe('ConditionParser()', function() {
       });
     });
 
-    describe('ConditionParser invalid condition test suite.', function() {
-      // Fails in initial condition.
-      it('fails in initial condition.', function() {
+    describe('invalid conditions -', function() {
+      it('fails if the initial part of the condition is invald.', function() {
         expect(function() {
           parser.parse(lexer.parse([1,2,3]));
         }).toThrowError('At index 0.  Expected { but found type char with value [.');
@@ -101,8 +96,7 @@ describe('ConditionParser()', function() {
         }).toThrowError('At index 8.  Expected } but found type EOL with value EOL.');
       });
 
-      // Checks the comparison non-terminal.
-      it('checks the comparison non-terminal.', function() {
+      it('fails on invalid comparison non-terminals.', function() {
         expect(function() {
           // Valid.
           const tokens = lexer.parse({$eq: {name: ':name'}});
@@ -146,8 +140,7 @@ describe('ConditionParser()', function() {
         }).toThrowError('At index 7.  Expected } but found type EOL with value EOL.');
       });
 
-      // Checks the null-comparison non-terminal.
-      it('checks the null-comparison non-terminal.', function() {
+      it('fails on invalid null-comparison non-terminals.', function() {
         expect(function() {
           // Valid {"$is":{"name":null}}
           const tokens = lexer.parse({$is: {name: null}});
@@ -215,8 +208,7 @@ describe('ConditionParser()', function() {
         }).toThrowError('At index 8.  Expected } but found type EOL with value EOL.');
       });
 
-      // Checks the in-comparison non-terminal.
-      it('checks the in-comparison non-terminal.', function() {
+      it('fails on invalid in-comparison non-terminals.', function() {
         expect(function() {
           // Valid '{"$in":{"age":[12,3,4097]}}'.
           const tokens = lexer.parse({$in: {age: [12,3,4097]}});
@@ -278,8 +270,7 @@ describe('ConditionParser()', function() {
         }).toThrowError('At index 13.  Expected } but found type EOL with value EOL.');
       });
 
-      // Checks the logical-condition non-terminal.
-      it('checks the logical-condition non-terminal.', function() {
+      it('fails on invalid logical-condition non-terminals.', function() {
         expect(function() {
           // Valid '{"$and":[{"$eq":{"name":":name"}},{"$gt":{"age":30}}]}'
           const tokens = lexer.parse('{"$and":[{"$eq":{"name":":name"}},{"$gt":{"age":30}}]}');
@@ -366,9 +357,8 @@ describe('ConditionParser()', function() {
       });
     });
 
-    describe('ConditionParser parse tree spec.', function() {
-      // Checks the tree from a comparison.
-      it('checks the tree from a comparison.', function() {
+    describe('parse tree -', function() {
+      it('returns a valid tree from a comparison sentence.', function() {
         const cond   = {$eq: {name: ':name'}};
         const tokens = lexer.parse(cond);
         const tree   = parser.parse(tokens);
@@ -382,8 +372,7 @@ describe('ConditionParser()', function() {
         expect(tree.children[1].token.value).toBe(':name');
       });
 
-      // Checks the parse tree from a null comparison.
-      it('checks the parse tree from a null comparison.', function() {
+      it('returns a valid tree from a null-comparison sentence.', function() {
         const cond   = {$isnt: {spouse: null}};
         const tokens = lexer.parse(cond);
         const tree   = parser.parse(tokens);
@@ -397,8 +386,7 @@ describe('ConditionParser()', function() {
         expect(tree.children[1].token.value).toBe(null);
       });
 
-      // Checks the tree from an in comparison.
-      it('checks the tree from an in comparison.', function() {
+      it('returns a valid tree from an in-comparison sentence.', function() {
         const cond   = {$in: {name: [':name0', ':name1', ':name2']}};
         const tokens = lexer.parse(cond);
         const tree   = parser.parse(tokens);
@@ -414,8 +402,7 @@ describe('ConditionParser()', function() {
         expect(tree.children[3].token.value).toBe(':name2');
       });
 
-      // Checks the tree from a comparison list.
-      it('checks the tree from a comparison list.', function() {
+      it('returns a valid tree from a logical-condition sentence.', function() {
         const cond = {
           $and: [
             {$eq: {name: ':name'}},
@@ -453,56 +440,55 @@ describe('ConditionParser()', function() {
         expect(gt.children[0].token.value).toBe('shoeSize');
         expect(gt.children[1].token.value).toBe(10);
       });
-    });
 
-    // Checks a complex query.
-    it('checks a complex query.', function() {
-      // gender = :gender AND (age > 21 OR accidents <= 1)
-      const cond = {
-        $and: [
-          {$eq: {gender: ':gender'}},
-          {
-            $or: [
-              {$gt:  {age: 21}},
-              {$lte: {accidents: 1}}
-            ]
-          }
-        ]
-      };
-      const tokens = lexer.parse(cond);
-      const tree   = parser.parse(tokens);
+      it('returns a valid tree from a complex sentence with nested logical-conditions.', function() {
+        // gender = :gender AND (age > 21 OR accidents <= 1)
+        const cond = {
+          $and: [
+            {$eq: {gender: ':gender'}},
+            {
+              $or: [
+                {$gt:  {age: 21}},
+                {$lte: {accidents: 1}}
+              ]
+            }
+          ]
+        };
+        const tokens = lexer.parse(cond);
+        const tree   = parser.parse(tokens);
 
-      //           ____$and______
-      //          /              \
-      //       __$eq__         __$or________
-      //      /       \       /             \
-      // 'gender' ':gender'  $gt         __$lte___
-      //                    /   \       /         \
-      //                  'age'  21   'accidents'  1
-      expect(tree.token.value).toBe('$and');
-      expect(tree.children.length).toBe(2);
+        //           ____$and______
+        //          /              \
+        //       __$eq__         __$or________
+        //      /       \       /             \
+        // 'gender' ':gender'  $gt         __$lte___
+        //                    /   \       /         \
+        //                  'age'  21   'accidents'  1
+        expect(tree.token.value).toBe('$and');
+        expect(tree.children.length).toBe(2);
 
-      const eq = tree.children[0];
-      expect(eq.token.value).toBe('$eq');
-      expect(eq.children.length).toBe(2);
-      expect(eq.children[0].token.value).toBe('gender');
-      expect(eq.children[1].token.value).toBe(':gender');
+        const eq = tree.children[0];
+        expect(eq.token.value).toBe('$eq');
+        expect(eq.children.length).toBe(2);
+        expect(eq.children[0].token.value).toBe('gender');
+        expect(eq.children[1].token.value).toBe(':gender');
 
-      const or = tree.children[1];
-      expect(or.token.value).toBe('$or');
-      expect(or.children.length).toBe(2);
+        const or = tree.children[1];
+        expect(or.token.value).toBe('$or');
+        expect(or.children.length).toBe(2);
 
-      const gt = or.children[0];
-      expect(gt.token.value).toBe('$gt');
-      expect(gt.children.length).toBe(2);
-      expect(gt.children[0].token.value).toBe('age');
-      expect(gt.children[1].token.value).toBe(21);
+        const gt = or.children[0];
+        expect(gt.token.value).toBe('$gt');
+        expect(gt.children.length).toBe(2);
+        expect(gt.children[0].token.value).toBe('age');
+        expect(gt.children[1].token.value).toBe(21);
 
-      const lte = or.children[1];
-      expect(lte.token.value).toBe('$lte');
-      expect(lte.children.length).toBe(2);
-      expect(lte.children[0].token.value).toBe('accidents');
-      expect(lte.children[1].token.value).toBe(1);
+        const lte = or.children[1];
+        expect(lte.token.value).toBe('$lte');
+        expect(lte.children.length).toBe(2);
+        expect(lte.children[0].token.value).toBe('accidents');
+        expect(lte.children[1].token.value).toBe(1);
+      });
     });
   });
 });
