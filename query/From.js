@@ -1,9 +1,9 @@
 'use strict';
 
 var assert            = require('../util/assert');
-var ConditionLexer    = require('../query/ConditionLexer');
-var ConditionParser   = require('../query/ConditionParser');
-var ConditionCompiler = require('../query/ConditionCompiler');
+var ConditionLexer    = require('./condition/ConditionLexer');
+var ConditionParser   = require('./condition/ConditionParser');
+var ConditionCompiler = require('./condition/ConditionCompiler');
 var Query             = require('./Query');
 
 /**

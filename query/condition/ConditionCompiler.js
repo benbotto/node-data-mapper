@@ -1,6 +1,6 @@
 'use strict';
 
-var assert = require('../util/assert');
+var assert = require('../../util/assert');
 
 /**
  * This class takes in a parse tree--as created by a ConditionParser--and
