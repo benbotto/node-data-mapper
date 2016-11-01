@@ -35,7 +35,7 @@ function ndm_SchemaProducer(assert) {
 
     /**
      * Get the name of the key column.
-     * @return {string} - The name of the key column.
+     * @return {string} The name of the key column.
      */
     getKeyColumnName() {
       return this._keyColumnName;
@@ -87,7 +87,7 @@ function ndm_SchemaProducer(assert) {
     /**
      * Get the array of properties.  Each property has the column name and the
      * property name.
-     * @return {Object[]} - An array of properties, each with a propertyName,
+     * @return {Object[]} An array of properties, each with a propertyName,
      * columnName, and convert function.
      */
     getProperties() {
@@ -123,7 +123,7 @@ function ndm_SchemaProducer(assert) {
     /**
      * Get the array of schemata, each of which has a property name and a Schema
      * instance.
-     * @return {Object[]} - An array of objects, each with a property name and
+     * @return {Object[]} An array of objects, each with a property name and
      * a Schema instance.
      */
     getSchemata() {

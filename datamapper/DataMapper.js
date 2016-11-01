@@ -10,7 +10,7 @@ function ndm_DataMapperProducer(Schema) {
      * @param {Object[]} query - A set of query results, which is an array of
      * objects containing keys as properties and values from a database query.
      * @param {Schema} schema - The Schema instance describing how to serialize the query.
-     * @return {Object[]} - An array of objects that is normalized.
+     * @return {Object[]} An array of objects that is normalized.
      */
     serialize(query, schema) {
       const collection = [];

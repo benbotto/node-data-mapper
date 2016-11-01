@@ -32,7 +32,7 @@ function ndm_ConditionParserProducer(assert) {
      *
      * @param {object[]} tokens - An array of tokens, as created by the
      * ConditionLexer.parse method.
-     * @return {object} - A parse tree.  Each node in the tree has a token and
+     * @return {object} A parse tree.  Each node in the tree has a token and
      * children nodes.
      */
     parse(tokens) {

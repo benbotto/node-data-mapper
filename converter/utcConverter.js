@@ -8,7 +8,7 @@ function ndm_utcConverterProducer(moment) {
     /**
      * Convert JavaScript Date object to a UTC string fit for saving.
      * @param {Date} date - A native JavaScript Date object.
-     * @return {string} - An ISO8601 representation of the string, in zulu
+     * @return {string} An ISO8601 representation of the string, in zulu
      * (UTC) time, or null if date is null or undefined.
      */
     onSave(date) {

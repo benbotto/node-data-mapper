@@ -59,7 +59,7 @@ function ndm_DatabaseProducer(assert, Table) {
     /**
      * Get a table by name.
      * @param {string} name - The name of the table.
-     * @return {Table} - The Table instance.
+     * @return {Table} The Table instance.
      */
     getTableByName(name) {
       assert(this._nameLookup[name] !== undefined,
@@ -81,7 +81,7 @@ function ndm_DatabaseProducer(assert, Table) {
     /**
      * Get a table by mapping.
      * @param {string} mapping - The table mapping (mapTo property).
-     * @return {Table} - The Table instance.
+     * @return {Table} The Table instance.
      */
     getTableByMapping(mapping) {
       assert(this._mapToLookup[mapping] !== undefined,

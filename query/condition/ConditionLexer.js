@@ -10,7 +10,7 @@ function ndm_ConditionLexerProducer(assert) {
      * Parse the sentence into tokens.
      * @param {string|object} condStr - The condition string to parse.  (If
      * condStr is an object it is converted to a string using JSON.stringify.
-     * @return {Object[]} - An array of tokens.  Each token object has the
+     * @return {Object[]} An array of tokens.  Each token object has the
      * following properties: terminal, which is a boolean indicating if the
      * token is a terminal or not; type, as described by the condition BNF;
      * and value.

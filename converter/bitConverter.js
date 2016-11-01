@@ -9,7 +9,7 @@ function ndm_bitConverterProducer() {
      * Convert the "bit" to a boolean.
      * @param {number|Buffer} bit - Either an instance of a Buffer containing a 1
      * or a 0, or a number.
-     * @return {boolean} - The bit's representation as a boolean.
+     * @return {boolean} The bit's representation as a boolean.
      */
     onRetrieve(bit) {
       if (bit === null || bit === undefined || bit === '')
@@ -24,7 +24,7 @@ function ndm_bitConverterProducer() {
     /**
      * Convert a boolean to a bit.
      * @param {boolean} bool - A boolean value.
-     * @return {number} - The boolean's representation as a number (1 or 0),
+     * @return {number} The boolean's representation as a number (1 or 0),
      * or null if bool is null or undefined.
      */
     onSave(bool) {

@@ -76,7 +76,7 @@ function ndm_TableProducer(assert, Column) {
     /**
      * Get a column by name.
      * @param {string} name - The column name.
-     * @return {Column} - The Column instance.
+     * @return {Column} The Column instance.
      */
     getColumnByName(name) {
       assert(this._nameLookup[name] !== undefined,
@@ -97,7 +97,7 @@ function ndm_TableProducer(assert, Column) {
     /**
      * Get a column by mapping (it's mapTo property).
      * @param {string} mapping - The column's mapTo property.
-     * @return {Column} - The column instance.
+     * @return {Column} The column instance.
      */
     getColumnByMapping(mapping) {
       assert(this._mapToLookup[mapping] !== undefined,
