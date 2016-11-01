@@ -7,7 +7,7 @@ var assert   = require('../util/assert');
 var deferred = require('deferred');
 
 /**
- * Base class for classes that mutate models by primary key (MutateModel and
+ * Base class for classes that mutate models by primary key (DeleteModel and
  * UpdateModel).
  * @param database The database to mutate from.
  * @param escaper An instance of an Escaper matching the database type (i.e.
