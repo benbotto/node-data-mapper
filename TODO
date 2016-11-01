@@ -1,4 +1,3 @@
-Move the parser/lexer/compiler to a condition folder.
 Migrate condition builder to this project.
 
 There's no way to join the same table twice and use the same alias.  Consider this desired document with 'stage' repeated twice:
@@ -33,6 +32,14 @@ Implement grunt-jsdoc.
 
 Provide a short-hand end() method on the DataContext and update all the examples/doc.
 Make the code work with node-mssql (probably need to fix parameters).
+  1) The ConditionCompiler replaces parameters with values.  That can't happen.
+  2) As is, the same parameter name can be used in multiple parts of the query with different values (e.g. :name could be used in a WHERE condition and an ON condition).  Moving parameterization responsibility to another class (e.g. a QueryExecuter) would break this.
+  3) Need to consider schema.  In MSSQL, schema can be important ([ddo].[mytable]).
+
+Views don't work.  There is no primary key.
+
+Everything related to MySQL should be moved to a separate project.  Right now ndm depends on mysql, and it shouldn't if the user is using another DB.
+
 Composite keys are not supported by the Schema and will not work.  Needs impl.
 When there are two top-level schemata two DataMappers are used.  This doubles the time because two loops are needed.  Performance would be better if the DataMapper could take an array of schemata and perform the mapping in a single loop.  On the other hand, two top-level schemata is a corner case.
 It would be nice to allow multiple queries to be combinded into a single one.  With big queries, the cartisian product can be huge and it would be a performance enhancer to allow selecting from multiple related entities.
