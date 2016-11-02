@@ -26,8 +26,8 @@ function Select(from)
 }
 
 // Select extends Query.
-Select.prototype = Object.create(Query.prototype);
-Select.prototype.constructor = Query;
+//Select.prototype = Object.create(Query.prototype);
+//Select.prototype.constructor = Query;
 
 /**
  * Select columns manually.  This function is variadic.

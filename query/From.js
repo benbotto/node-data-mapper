@@ -51,8 +51,8 @@ function From(database, escaper, queryExecuter, meta)
 }
 
 // From extends Query.
-From.prototype = Object.create(Query.prototype);
-From.prototype.constructor = Query;
+//From.prototype = Object.create(Query.prototype);
+//From.prototype.constructor = Query;
 
 From.JOIN_TYPE =
 {

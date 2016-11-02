@@ -34,8 +34,8 @@ function MutateModel(database, escaper, queryExecuter, model)
 }
 
 // MutateModel extends Query.
-MutateModel.prototype = Object.create(Query.prototype);
-MutateModel.prototype.constructor = Query;
+//MutateModel.prototype = Object.create(Query.prototype);
+//MutateModel.prototype.constructor = Query;
 
 /**
  * Get the array of queries.

@@ -26,8 +26,8 @@ function Insert(database, escaper, queryExecuter, model)
 }
 
 // Insert extends Query.
-Insert.prototype = Object.create(Query.prototype);
-Insert.prototype.constructor = Query;
+//Insert.prototype = Object.create(Query.prototype);
+//Insert.prototype.constructor = Query;
 
 /**
  * Set whether or not to update the foreign keys of children after

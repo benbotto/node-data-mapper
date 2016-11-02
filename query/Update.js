@@ -52,8 +52,8 @@ function Update(from, model)
 }
 
 // Update extends Query.
-Update.prototype = Object.create(Query.prototype);
-Update.prototype.constructor = Query;
+//Update.prototype = Object.create(Query.prototype);
+//Update.prototype.constructor = Query;
 
 /**
  * Get the SET part of the query.
