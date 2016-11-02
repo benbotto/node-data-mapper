@@ -1,42 +1,31 @@
 'use strict';
 
-/**
- * Base class for queries (From, Insert, Delete, Update).
- * @param database The database to select from.
- * @param escaper An instance of an Escaper matching the database type (i.e.
- *        MySQLEscaper or MSSQLEscaper).
- * @param queryExecuter A QueryExecuter instance.
- */
-function Query(database, escaper, queryExecuter)
-{
-  this._database      = database;
-  this._escaper       = escaper;
-  this._queryExecuter = queryExecuter;
+require('insulin').factory('ndm_Query', ndm_QueryProducer);
+
+function ndm_QueryProducer() {
+  /** Base class for Queries (From, Insert, Delete, Update) */
+  class Query {
+    /**
+     * Initialize the query.
+     * @param {Database} database - A Database instance to query.
+     * @param {Escaper} escaper - An instance of an Escaper matching the
+     * database type (i.e.  MySQLEscaper or MSSQLEscaper).
+     * @param {QueryExecuter} - queryExecuter A QueryExecuter instance.
+     */
+    constructor(database, escaper, queryExecuter) {
+      /**
+       * @property {Database} database - A database instance.
+       * @property {Escaper} escaper - An instance of an Escaper class that can
+       * escape query parts.
+       * @property {QueryExecuter} queryExecuter - An instance of a
+       * QueryExecuter that can execute CRUD operations.
+       */
+      this.database      = database;
+      this.escaper       = escaper;
+      this.queryExecuter = queryExecuter;
+    }
+  }
+
+  return Query;
 }
-
-/**
- * Get the database instance.
- */
-Query.prototype.getDatabase = function()
-{
-  return this._database;
-};
-
-/**
- * Get the query escaper.
- */
-Query.prototype.getEscaper = function()
-{
-  return this._escaper;
-};
-
-/**
- * Get the query executer.
- */
-Query.prototype.getQueryExecuter = function()
-{
-  return this._queryExecuter;
-};
-
-module.exports = Query;
 

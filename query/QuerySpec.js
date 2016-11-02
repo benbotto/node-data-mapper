@@ -1,20 +1,24 @@
-xdescribe('Query test suite.', function()
+describe('Query()', function()
 {
   'use strict';
 
-  var Query = require('./Query');
+  const insulin = require('insulin');
+  const Query   = insulin.get('ndm_Query');
 
-  // Checks the constructor and getters.
-  it('checks the constructor and getters.', function()
-  {
-    var db      = {};
-    var escaper = {};
-    var execr   = {};
-    var q       = new Query(db, escaper, execr);
+  /**
+   * Ctor.
+   */
+  describe('.constructor()', function() {
+    it('stores the database, escaper, and executer.', function() {
+      const db       = {};
+      const escaper  = {};
+      const executer = {};
+      const q        = new Query(db, escaper, executer);
 
-    expect(q.getDatabase()).toBe(db);
-    expect(q.getEscaper()).toBe(escaper);
-    expect(q.getQueryExecuter()).toBe(execr);
+      expect(q.database).toBe(db);
+      expect(q.escaper).toBe(escaper);
+      expect(q.queryExecuter).toBe(executer);
+    });
   });
 });
 
