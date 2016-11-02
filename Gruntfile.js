@@ -7,9 +7,10 @@ module.exports = function(grunt) {
   grunt.initConfig({
     jshint:         require('./grunt/jshint')(grunt, scripts),
     jasmine_nodejs: require('./grunt/jasmine-nodejs')(grunt, scripts),
-    watch:          require('./grunt/watch')(grunt, scripts)
+    watch:          require('./grunt/watch')(grunt, scripts),
+    jsdoc:          require('./grunt/jsdoc')(grunt, scripts)
   });
 
-  grunt.registerTask('default', ['jshint', 'jasmine_nodejs']);
+  grunt.registerTask('default', ['jshint', 'jasmine_nodejs' /*, 'jsdoc'*/]);
 };
 

@@ -6,7 +6,7 @@ module.exports = function(verbose) {
   const ignores = [
     'node_modules/**',
     'grunt/**',
-    'out/**',
+    'doc/**',
     'coverage/**',
     'example/**',
     'scratch/**',
