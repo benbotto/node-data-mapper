@@ -1,180 +1,188 @@
-xdescribe('From test suite.', function()
-{
+describe('From() TODO IMPLEMENT MAPTO', function() {
   'use strict';
 
-  var From         = require('./From');
-  var Database     = require('../database/Database');
-  var MySQLEscaper = require('./MySQLEscaper');
-  var db           = new Database(require('../spec/testDB'));
-  var escaper      = new MySQLEscaper();
-  var qryExec      = {};
+  const insulin      = require('insulin');
+  const From         = insulin.get('ndm_From');
+  const Database     = insulin.get('ndm_Database');
+  const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
+  const db           = new Database(require('../spec/testDB'));
+  const escaper      = new MySQLEscaper();
+  const qryExec      = {};
 
-  xdescribe('From constructor test suite.', function()
-  {
-    // Checks the constructor.
-    it('checks the constructor.', function()
-    {
-      expect(function()
-      {
+  /**
+   * Ctor.
+   */
+  describe('.constructor()', function() {
+    it('can be initialized with a meta object containing only the table name.', function() {
+      expect(function() {
         new From(db, escaper, qryExec, {table: 'users'});
       }).not.toThrow();
+    });
 
-      expect(function()
-      {
+    it('can be initialized with just the table name.', function() {
+      expect(function() {
         new From(db, escaper, qryExec, 'users');
       }).not.toThrow();
+    });
 
-      expect(function()
-      {
+    it('throws an error if the table name is not present in the database.', function() {
+      expect(function() {
         new From(db, escaper, qryExec, {table: 'INVALID_NAME'});
       }).toThrowError('Table INVALID_NAME does not exist in database testDB.');
     });
 
-    // Checks that the database can be retrieved.
-    it('checks that the database can be retrieved.', function()
-    {
-      var from = new From(db, escaper, qryExec, {table: 'users'});
-      expect(from.getDatabase()).toBe(db);
+    it('exposes the database publicly.', function() {
+      const from = new From(db, escaper, qryExec, {table: 'users'});
+      expect(from.database).toBe(db);
     });
 
-    // Checks that the table alias cannot have non-word character characters.
-    it('checks that the table alias cannot have non-word character characters.', function()
-    {
-      expect(function()
-      {
+    it('throws an error if the table alias contains non-word characters.', function() {
+      expect(function() {
         new From(db, escaper, qryExec, {table: 'users', as: 'users alias'});
       }).toThrowError('Alises must only contain word characters.');
 
-      expect(function()
-      {
+      expect(function() {
         new From(db, escaper, qryExec, {table: 'users', as: 'users.alias'});
       }).toThrowError('Alises must only contain word characters.');
     });
   });
 
-  xdescribe('From where test suite.', function()
-  {
-    // Makes sure that the where clause gets added correctly.
-    it('makes sure that the where clause gets added correctly.', function()
-    {
-      var query = new From(db, escaper, qryExec, {table: 'users'})
-        .where({$eq: {'users.userID': 4}});
+  /**
+   * Create fully-qualified column name.
+   */
+  describe('.createFQColName()', function() {
+    it('returns the unescaped name.', function() {
+      const from = new From(db, escaper, qryExec, {table: 'users'});
+      expect(from.createFQColName('users', 'firstName')).toBe('users.firstName');
+    });
+  });
 
-      expect(query.toString()).toBe
-      (
-        'FROM    `users` AS `users`\n' +
-        'WHERE   `users`.`userID` = 4'
-      );
+  /**
+   * Is column available.
+   */
+  describe('.isColumnAvailable()', function() {
+    it('returns true when a column is available.', function() {
+      const from = new From(db, escaper, qryExec, {table: 'users'});
+      expect(from.isColumnAvailable('users.firstName')).toBe(true);
+      expect(from.isColumnAvailable('users.lastName')).toBe(true);
     });
 
-    // Makes sure that where cannot be called twice on the same query.
-    it('makes sure that where cannot be called twice on the same query.', function()
-    {
-      expect(function()
-      {
+    it('returns false when a column is not available.', function() {
+      const from = new From(db, escaper, qryExec, {table: 'users'});
+      expect(from.isColumnAvailable('users.other')).toBe(false);
+    });
+  });
+
+  /**
+   * Where.
+   */
+  describe('.where()', function() {
+    it('allows the user to add a where clause.', function() {
+      const query = new From(db, escaper, qryExec, {table: 'users'})
+        .where({$eq: {'users.userID': 4}});
+
+      expect(query.toString()).toBe(
+        'FROM    `users` AS `users`\n' +
+        'WHERE   `users`.`userID` = 4');
+    });
+
+    it('throws an error if where is called multiple times on the same query.', function() {
+      expect(function() {
         new From(db, escaper, qryExec, {table: 'users'})
           .where({$eq: {'users.userID': 4}})
           .where({$eq: {'users.userID': 4}});
       }).toThrowError('where already performed on query.');
     });
 
-    // Makes sure that invalid columns cannot exist in the where clause.
-    it('makes sure that invalid columns cannot exist in the where clause.', function()
-    {
-      expect(function()
-      {
+    it('throws an error if a where is performed on an unavailable column.', function() {
+      expect(function() {
         new From(db, escaper, qryExec, {table: 'users'})
           .where({$eq: {userID: 4}}); // Should be users.userID.
       }).toThrowError('The column alias userID is not available for a where condition.');
     });
 
-    // Checks that parameters get replaced.
-    it('checks that parameters get replaced.', function()
-    {
-      var query = new From(db, escaper, qryExec, {table: 'users'})
+    it('replaces parameters in where conditions.', function() {
+      const query = new From(db, escaper, qryExec, {table: 'users'})
         .where({$eq: {'users.firstName':':firstName'}}, {firstName: 'Sally'});
-      expect(query.toString()).toBe
-      (
+      expect(query.toString()).toBe(
         'FROM    `users` AS `users`\n' +
-        'WHERE   `users`.`firstName` = \'Sally\''
-      );
+        'WHERE   `users`.`firstName` = \'Sally\'');
     });
   });
 
-  xdescribe('From join test suite.', function()
-  {
-    // Inner joins on primary key.
-    it('inner joins on primary key.', function()
-    {
-      var query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
-        .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$eq: {'u.userID':'pn.userID'}}});
+  /**
+   * Inner join.
+   */
+  describe('.innerJoin()', function() {
+    it('allows the table to be aliased.', function() {
+      const query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
+        .innerJoin({table: 'phone_numbers', as: 'pn'});
 
-      expect(query.toString()).toBe
-      (
+      expect(query.toString()).toBe(
         'FROM    `users` AS `u`\n' +
-        'INNER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`'
-      );
+        'INNER JOIN `phone_numbers` AS `pn`');
     });
 
-    // Makes sure that if the parent is passed that it is a valid table.
-    it('makes sure that if the parent is passed that it is a valid table.', function()
-    {
-      expect(function()
-      {
+    it('defaults the table alias to the table name.', function() {
+      const query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
+        .innerJoin({table: 'phone_numbers'});
+
+      expect(query.toString()).toBe(
+        'FROM    `users` AS `u`\n' +
+        'INNER JOIN `phone_numbers` AS `phone_numbers`');
+    });
+
+    it('allows the ON condition to be set explicitly.', function() {
+      const query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
+        .innerJoin({table: 'phone_numbers', as: 'pn', on: {$eq: {'u.userID':'pn.userID'}}});
+
+      expect(query.toString()).toBe(
+        'FROM    `users` AS `u`\n' +
+        'INNER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`');
+    });
+
+    it('throws an error if an unavailable column is used in an ON condition.', function() {
+      expect(function() {
+        new From(db, escaper, qryExec, {table: 'users', as: 'u'})
+          .innerJoin({table: 'phone_numbers', as: 'pn', on: {$eq: {'u.INVALID':'pn.userID'}}});
+      }).toThrowError('The column alias u.INVALID is not available for an on condition.');
+    });
+
+    it('throws an error if the parent is supplied which does not match a table alias.', function() {
+      expect(function() {
         new From(db, escaper, qryExec, 'users')
           .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'BAD_NAME'});
       }).toThrowError('Parent table alias BAD_NAME is not a valid table alias.');
     });
+  });
 
-    // Verifies that only available columns can be used in ON conditions.
-    it('verifies that only available columns can be used in ON conditions.', function()
-    {
-      expect(function()
-      {
-        new From(db, escaper, qryExec, {table: 'users', as: 'u'})
-          .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$eq: {'u.INVALID':'pn.userID'}}});
-      }).toThrowError('The column alias u.INVALID is not available for an on condition.');
-    });
-
-    // Checks a left outer join.
-    it('checks a left outer join.', function()
-    {
-      var query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
-        .leftOuterJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$eq: {'u.userID':'pn.userID'}}})
+  /**
+   * Left outer join.
+   */
+  describe('.leftOuterJoin()', function() {
+    it('allows left outer joins.', function() {
+      const query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
+        .leftOuterJoin({table: 'phone_numbers', as: 'pn', on: {$eq: {'u.userID':'pn.userID'}}})
         .where({$is: {'pn.phoneNumberID':null}});
 
-      expect(query.toString()).toBe
-      (
+      expect(query.toString()).toBe(
         'FROM    `users` AS `u`\n' +
         'LEFT OUTER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`\n' +
-        'WHERE   `pn`.`phoneNumberID` IS NULL'
-      );
+        'WHERE   `pn`.`phoneNumberID` IS NULL');
     });
+  });
 
-    // Checks a right outer join.
-    it('checks a right outer join.', function()
-    {
-      var query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
-        .rightOuterJoin({table: 'phone_numbers', as: 'pn', parent: 'u', on: {$and: [{$eq: {'u.userID':'pn.userID'}},{$eq: {'pn.type':':phoneType'}}]}}, {phoneType: 'mobile'});
+  /**
+   * Right outer join.
+   */
+  describe('.rightOuterJoin()', function() {
+    it('allows right outer joins.', function() {
+      const query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
+        .rightOuterJoin({table: 'phone_numbers', as: 'pn', on: {$and: [{$eq: {'u.userID':'pn.userID'}},{$eq: {'pn.type':':phoneType'}}]}}, {phoneType: 'mobile'});
 
-      expect(query.toString()).toBe
-      (
+      expect(query.toString()).toBe(
         'FROM    `users` AS `u`\n' +
-        'RIGHT OUTER JOIN `phone_numbers` AS `pn` ON (`u`.`userID` = `pn`.`userID` AND `pn`.`type` = \'mobile\')'
-      );
-    });
-
-    // Checks a join with no condition.
-    it('checks a join with no condition.', function()
-    {
-      var query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
-        .innerJoin({table: 'phone_numbers', as: 'pn'});
-
-      expect(query.toString()).toBe
-      (
-        'FROM    `users` AS `u`\n' +
-        'INNER JOIN `phone_numbers` AS `pn`'
-      );
+        'RIGHT OUTER JOIN `phone_numbers` AS `pn` ON (`u`.`userID` = `pn`.`userID` AND `pn`.`type` = \'mobile\')');
     });
   });
 });
