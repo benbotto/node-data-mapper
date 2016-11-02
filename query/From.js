@@ -31,16 +31,13 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
       super(database, escaper, queryExecuter);
 
       // These are the tables that are being queried due to FROM our JOINs.
-      // There is also a lookup of alias->table.
-      this._tables           = [];
-      this._tableAliasLookup = {};
+      // The key is the table's unique alias.
+      this._tables = new Map();
 
-      // This is an array of all the available column aliases.  These are the
+      // This is a map of all the available column aliases.  These are the
       // columns that are available for selecting, or performing WHERE or ON
-      // clauses upon.  There is also a lookup for finding an available column
-      // by alias, unescaped in <table-alias>.<column-name> form.
-      this._availableCols       = [];
-      this._availableColsLookup = {};
+      // clauses upon.  The key is the fully-qualified column name.
+      this._availableCols = new Map();
 
       // Add the FROM table.  
       if (typeof meta === 'string')
@@ -72,7 +69,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Private helper function to add a table to the query.  This adds the
      * table to the _tables array, and makes all the columns available in the
-     * _availableCols array.
+     * _availableCols map.
      * @private
      * @param {object} meta - An object containing the following:
      * @param {string} meta.table - The name of the table.
@@ -107,32 +104,41 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
       parent = meta.parent || null;
 
       if (parent !== null) {
-        assert(this._tableAliasLookup[parent] !== undefined,
+        assert(this._tables.has(parent),
           `Parent table alias ${parent} is not a valid table alias.`);
       }
 
       // Add the table to the list of tables.
       tableMeta = {
         tableAlias: tableAlias,
+        mapTo:      meta.mapTo  || table.mapTo,
         table:      table,
         cond:       meta.cond   || null,
         joinType:   joinType    || null,
         parent:     meta.parent || null,
         relType:    meta.relType
       };
-      this._tables.push(tableMeta);
-      this._tableAliasLookup[tableAlias] = tableMeta;
+
+      this._tables.set(tableAlias, tableMeta);
 
       // Make each column available for selection or conditions.
       table.columns.forEach(function(column) {
         const fqColName = this.createFQColName(tableAlias, column.name);
-        const colMeta   = {tableAlias, column, fqColName};
 
-        this._availableCols.push(colMeta);
-        this._availableColsLookup[fqColName] = colMeta;
+        this._availableCols.set(fqColName, {tableAlias, column, fqColName});
       }, this);
 
       return this;
+    }
+
+    /**
+     * Helper method to get the meta data of the FROM table, which is the first
+     * table in the _tables map.
+     * @return {object} A meta object describing the table (reference
+     * _addTable).
+     */
+    getFromMeta() {
+      return this._tables.values().next().value;
     }
 
     /**
@@ -144,7 +150,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {boolean} true if the column is available, false otherwise.
      */
     isColumnAvailable(fqColName) {
-      return this._availableColsLookup[fqColName] !== undefined;
+      return this._availableCols.has(fqColName);
     }
 
     /**
@@ -156,9 +162,10 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {this}
      */
     where(cond, params) {
-      let tokens, tree, columns; 
+      const fromMeta = this.getFromMeta();
+      let   tokens, tree, columns; 
 
-      assert(this._tables[0].cond === null, 'where already performed on query.');
+      assert(fromMeta.cond === null, 'where already performed on query.');
 
       // Lex and parse the condition.
       tokens  = this._condLexer.parse(cond);
@@ -171,7 +178,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
           `The column alias ${columns[i]} is not available for a where condition.`);
       }
 
-      this._tables[0].cond = this._condCompiler.compile(tree, params);
+      fromMeta.cond = this._condCompiler.compile(tree, params);
       return this;
     }
 
@@ -251,8 +258,9 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * &lt;alias&gt;), escaped.
      */
     getFromString() {
-      const fromName  = this.escaper.escapeProperty(this._tables[0].table.name);
-      const fromAlias = this.escaper.escapeProperty(this._tables[0].tableAlias);
+      const fromMeta  = this.getFromMeta();
+      const fromName  = this.escaper.escapeProperty(fromMeta.table.name);
+      const fromAlias = this.escaper.escapeProperty(fromMeta.tableAlias);
 
       return `FROM    ${fromName} AS ${fromAlias}`;
     }
@@ -262,12 +270,13 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {string} The JOIN parts of the query, escaped.
      */
     getJoinString() {
-      const joins = [];
+      const joins    = [];
+      const tblMetas = this._tables.values();
 
-      // Add any JOINs.  The first table is the FROM table, hence the loop starts
-      // at 1.
-      for (let i = 1; i < this._tables.length; ++i) {
-        const tblMeta   = this._tables[i];
+      // Add any JOINs.  The first table is the FROM table, hence the initial
+      // next() call on the table iterator.
+      tblMetas.next();
+      for (let tblMeta of tblMetas) {
         const joinName  = this.escaper.escapeProperty(tblMeta.table.name);
         const joinAlias = this.escaper.escapeProperty(tblMeta.tableAlias);
         let   sql       = `${tblMeta.joinType} ${joinName} AS ${joinAlias}`;
@@ -286,7 +295,8 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * is no where clause.
      */
     getWhereString() {
-      return this._tables[0].cond ? `WHERE   ${this._tables[0].cond}` : '';
+      const fromMeta = this.getFromMeta();
+      return fromMeta.cond ? `WHERE   ${fromMeta.cond}` : '';
     }
 
     /**
