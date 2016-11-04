@@ -162,8 +162,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     }
 
     /**
-     * Check if the columns col is available (for selecting or for a
-     * condition).
+     * Check if the columns is available (for selecting or for a condition).
      * @param {string} fqColName - The column to look for.  This is the
      * unescaped alias of the column (<table-alias>.<column-name>) as created
      * by the createFQColName function.
@@ -208,7 +207,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @param {From~TableMeta} meta - See _addTable.  Here "on" replaces "cond".
      * @param {object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
-     * @param {string} joinType The From.JOIN_TYPE of the join.
+     * @param {string} - joinType The From.JOIN_TYPE of the join.
      * @return {this}
      */
     _join(meta, params, joinType) {
