@@ -20,7 +20,7 @@ assignment: {
 Here the user is assigned to an item and needs to perform an action when the stage is reached, and the item is in a stage.  A good test case for the above may be a pictures table, where a staff member can have a picture, and so can the shop.  Consider:
 
 1) Can't have the same alias for two tables.
-2) Can have the same mapTo twice, but not under the same parent.
+2) Can have the same mapTo twice, but not under the same parent.  Also need to consider the parent's parent.  It's really the entire ancestry that needs to be unique.  Just checking that the mapTo is unique to the parent alias should be sufficient.
 3) The parent must refer to the alias, not the mapping, otherwise if the same mapping appears twice a parent name could be ambiguous.
 4) It would be nice to have a short-hand method for joins: innerJoin('users u');
 
