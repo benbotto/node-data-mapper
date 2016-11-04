@@ -13,6 +13,23 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
    * @extends Query
    */
   class From extends Query {
+
+    /**
+     * @typedef From~TableMeta
+     * @type {object}
+     * @property {string} table - The name of the table.
+     * @property {string} as - An alias for the table.  This is needed if, for example,
+     * the same table is joined in multiple times.
+     * @property {string} mapTo - The table mapping.  That is, the name of
+     * the property in the resulting normalised object.
+     * @property {Condition} cond -  The condition (WHERE or ON) associated with the table.
+     * @property {string} parent - The alias of the parent table, if any.
+     * @property {string} relType - The type of relationship between the
+     * parent and this table ("single" or "many").  If set to "single" the
+     * table will be serialized into an object, otherwise the table will be
+     * serialized into an array.  "many" is the default.
+     */
+
     /**
      * Initialize the From instance.  WHERE and JOINs can be applied.
      * @param {Database} database - A Database instance that will be queried.
@@ -26,6 +43,8 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * convient short-hand notation when querying, and also is used to prevent
      * ambiguity if the same table is referenced multiple times (for example,
      * via joins).
+     * @param {string} meta.mapTo - The table mapping.  That is, the name of
+     * the property in the resulting normalised object.
      */
     constructor(database, escaper, queryExecuter, meta) {
       super(database, escaper, queryExecuter);
@@ -71,18 +90,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * table to the _tables array, and makes all the columns available in the
      * _availableCols map.
      * @private
-     * @param {object} meta - An object containing the following:
-     * @param {string} meta.table - The name of the table.
-     * @param {string} meta.as - An alias for the table.  This is needed if, for example,
-     * the same table is joined in multiple times.
-     * @param {string} meta.mapTo - The table mapping.  That is, the name of
-     * the property in the resulting normalised object.
-     * @param {Condition} meta.cond -  The condition (WHERE or ON) associated with the table.
-     * @param {string} meta.parent - The alias of the parent table, if any.
-     * @param {string} meta.relType - The type of relationship between the
-     * parent and this table ("single" or "many").  If set to "single" the
-     * table will be serialized into an object, otherwise the table will be
-     * serialized into an array.  "many" is the default.
+     * @param {TableMeta} meta - A meta object describing the table.
      * @param {string} joinType - The type of join for the table, or null if
      * this is the FROM table.
      * @return {this}
@@ -134,11 +142,23 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Helper method to get the meta data of the FROM table, which is the first
      * table in the _tables map.
-     * @return {object} A meta object describing the table (reference
+     * @protected
+     * @return {From~TableMeta} A meta object describing the table (reference
      * _addTable).
      */
-    getFromMeta() {
+    _getFromMeta() {
       return this._tables.values().next().value;
+    }
+
+    /**
+     * Helper method to get the meta data of the JOIN'd in tables.
+     * @protected
+     * @return {From~TableMeta[]} A meta object describing the table (reference
+     * _addTable).
+     */
+    _getJoinMeta() {
+      // All but the first table (the first table is the FROM table).
+      return Array.from(this._tables.values()).slice(1);
     }
 
     /**
@@ -162,7 +182,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {this}
      */
     where(cond, params) {
-      const fromMeta = this.getFromMeta();
+      const fromMeta = this._getFromMeta();
       let   tokens, tree, columns; 
 
       assert(fromMeta.cond === null, 'where already performed on query.');
@@ -185,7 +205,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Join a table.
      * @private
-     * @param {object} meta - See _addTable.  Here "on" replaces "cond".
+     * @param {From~TableMeta} meta - See _addTable.  Here "on" replaces "cond".
      * @param {object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @param {string} joinType The From.JOIN_TYPE of the join.
@@ -219,7 +239,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Inner join a table.
      * @private
-     * @param {object} meta - See _addTable.
+     * @param {From~TableMeta} meta - See _addTable.
      * @param {object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @return {this}
@@ -231,7 +251,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Left outer join a table.
      * @private
-     * @param {object} meta - See _addTable.
+     * @param {From~TableMeta} meta - See _addTable.
      * @param {object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @return {this}
@@ -243,7 +263,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Right outer join a table.
      * @private
-     * @param {object} meta - See _addTable.
+     * @param {From~TableMeta} meta - See _addTable.
      * @param {object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @return {this}
@@ -258,7 +278,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * &lt;alias&gt;), escaped.
      */
     getFromString() {
-      const fromMeta  = this.getFromMeta();
+      const fromMeta  = this._getFromMeta();
       const fromName  = this.escaper.escapeProperty(fromMeta.table.name);
       const fromAlias = this.escaper.escapeProperty(fromMeta.tableAlias);
 
@@ -270,13 +290,11 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {string} The JOIN parts of the query, escaped.
      */
     getJoinString() {
-      const joins    = [];
-      const tblMetas = this._tables.values();
+      const joins = [];
 
       // Add any JOINs.  The first table is the FROM table, hence the initial
       // next() call on the table iterator.
-      tblMetas.next();
-      for (let tblMeta of tblMetas) {
+      this._getJoinMeta().forEach(function(tblMeta) {
         const joinName  = this.escaper.escapeProperty(tblMeta.table.name);
         const joinAlias = this.escaper.escapeProperty(tblMeta.tableAlias);
         let   sql       = `${tblMeta.joinType} ${joinName} AS ${joinAlias}`;
@@ -284,7 +302,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
         if (tblMeta.cond)
           sql += ` ON ${tblMeta.cond}`;
         joins.push(sql);
-      }
+      }, this);
 
       return joins.join('\n');
     }
@@ -295,7 +313,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * is no where clause.
      */
     getWhereString() {
-      const fromMeta = this.getFromMeta();
+      const fromMeta = this._getFromMeta();
       return fromMeta.cond ? `WHERE   ${fromMeta.cond}` : '';
     }
 
