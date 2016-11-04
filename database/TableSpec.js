@@ -4,7 +4,7 @@ describe('Table()', function() {
   const insulin = require('insulin');
   const Table   = insulin.get('ndm_Table');
   const Column  = insulin.get('ndm_Column');
-  const users   = require('../spec/testDB').tables[0];
+  const users   = insulin.get('ndm_testDB').tables[0];
 
   let usersTbl;
 

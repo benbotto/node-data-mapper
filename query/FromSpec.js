@@ -1,11 +1,10 @@
-describe('From() TODO IMPLEMENT MAPTO', function() {
+describe('From()', function() {
   'use strict';
 
   const insulin      = require('insulin');
   const From         = insulin.get('ndm_From');
-  const Database     = insulin.get('ndm_Database');
   const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
-  const db           = new Database(require('../spec/testDB'));
+  const db           = insulin.get('ndm_testDB');
   const escaper      = new MySQLEscaper();
   const qryExec      = {};
 

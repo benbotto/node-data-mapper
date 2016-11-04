@@ -1,15 +1,15 @@
 describe('Database()', function() {
   'use strict';
 
-  const insulin  = require('insulin');
-  const Database = insulin.get('ndm_Database');
-  const Table    = insulin.get('ndm_Table');
-  const testDB   = require('../spec/testDB');
+  const insulin   = require('insulin');
+  const Database  = insulin.get('ndm_Database');
+  const Table     = insulin.get('ndm_Table');
+  const testSchma = insulin.get('ndm_testDBSchema');
 
   let db;
 
   beforeEach(function() {
-    db = new Database(testDB);
+    db = new Database(testSchma);
   });
 
   /**
@@ -29,7 +29,7 @@ describe('Database()', function() {
     });
 
     it('accepts an array of tables.', function() {
-      const db = new Database(testDB);
+      const db = new Database(testSchma);
 
       expect(db.name).toBe('testDB');
       expect(db.tables.length).toBe(3);
@@ -99,11 +99,11 @@ describe('Database()', function() {
   describe('.addTable()', function() {
     it('prevents duplicate tables from being added.', function() {
       expect(function() {
-        db.addTable(testDB.tables[0]);
+        db.addTable(testSchma.tables[0]);
       }).toThrowError('Table users already exists in database testDB.');
 
       expect(function() {
-        db.addTable({name: 'foo', mapTo: 'users', columns: testDB.tables[0].columns});
+        db.addTable({name: 'foo', mapTo: 'users', columns: testSchma.tables[0].columns});
       }).toThrowError('Table mapping users already exists in database testDB.');
     });
 
