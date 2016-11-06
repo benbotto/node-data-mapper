@@ -147,11 +147,49 @@ describe('From()', function() {
       }).toThrowError('The column alias u.INVALID is not available for an on condition.');
     });
 
-    it('throws an error if the parent is supplied which does not match a table alias.', function() {
+    it('throws an error if a parent is supplied which does not match a table alias.', function() {
       expect(function() {
         new From(db, escaper, qryExec, 'users')
           .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'BAD_NAME'});
       }).toThrowError('Parent table alias BAD_NAME is not a valid table alias.');
+    });
+
+    it('throw an error if the mapTo is already used at the top level.', function() {
+      expect(function() {
+        new From(db, escaper, qryExec, {table: 'users', as: 'u1', mapTo: 'users'})
+          .innerJoin({table: 'users', as: 'u2', mapTo: 'users'});
+      }).toThrowError('The mapping "users" is not unique.');
+    });
+
+    it('throw an error if the mapTo is already used for a given parent.', function() {
+      expect(function() {
+        new From(db, escaper, qryExec, {table: 'users', as: 'u1', mapTo: 'users'})
+          .innerJoin({table: 'users', as: 'u2', mapTo: 'users'});
+      }).toThrowError('The mapping "users" is not unique.');
+    });
+
+    it('allows the same mapTo provided the parent is different.', function() {
+      expect(function() {
+        new From(db, escaper, qryExec, {table: 'users', as: 'u'})
+          .innerJoin({table: 'phone_numbers', as: 'pn1', mapTo: 'phone', parent: 'u'})
+          .innerJoin({table: 'phone_numbers', as: 'pn1', mapTo: 'phone', parent: 'u'});
+      }).toThrowError('The mapping "phone" is not unique.');
+    });
+
+    it('allows the same mapTo if one is top-level and one is not.', function() {
+      expect(function() {
+        new From(db, escaper, qryExec, {table: 'users', as: 'u'})
+          .innerJoin({table: 'phone_numbers', as: 'pn', mapTo: 'phone', parent: 'u'})
+          .innerJoin({table: 'users', as: 'u2', mapTo: 'users', parent: 'pn'});
+      }).not.toThrow();
+    });
+
+    it('allows the same table to be nested twice under the same table if the mapTo is unique.', function() {
+      expect(function() {
+        new From(db, escaper, qryExec, {table: 'users', as: 'u'})
+          .innerJoin({table: 'phone_numbers', as: 'pn1', mapTo: 'phone', parent: 'u'})
+          .innerJoin({table: 'phone_numbers', as: 'pn1', mapTo: 'phone2', parent: 'u'});
+      }).not.toThrow();
     });
   });
 

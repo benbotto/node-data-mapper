@@ -58,6 +58,15 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
       // clauses upon.  The key is the fully-qualified column name.
       this._availableCols = new Map();
 
+      // This holds the mapping (mapTo) hierarchy.  The map uses the parent
+      // alias as the key (for top-level tables the parent key is literally
+      // null), and a Set of mapping names (mapTo) as the values.
+      // The same mapping can be used multiple times, but each mapping must be
+      // unique to a parent.  For example, it's valid for a person to have a
+      // "photo" and a building to have a "photo," but there cannot be two
+      // "photo" properties at the top level, nor under person.
+      this._mapHierarchy = new Map();
+
       // Add the FROM table.  
       if (typeof meta === 'string')
         this._addTable({table: meta});
@@ -96,7 +105,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {this}
      */
     _addTable(meta, joinType) {
-      let table, tableAlias, parent, tableMeta;
+      let table, tableAlias, parent, mapTo, tableMeta;
 
       // The table name is required.
       assert(meta.table !== undefined, 'table is required.');
@@ -116,10 +125,23 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
           `Parent table alias ${parent} is not a valid table alias.`);
       }
 
+      // The mapping must be unique to a parent (the parent is null at the top
+      // level, and mappings at the top level must also be unique).
+      mapTo = meta.mapTo || table.mapTo;
+
+      if (!this._mapHierarchy.has(parent))
+        this._mapHierarchy.set(parent, new Set([mapTo]));
+      else {
+        assert(!this._mapHierarchy.get(parent).has(mapTo),
+          `The mapping "${mapTo}" is not unique.`);
+
+        this._mapHierarchy.get(parent).add(mapTo);
+      }
+
       // Add the table to the list of tables.
       tableMeta = {
         tableAlias: tableAlias,
-        mapTo:      meta.mapTo  || table.mapTo,
+        mapTo:      mapTo,
         table:      table,
         cond:       meta.cond   || null,
         joinType:   joinType    || null,
