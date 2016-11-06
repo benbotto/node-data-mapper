@@ -34,42 +34,6 @@ describe('From()', function() {
       const from = new From(db, escaper, qryExec, {table: 'users'});
       expect(from.database).toBe(db);
     });
-
-    it('throws an error if the table alias contains non-word characters.', function() {
-      expect(function() {
-        new From(db, escaper, qryExec, {table: 'users', as: 'users alias'});
-      }).toThrowError('Alises must only contain word characters.');
-
-      expect(function() {
-        new From(db, escaper, qryExec, {table: 'users', as: 'users.alias'});
-      }).toThrowError('Alises must only contain word characters.');
-    });
-  });
-
-  /**
-   * Create fully-qualified column name.
-   */
-  describe('.createFQColName()', function() {
-    it('returns the unescaped name.', function() {
-      const from = new From(db, escaper, qryExec, {table: 'users'});
-      expect(from.createFQColName('users', 'firstName')).toBe('users.firstName');
-    });
-  });
-
-  /**
-   * Is column available.
-   */
-  describe('.isColumnAvailable()', function() {
-    it('returns true when a column is available.', function() {
-      const from = new From(db, escaper, qryExec, {table: 'users'});
-      expect(from.isColumnAvailable('users.firstName')).toBe(true);
-      expect(from.isColumnAvailable('users.lastName')).toBe(true);
-    });
-
-    it('returns false when a column is not available.', function() {
-      const from = new From(db, escaper, qryExec, {table: 'users'});
-      expect(from.isColumnAvailable('users.other')).toBe(false);
-    });
   });
 
   /**
@@ -110,9 +74,22 @@ describe('From()', function() {
   });
 
   /**
+   * Join.
+   * Most tests in innerJoin to save typing.
+   */
+  describe('.join()', function() {
+    it('throws an error if joinType is not provided.', function() {
+      expect(function() {
+        new From(db, escaper, qryExec, {table: 'users', as: 'u'})
+          .join({table: 'phone_numbers', as: 'pn'});
+      }).toThrowError('joinType is required.');
+    });
+  });
+
+  /**
    * Inner join.
    */
-  describe('.innerJoin()', function() {
+  describe('.innerJoin', function() {
     it('allows the table to be aliased.', function() {
       const query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
         .innerJoin({table: 'phone_numbers', as: 'pn'});
@@ -145,51 +122,6 @@ describe('From()', function() {
         new From(db, escaper, qryExec, {table: 'users', as: 'u'})
           .innerJoin({table: 'phone_numbers', as: 'pn', on: {$eq: {'u.INVALID':'pn.userID'}}});
       }).toThrowError('The column alias u.INVALID is not available for an on condition.');
-    });
-
-    it('throws an error if a parent is supplied which does not match a table alias.', function() {
-      expect(function() {
-        new From(db, escaper, qryExec, 'users')
-          .innerJoin({table: 'phone_numbers', as: 'pn', parent: 'BAD_NAME'});
-      }).toThrowError('Parent table alias BAD_NAME is not a valid table alias.');
-    });
-
-    it('throw an error if the mapTo is already used at the top level.', function() {
-      expect(function() {
-        new From(db, escaper, qryExec, {table: 'users', as: 'u1', mapTo: 'users'})
-          .innerJoin({table: 'users', as: 'u2', mapTo: 'users'});
-      }).toThrowError('The mapping "users" is not unique.');
-    });
-
-    it('throw an error if the mapTo is already used for a given parent.', function() {
-      expect(function() {
-        new From(db, escaper, qryExec, {table: 'users', as: 'u1', mapTo: 'users'})
-          .innerJoin({table: 'users', as: 'u2', mapTo: 'users'});
-      }).toThrowError('The mapping "users" is not unique.');
-    });
-
-    it('allows the same mapTo provided the parent is different.', function() {
-      expect(function() {
-        new From(db, escaper, qryExec, {table: 'users', as: 'u'})
-          .innerJoin({table: 'phone_numbers', as: 'pn1', mapTo: 'phone', parent: 'u'})
-          .innerJoin({table: 'phone_numbers', as: 'pn1', mapTo: 'phone', parent: 'u'});
-      }).toThrowError('The mapping "phone" is not unique.');
-    });
-
-    it('allows the same mapTo if one is top-level and one is not.', function() {
-      expect(function() {
-        new From(db, escaper, qryExec, {table: 'users', as: 'u'})
-          .innerJoin({table: 'phone_numbers', as: 'pn', mapTo: 'phone', parent: 'u'})
-          .innerJoin({table: 'users', as: 'u2', mapTo: 'users', parent: 'pn'});
-      }).not.toThrow();
-    });
-
-    it('allows the same table to be nested twice under the same table if the mapTo is unique.', function() {
-      expect(function() {
-        new From(db, escaper, qryExec, {table: 'users', as: 'u'})
-          .innerJoin({table: 'phone_numbers', as: 'pn1', mapTo: 'phone', parent: 'u'})
-          .innerJoin({table: 'phone_numbers', as: 'pn1', mapTo: 'phone2', parent: 'u'});
-      }).not.toThrow();
     });
   });
 
