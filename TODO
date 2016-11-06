@@ -1,28 +1,9 @@
+Get rid of the selectColLookup in Select.  Use a single map instead of a lookup/array combo.
+
 Migrate condition builder to this project.
 
-There's no way to join the same table twice and use the same alias.  Consider this desired document with 'stage' repeated twice:
-
-assignment: {
-  assignmentID: 1
-  item: {
-    itemID: 1,
-    stage: {
-      stageID: 1,
-      name: 'Review
-    }
-  },
-  stage: {
-    stageID: 1,
-    name: 'Review'
-  }
-}
-
-Here the user is assigned to an item and needs to perform an action when the stage is reached, and the item is in a stage.  A good test case for the above may be a pictures table, where a staff member can have a picture, and so can the shop.  Consider:
-
-1) Can't have the same alias for two tables.
-2) Can have the same mapTo twice, but not under the same parent.  Also need to consider the parent's parent.  It's really the entire ancestry that needs to be unique.  Just checking that the mapTo is unique to the parent alias should be sufficient.
-3) The parent must refer to the alias, not the mapping, otherwise if the same mapping appears twice a parent name could be ambiguous.
-4) It would be nice to have a short-hand method for joins: innerJoin('users u');
+Need a short-hand from method: from('users u')
+Need a short-hand method for join: innerJoin('u.phone_numbers pn')
 
 Need to add foreign keys to the tables, and keep a lookup in the database.  Then, by default, joins can use the key to automatically join.  It should work both ways--references and referenced--but be careful of ambiguity.  That is, one table could reference another twice: picture.largeThumb references pictures.pictureID, picture.smallThumb references picture.pictureID.
 
@@ -31,6 +12,7 @@ On insert, children get the new ID from parents.  Foreign keys should be used in
 Implement grunt-jsdoc.
 
 Provide a short-hand end() method on the DataContext and update all the examples/doc.
+
 Make the code work with node-mssql (probably need to fix parameters).
   1) The ConditionCompiler replaces parameters with values.  That can't happen.
   2) As is, the same parameter name can be used in multiple parts of the query with different values (e.g. :name could be used in a WHERE condition and an ON condition).  Moving parameterization responsibility to another class (e.g. a QueryExecuter) would break this.
