@@ -48,6 +48,7 @@ describe('Select()', function() {
     beforeEach(() => Select = insulin.get('ndm_Select'));
 
     it('selects all columns if columns are not explicitly selected.', function() {
+      console.log('----------------------------------------');
       const query = new Select(getFrom('users'), qryExec);
 
       expect(query.toString()).toBe(
@@ -55,6 +56,7 @@ describe('Select()', function() {
         '        `users`.`firstName` AS `users.first`,\n' +
         '        `users`.`lastName` AS `users.last`\n'    +
         'FROM    `users` AS `users`');
+      console.log('----------------------------------------');
     });
 
     it('allows tables to be aliased.', function() {

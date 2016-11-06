@@ -21,10 +21,8 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
 
       this._from = from;
 
-      // These are the columns that the user selected, with a lookup of
-      // fully-qualified column name to column meta.
-      this._selectCols      = [];
-      this._selectColLookup = {};
+      // These are the columns that the user selected, by fully-qualified column name.
+      this._selectCols = new Map();
 
       // The order of the query.
       this._orderBy = [];
@@ -46,12 +44,12 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
      * @return {this}
      */
     select(...cols) {
-      const selTables      = {};
-      const colAliasLookup = {};
+      const selTables  = new Set();
+      const colAliases = new Set();
       let   tblMeta, pkAlias;
 
       // Select may only be performed once on a query.
-      assert(this._selectCols.length === 0,
+      assert(this._selectCols.size === 0,
         'select already performed on query.');
 
       // If no columns are provided, select all.
@@ -90,29 +88,29 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         };
 
         // Each alias must be unique.
-        assert(colAliasLookup[fqColAlias] === undefined,
+        assert(!colAliases.has(fqColAlias),
           `Column alias ${fqColAlias} already selected.`);
-        colAliasLookup[fqColAlias] = true;
+        colAliases.add(fqColAlias);
 
         // Each column can only be selected once.  This is only a constraint because
         // of the way that the primary key is found in execute.  If the primary key
         // of a table was selected twice, there would not be a way to serialize
         // the primary key correctly.
-        assert(this._selectColLookup[fqColName] === undefined,
+        assert(!this._selectCols.has(fqColName),
           `Column ${fqColName} already selected.`);
         
-        // Column is unique - save it in the list of selected columns with a lookup.
-        this._selectCols.push(selColMeta);
-        this._selectColLookup[fqColName] = selColMeta;
+        // Column is unique - save it in the list of selected columns with a
+        // lookup.
+        this._selectCols.set(fqColName, selColMeta);
 
         // Store the list of tables that were selected from.
-        selTables[availColMeta.tableAlias] = true;
+        selTables.add(availColMeta.tableAlias);
       }, this);
 
       // The primary key from each table must be selected.  The serialization
       // needs a way to uniquely identify each object; the primary key is used
       // for this.
-      for (let tblAlias in selTables) {
+      for (let tblAlias of selTables) {
         tblMeta = this._from._tableMetaList.tableMetas.get(tblAlias);
 
         // This is the primary key of the table, which is an array.
@@ -121,7 +119,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
           // <table-alias>.<column-name> format.
           pkAlias = Column.createFQColName(tblMeta.tableAlias, tblMeta.table.primaryKey[i].name);
 
-          assert(this._selectColLookup[pkAlias] !== undefined,
+          assert(this._selectCols.has(pkAlias),
             'If a column is selected from a table, then the primary key ' +
             'from that table must also be selected.  The primary key of table ' +
             tblMeta.tableAlias +
@@ -130,7 +128,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
       }
 
       // The primary key from the from table is also required.
-      assert(selTables[this._from.getFromMeta().tableAlias],
+      assert(selTables.has(this._from.getFromMeta().tableAlias),
         'The primary key of the from table is required.');
 
       return this;
@@ -195,14 +193,15 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
      * @return {string} The SQL representing the select statement.
      */
     toString() {
-      const cols = this._selectCols;
-      let   sql  = 'SELECT  ';
+      let sql = 'SELECT  ';
+      let cols;
 
       // No columns specified.  Get all columns.
-      if (cols.length === 0)
+      if (this._selectCols.size === 0)
         this.selectAll();
 
       // Escape each selected column and add it to the query.
+      cols = Array.from(this._selectCols.values());
       sql += cols.map(function(col) {
         const colName  = this.escaper.escapeProperty(col.column.name);
         const colAlias = this.escaper.escapeProperty(col.fqColAlias);
@@ -242,7 +241,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
       const defer        = deferred();
 
       // No columns specified.  Get all columns.
-      if (this._selectCols.length === 0)
+      if (this._selectCols.size === 0)
         this.selectAll();
 
       // The primary key for each table is needed to create each schema.  Find
@@ -257,7 +256,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         // Create the schema.  In the query, the PK column name will be the fully-qualified
         // column alias.  The serialized property should be the column alias.
         fqColName = Column.createFQColName(tblMeta.tableAlias, pk[0].name);
-        colMeta   = this._selectColLookup[fqColName];
+        colMeta   = this._selectCols.get(fqColName);
 
         // The table might not be included (that is, no columns from the table are
         // selected).

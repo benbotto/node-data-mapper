@@ -1,5 +1,3 @@
-Get rid of the selectColLookup in Select.  Use a single map instead of a lookup/array combo.
-
 Migrate condition builder to this project.
 
 Need a short-hand from method: from('users u')
