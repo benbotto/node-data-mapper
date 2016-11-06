@@ -1,10 +1,12 @@
 'use strict';
 
 require('insulin').factory('ndm_Select',
-  ['deferred', 'ndm_assert', 'ndm_DataMapper', 'ndm_Query', 'ndm_Schema'],
+  ['deferred', 'ndm_assert', 'ndm_DataMapper', 'ndm_Query', 'ndm_Schema',
+  'ndm_Column'],
   ndm_SelectProducer);
 
-function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema) {
+function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
+  Column) {
   /**
    * Represents a SELECT query.
    * @extends Query
@@ -49,7 +51,8 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema) {
       let   tblMeta, pkAlias;
 
       // Select may only be performed once on a query.
-      assert(this._selectCols.length === 0, 'select already performed on query.');
+      assert(this._selectCols.length === 0,
+        'select already performed on query.');
 
       // If no columns are provided, select all.
       if (cols.length === 0)
@@ -65,16 +68,16 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema) {
 
         // Make sure the column is legal for selection.
         fqColName = userSelColMeta.column;
-        assert(this._from.isColumnAvailable(fqColName),
+        assert(this._from._tableMetaList.isColumnAvailable(fqColName),
           `The column name ${fqColName} is not available for selection.  ` +
           `Column names must be fully-qualified (<table-alias>.<column-name>).`);
 
         // Store the necessary meta data about the column selection.
         // This is what's needed for converting the query to a string, and
         // for serialization.
-        availColMeta = this._from._availableCols.get(fqColName);
+        availColMeta = this._from._tableMetaList.availableCols.get(fqColName);
         mapTo        = userSelColMeta.mapTo || availColMeta.column.mapTo;
-        fqColAlias   = this._from.createFQColName(availColMeta.tableAlias, mapTo);
+        fqColAlias   = Column.createFQColName(availColMeta.tableAlias, mapTo);
         convert      = userSelColMeta.convert || availColMeta.column.converter.onRetrieve;
 
         selColMeta =  {
@@ -110,13 +113,13 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema) {
       // needs a way to uniquely identify each object; the primary key is used
       // for this.
       for (let tblAlias in selTables) {
-        tblMeta = this._from._tables.get(tblAlias);
+        tblMeta = this._from._tableMetaList.tableMetas.get(tblAlias);
 
         // This is the primary key of the table, which is an array.
         for (let i = 0; i < tblMeta.table.primaryKey.length; ++i) {
           // This is the alias of the column in the standard
           // <table-alias>.<column-name> format.
-          pkAlias = this._from.createFQColName(tblMeta.tableAlias, tblMeta.table.primaryKey[i].name);
+          pkAlias = Column.createFQColName(tblMeta.tableAlias, tblMeta.table.primaryKey[i].name);
 
           assert(this._selectColLookup[pkAlias] !== undefined,
             'If a column is selected from a table, then the primary key ' +
@@ -127,7 +130,8 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema) {
       }
 
       // The primary key from the from table is also required.
-      assert(selTables[this._from._getFromMeta().tableAlias], 'The primary key of the from table is required.');
+      assert(selTables[this._from.getFromMeta().tableAlias],
+        'The primary key of the from table is required.');
 
       return this;
     }
@@ -140,7 +144,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema) {
      */
     selectAll() {
       const allCols = Array.from(
-        this._from._availableCols.values()).map(col => col.fqColName);
+        this._from._tableMetaList.availableCols.values()).map(col => col.fqColName);
 
       return this.select.apply(this, allCols);
     }
@@ -172,9 +176,9 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema) {
           'dir must be either "ASC" or "DESC."');
 
         // Make sure the column is available for ordering.
-        assert(this._from._availableCols.has(meta.column),
+        assert(this._from._tableMetaList.availableCols.has(meta.column),
           `"${meta.column}" is not available for orderBy.`);
-        col = this._from._availableCols.get(meta.column);
+        col = this._from._tableMetaList.availableCols.get(meta.column);
 
         // The order by is in the format `<table-alias>`.`<column-name>`.
         tblAlias = this.escaper.escapeProperty(col.tableAlias);
@@ -243,7 +247,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema) {
 
       // The primary key for each table is needed to create each schema.  Find
       // each primary key and create the schema.
-      this._from._tables.forEach(function(tblMeta) {
+      this._from._tableMetaList.tableMetas.forEach(function(tblMeta) {
         const pk = tblMeta.table.primaryKey;
         let   fqColName, colMeta, schema;
 
@@ -252,7 +256,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema) {
 
         // Create the schema.  In the query, the PK column name will be the fully-qualified
         // column alias.  The serialized property should be the column alias.
-        fqColName = this._from.createFQColName(tblMeta.tableAlias, pk[0].name);
+        fqColName = Column.createFQColName(tblMeta.tableAlias, pk[0].name);
         colMeta   = this._selectColLookup[fqColName];
 
         // The table might not be included (that is, no columns from the table are
