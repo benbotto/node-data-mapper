@@ -38,5 +38,14 @@ describe('Column()', function() {
       expect(col.converter).toBe(converter);
     });
   });
+
+  /**
+   * Create a fully-qualified column name.
+   */
+  describe('.createFQColName()', function() {
+    it('returns the unescaped name.', function() {
+      expect(Column.createFQColName('users', 'firstName')).toBe('users.firstName');
+    });
+  });
 });
 

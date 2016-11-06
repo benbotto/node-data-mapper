@@ -32,6 +32,17 @@ function ColumnProducer(assert) {
       this.isPrimary = !!this.isPrimary;
       this.converter = this.converter || {};
     }
+
+    /**
+     * Create a fully-qualified column name in the form
+     * &lt;table-alias&gt;.&lt;column-name&gt;.
+     * @param {string} tableAlias - The alias for the table.
+     * @param {string} colName - The column name.
+     * @return {string} The fully-qualified column name, unescaped.
+     */
+    static createFQColName(tableAlias, colName) {
+      return `${tableAlias}.${colName}`;
+    }
   }
 
   return Column;
