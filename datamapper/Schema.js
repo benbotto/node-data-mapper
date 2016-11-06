@@ -99,8 +99,8 @@ function ndm_SchemaProducer(assert) {
      * schema using propertyName.
      * @param {string} propertyName - The name of the sub schema property.
      * @param {Schema} schema - A Schema instance.
-     * @param {string} relationshipType - The type of relationship, either
-     * single (object) or many (array).  Defaults to
+     * @param {Schema.RELATIONSHIP_TYPE} relationshipType - The type of
+     * relationship, either single (object) or many (array).  Defaults to
      * Schema.RELATIONSHIP_TYPE.MANY.
      * @return {this}
      */
@@ -131,6 +131,14 @@ function ndm_SchemaProducer(assert) {
     }
   }
 
+  /**
+   * @typedef Schema.RELATIONSHIP_TYPE
+   * @constant
+   * @static
+   * @type {object}
+   * @property {string} MANY - Map to an array.
+   * @property {string} SINGLE - Map to an object.
+   */
   Schema.RELATIONSHIP_TYPE = {MANY: 'many', SINGLE: 'single'};
 
   return Schema;
