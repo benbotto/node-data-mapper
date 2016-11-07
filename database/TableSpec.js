@@ -4,7 +4,8 @@ describe('Table()', function() {
   const insulin = require('insulin');
   const Table   = insulin.get('ndm_Table');
   const Column  = insulin.get('ndm_Column');
-  const users   = insulin.get('ndm_testDB').tables[0];
+  const testDB  = insulin.get('ndm_testDBSchema');
+  const users   = testDB.tables[0];
 
   let usersTbl;
 
@@ -74,6 +75,23 @@ describe('Table()', function() {
       expect(usersTbl.columns[0].name).toBe('userID');
       expect(usersTbl.columns[1].name).toBe('firstName');
       expect(usersTbl.columns[2].name).toBe('lastName');
+    });
+
+    it('has an empty array of foreign keys by default.', function() {
+      expect(usersTbl.foreignKeys).toEqual([]);
+    });
+
+    it('converts each foreign key definition to a ForeignKey instance.', function() {
+      const phonesTbl  = new Table(testDB.tables[1]);
+      const ForeignKey = insulin.get('ndm_ForeignKey');
+      let   fk;
+
+      expect(phonesTbl.foreignKeys.length).toBe(1);
+      fk = phonesTbl.foreignKeys[0];
+      expect(fk instanceof ForeignKey).toBe(true);
+      expect(fk.column).toBe('userID');
+      expect(fk.references.table).toBe('users');
+      expect(fk.references.column).toBe('userID');
     });
   });
 

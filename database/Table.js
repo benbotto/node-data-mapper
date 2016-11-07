@@ -1,9 +1,10 @@
 'use strict';
 
 require('insulin')
-  .factory('ndm_Table', ['ndm_assert', 'ndm_Column'], ndm_TableProducer);
+  .factory('ndm_Table', ['ndm_assert', 'ndm_Column', 'ndm_ForeignKey'],
+  ndm_TableProducer);
 
-function ndm_TableProducer(assert, Column) {
+function ndm_TableProducer(assert, Column, ForeignKey) {
   /** Represents a database table. */
   class Table {
     /**
@@ -27,16 +28,55 @@ function ndm_TableProducer(assert, Column) {
       // table will be preserved.
       Object.assign(this, table);
 
-      // mapTo defaults to name.
-      this.mapTo = this.mapTo || this.name;
-
       // Objects are used here instead of Maps for efficiency reasons.
       this._nameLookup  = {};
       this._mapToLookup = {};
 
-      // Add all the columns.
-      this.columns    = [];
+      /**
+       * The name of the column.
+       * @type {string}
+       * @name Table#name
+       * @public
+       */
+
+      /**
+       * The property name in the resulting normalized object.
+       * @type {string}
+       * @name Table#mapTo
+       * @default table.name
+       * @public
+       */
+      this.mapTo = this.mapTo || this.name;
+
+      /**
+       * The array of columns.
+       * @type {Column[]}
+       * @name Table#columns
+       * @public
+       */
+      this.columns = [];
+
+      /**
+       * The table's primary key.
+       * @type {Column[]}
+       * @name Table#primaryKey
+       * @public
+       */
       this.primaryKey = [];
+
+      /**
+       * An array of ForeignKey nstances describing the relationship between
+       * this table and others.
+       * @type {ForeignKey[]}
+       * @name Table#foreignKeys
+       * @public
+       */
+      if (!this.foreignKeys)
+        this.foreignKeys = [];
+      else
+        this.foreignKeys = this.foreignKeys.map(fk => new ForeignKey(fk));
+
+      // Add all the columns.
       table.columns.forEach(this.addColumn, this);
 
       // Make sure there is at least one primary key.
