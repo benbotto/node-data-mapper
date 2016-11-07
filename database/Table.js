@@ -14,10 +14,13 @@ function ndm_TableProducer(assert, Column, ForeignKey) {
      * @param {string} [table.mapTo=table.name] - When a resource is pulled from
      * this table and serialized, this mapping will be used in the resulting
      * object.
-     * @param {Column[]} table.columns - An array of Columns--or object suitable
-     * for the Column constructor--that make up the table.  Refer to the Column
-     * constructor for property details.  At least one of the columns must be a
-     * primary key.
+     * @param {Column[]|object[]} table.columns - An array of Columns--or
+     * object suitable for the Column constructor--that make up the table.
+     * Refer to the Column constructor for property details.  At least one of
+     * the columns must be a primary key.
+     * @param {ForeignKey[]|object[]} table.foreignKeys - An array of
+     * ForeignKey instances, or objects suitable for the ForeignKey
+     * constructor.
      */
     constructor(table) {
       assert(table.name, 'name is required.');
@@ -65,7 +68,7 @@ function ndm_TableProducer(assert, Column, ForeignKey) {
       this.primaryKey = [];
 
       /**
-       * An array of ForeignKey nstances describing the relationship between
+       * An array of ForeignKey instances describing the relationship between
        * this table and others.
        * @type {ForeignKey[]}
        * @name Table#foreignKeys
