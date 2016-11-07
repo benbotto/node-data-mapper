@@ -70,9 +70,12 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
           `The column name ${fqColName} is not available for selection.  ` +
           `Column names must be fully-qualified (<table-alias>.<column-name>).`);
 
-        // Store the necessary meta data about the column selection.
+        // Store the necessary metadata about the column selection.
         // This is what's needed for converting the query to a string, and
         // for serialization.
+        // The fully-qualified column alias is formed using the table alias and
+        // the mapping.  This is used to ensure that the mapping is unique
+        // (below), and allows the user to see the mapping in the query.
         availColMeta = this._from._tableMetaList.availableCols.get(fqColName);
         mapTo        = userSelColMeta.mapTo || availColMeta.column.mapTo;
         fqColAlias   = Column.createFQColName(availColMeta.tableAlias, mapTo);
