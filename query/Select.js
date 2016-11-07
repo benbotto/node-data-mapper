@@ -78,7 +78,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         fqColAlias   = Column.createFQColName(availColMeta.tableAlias, mapTo);
         convert      = userSelColMeta.convert || availColMeta.column.converter.onRetrieve;
 
-        selColMeta =  {
+        selColMeta = {
           tableAlias: availColMeta.tableAlias,
           column:     availColMeta.column,
           mapTo:      mapTo,
