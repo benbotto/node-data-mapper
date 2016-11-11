@@ -27,9 +27,16 @@ function ndm_DatabaseProducer(assert, Table) {
       this._nameLookup  = {};
       this._mapToLookup = {};
 
+      /**
+       * An array of Table instances.
+       * @type {Table[]}
+       * @name Database#tables
+       * @public
+       */
+      this.tables = [];
+
       // Ensure that all the tables are Table instances, and that
       // each is uniquely identifiable.
-      this.tables = [];
       if (database.tables)
         database.tables.forEach(this.addTable, this);
     }
