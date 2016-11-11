@@ -3,7 +3,7 @@
 require('insulin').factory('ndm_testDBSchema', ['ndm_bitConverter'],
   ndm_testDBSchemaProducer);
 
-function ndm_testDBSchemaProducer(bitConverter ) {
+function ndm_testDBSchemaProducer(bitConverter) {
   return {
     name: 'testDB',
     tables: [
@@ -42,6 +42,15 @@ function ndm_testDBSchemaProducer(bitConverter ) {
           },
           {
             name: 'type'
+          }
+        ],
+        foreignKeys: [
+          {
+            column: 'userID',
+            references: {
+              table: 'users',
+              column: 'userID'
+            }
           }
         ]
       },
