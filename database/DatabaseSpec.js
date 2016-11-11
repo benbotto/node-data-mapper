@@ -1,15 +1,15 @@
 describe('Database()', function() {
   'use strict';
 
-  const insulin   = require('insulin');
-  const Database  = insulin.get('ndm_Database');
-  const Table     = insulin.get('ndm_Table');
-  const testSchma = insulin.get('ndm_testDBSchema');
+  const insulin    = require('insulin');
+  const Database   = insulin.get('ndm_Database');
+  const Table      = insulin.get('ndm_Table');
+  const testSchema = insulin.get('ndm_testDBSchema');
 
   let db;
 
   beforeEach(function() {
-    db = new Database(testSchma);
+    db = new Database(testSchema);
   });
 
   /**
@@ -29,10 +29,10 @@ describe('Database()', function() {
     });
 
     it('accepts an array of tables.', function() {
-      const db = new Database(testSchma);
+      const db = new Database(testSchema);
 
       expect(db.name).toBe('testDB');
-      expect(db.tables.length).toBe(3);
+      expect(db.tables.length).toBe(testSchema.tables.length);
       expect(db.tables[0].name).toBe('users');
       expect(db.tables[1].name).toBe('phone_numbers');
       expect(db.tables[2].name).toBe('products');
@@ -99,11 +99,11 @@ describe('Database()', function() {
   describe('.addTable()', function() {
     it('prevents duplicate tables from being added.', function() {
       expect(function() {
-        db.addTable(testSchma.tables[0]);
+        db.addTable(testSchema.tables[0]);
       }).toThrowError('Table users already exists in database testDB.');
 
       expect(function() {
-        db.addTable({name: 'foo', mapTo: 'users', columns: testSchma.tables[0].columns});
+        db.addTable({name: 'foo', mapTo: 'users', columns: testSchema.tables[0].columns});
       }).toThrowError('Table mapping users already exists in database testDB.');
     });
 
