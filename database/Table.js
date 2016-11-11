@@ -76,8 +76,11 @@ function ndm_TableProducer(assert, Column, ForeignKey) {
        */
       if (!this.foreignKeys)
         this.foreignKeys = [];
-      else
-        this.foreignKeys = this.foreignKeys.map(fk => new ForeignKey(fk));
+      else {
+        // The table name is added explicitly.
+        this.foreignKeys = this.foreignKeys.map(fk =>
+          new ForeignKey(Object.assign({table: this.name}, fk)));
+      }
 
       // Add all the columns.
       table.columns.forEach(this.addColumn, this);

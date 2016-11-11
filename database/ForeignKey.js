@@ -9,6 +9,7 @@ function ndm_ForeignKeyProducer(assert) {
     /**
      * Initialize the foreign key.
      * @param {object} foreignKey - An object containing a FK definition.
+     * @param {string} foreignKey.table - The name of the owning table.
      * @param {string} foreignKey.column - The name of the column in the owning
      * table.
      * @param {object} foreignKey.references - An object representing the
@@ -19,6 +20,7 @@ function ndm_ForeignKeyProducer(assert) {
      * the referenced table.
      */
     constructor(foreignKey) {
+      assert(foreignKey.table, 'table is required.');
       assert(foreignKey.column, 'column is required.');
       assert(foreignKey.references, 'references is required.');
       assert(foreignKey.references.table, 'Referenced table is required.');

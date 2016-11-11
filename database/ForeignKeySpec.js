@@ -8,33 +8,40 @@ describe('ForeignKey()', function() {
    * Ctor.
    */
   describe('.constructor()', function() {
-    it('throws an error if the column is not present.', function() {
+    it('throws an error if the table is not present.', function() {
       expect(function() {
         new ForeignKey({});
+      }).toThrowError('table is required.');
+    });
+
+    it('throws an error if the column is not present.', function() {
+      expect(function() {
+        new ForeignKey({table: 'users'});
       }).toThrowError('column is required.');
     });
 
     it('throws an error if references is not present.', function() {
       expect(function() {
-        new ForeignKey({column: 'userID'});
+        new ForeignKey({table: 'users', column: 'userID'});
       }).toThrowError('references is required.');
     });
 
     it('throws an error if references.table is not present.', function() {
       expect(function() {
-        new ForeignKey({column: 'userID', references: {}});
+        new ForeignKey({table: 'users', column: 'userID', references: {}});
       }).toThrowError('Referenced table is required.');
     });
 
     it('throws an error if references.column is not present.', function() {
       expect(function() {
-        new ForeignKey({column: 'userID', references: {table: 'users'}});
+        new ForeignKey({table: 'users', column: 'userID', references: {table: 'users'}});
       }).toThrowError('Referenced column is required.');
     });
 
     it('preserves any extra properties.', function() {
       const fk = new ForeignKey({
         name:   'fk_users_userID',
+        table:  'phone_numbers',
         column: 'userID',
         references: {
           table:  'users',
@@ -43,6 +50,7 @@ describe('ForeignKey()', function() {
       });
 
       expect(fk.name).toBe('fk_users_userID'); // extra property.
+      expect(fk.table).toBe('phone_numbers');
       expect(fk.column).toBe('userID');
       expect(fk.references.table).toBe('users');
       expect(fk.references.column).toBe('userID');
