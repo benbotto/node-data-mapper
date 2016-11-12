@@ -15,14 +15,29 @@ function ndm_RelationshipStoreProducer(assert) {
     }
 
     /**
-     * Given an array of Table instances, store all the foreign keys such that
-     * they can be quickly searched.
+     * Given a Database instance, store all the foreign keys such that they can
+     * be quickly searched.
      * @param {Table[]} An array of Table instances, each of which has a
      * foreignKey property set.
      * @return {void}
      */
-    indexTables(tables) {
-      tables.forEach(function(table) {
+    indexRelationships(database) {
+      database.tables.forEach(function(table) {
+        // Make sure that all the relationships are valid (e.g. the reference
+        // valid columns).
+        table.foreignKeys.forEach(function(fk) {
+          assert(table.isColumnName(fk.column),
+            `Foreign key column "${fk.column}" does not exist in table "${table.name}."`);
+
+          assert(database.isTableName(fk.references.table),
+            `Referenced table "${fk.references.table}" does not exist.`);
+
+          assert(database.getTableByName(fk.references.table).isColumnName(fk.references.column),
+            `Referenced column "${fk.references.column}" does not exist in table `+
+            `"${fk.references.table}."`);
+        });
+
+        // Store the foreign keys, indexed by table name.
         this._tables.set(table.name, table.foreignKeys);
       }, this);
     }

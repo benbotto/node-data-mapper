@@ -3,12 +3,50 @@ describe('RelationshipStore()', function() {
 
   const insulin  = require('insulin');
   const RelStore = insulin.get('ndm_RelationshipStore');
-  const testDB   = insulin.get('ndm_testDB');
-  let   relStore;
+  let   relStore, testDB;
 
   beforeEach(function() {
+    testDB   = insulin.get('ndm_testDB');
     relStore = new RelStore();
-    relStore.indexTables(testDB.tables);
+    relStore.indexRelationships(testDB);
+  });
+
+  /**
+   * Index relationships.
+   */
+  describe('.indexRelationships()', function() {
+    const testSchema = insulin.get('ndm_testDBSchema');
+    const Database   = insulin.get('ndm_Database');
+    let   schemaClone;
+
+    beforeEach(function() {
+      schemaClone = JSON.parse(JSON.stringify(testSchema));
+      testDB      = new Database(schemaClone);
+    });
+
+    it('throws an error if a foreign key\'s owning column is invalid.', function() {
+      expect(function() {
+        const prods = testDB.getTableByName('products');
+        prods.foreignKeys[0].column = 'fooID';
+        new Database(testDB);
+      }).toThrowError('Foreign key column "fooID" does not exist in table "products."');
+    });
+
+    it('throws an error if a foreign key references an invalid table.', function() {
+      expect(function() {
+        const prods = testDB.getTableByName('products');
+        prods.foreignKeys[0].references.table = 'widgets';
+        new Database(testDB);
+      }).toThrowError('Referenced table "widgets" does not exist.');
+    });
+
+    it('throws an error if a foreign key references an invalid column.', function() {
+      expect(function() {
+        const prods = testDB.getTableByName('products');
+        prods.foreignKeys[0].references.column = 'widgetID';
+        new Database(testDB);
+      }).toThrowError('Referenced column "widgetID" does not exist in table "photos."');
+    });
   });
 
   /**

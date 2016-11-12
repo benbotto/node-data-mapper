@@ -1,9 +1,9 @@
 'use strict';
 
 require('insulin').factory('ndm_Database',
-  ['ndm_assert', 'ndm_Table'], ndm_DatabaseProducer);
+  ['ndm_assert', 'ndm_Table', 'ndm_RelationshipStore'], ndm_DatabaseProducer);
 
-function ndm_DatabaseProducer(assert, Table) {
+function ndm_DatabaseProducer(assert, Table, RelationshipStore) {
   /** Class for representing a database. */
   class Database {
     /**
@@ -21,12 +21,6 @@ function ndm_DatabaseProducer(assert, Table) {
       // Copy and preserve all properties from the database.
       Object.assign(this, database);
 
-      // Objects are used instead of Maps for performance reasons.  Objects
-      // simply perform faster, especially on gets, and performance is
-      // important here.
-      this._nameLookup  = {};
-      this._mapToLookup = {};
-
       /**
        * An array of Table instances.
        * @type {Table[]}
@@ -35,10 +29,27 @@ function ndm_DatabaseProducer(assert, Table) {
        */
       this.tables = [];
 
+      /**
+       * A RelationshipStore instances that exposes search methods for foreign key relationships.
+       * @type {RelationshipStore}
+       * @name Database#relStore
+       * @public
+       */
+      this.relStore = new RelationshipStore();
+
+      // Objects are used instead of Maps for performance reasons.  Objects
+      // simply perform faster, especially on gets, and performance is
+      // important here.
+      this._nameLookup  = {};
+      this._mapToLookup = {};
+
       // Ensure that all the tables are Table instances, and that
       // each is uniquely identifiable.
       if (database.tables)
         database.tables.forEach(this.addTable, this);
+
+      // Initialize the relationship store.
+      this.relStore.indexRelationships(this);
     }
 
     /**

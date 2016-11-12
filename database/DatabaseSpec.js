@@ -1,12 +1,11 @@
 describe('Database()', function() {
   'use strict';
 
-  const insulin    = require('insulin');
-  const Database   = insulin.get('ndm_Database');
-  const Table      = insulin.get('ndm_Table');
+  const insulin  = require('insulin');
+  const Database = insulin.get('ndm_Database');
+  const Table    = insulin.get('ndm_Table');
   const testSchema = insulin.get('ndm_testDBSchema');
-
-  let db;
+  let   db;
 
   beforeEach(function() {
     db = new Database(testSchema);
@@ -36,6 +35,11 @@ describe('Database()', function() {
       expect(db.tables[0].name).toBe('users');
       expect(db.tables[1].name).toBe('phone_numbers');
       expect(db.tables[2].name).toBe('products');
+    });
+
+    it('keeps a RelationshipStore instance in relStore.', function() {
+      const db = new Database(testSchema);
+      expect(db.relStore).toBeDefined();
     });
   });
 
