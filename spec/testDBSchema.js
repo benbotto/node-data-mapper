@@ -47,6 +47,7 @@ function ndm_testDBSchemaProducer(bitConverter) {
         foreignKeys: [
           {
             column: 'userID',
+            name:   'fk_userID_users_userID',
             references: {
               table: 'users',
               column: 'userID'
@@ -57,9 +58,66 @@ function ndm_testDBSchemaProducer(bitConverter) {
       {
         name: 'products',
         columns: [
-          {name: 'productID', isPrimary: true},
-          {name: 'description'},
-          {name: 'isActive', converter: bitConverter}
+          {
+            name: 'productID',
+            isPrimary: true
+          },
+          {
+            name: 'description'
+          },
+          {
+            name: 'isActive',
+            converter: bitConverter
+          },
+          {
+            name: 'photoID'
+          }
+        ],
+        foreignKeys: [
+          {
+            column: 'photoID',
+            name: 'fk_photoID_photos_photoID',
+            references: {
+              table: 'photos',
+              column: 'photoID'
+            }
+          }
+        ]
+      },
+      {
+        name: 'photos',
+        columns: [
+          {
+            name: 'photoID',
+            isPrimary: true
+          },
+          {
+            name: 'photoURL'
+          },
+          {
+            name: 'largeThumbnailID'
+          },
+          {
+            name: 'smallThumbnailID'
+          },
+        ],
+        foreignKeys: [
+          {
+            column: 'largeThumbnailID',
+            name: 'fk_largeThumbnailID_photos_photoID',
+            references: {
+              table: 'photos',
+              column: 'photoID'
+            }
+          },
+          {
+            column: 'smallThumbnailID',
+            name: 'fk_smallThumbnailID_photos_photoID',
+            references: {
+              table: 'photos',
+              column: 'photoID'
+            }
+          }
         ]
       }
     ]
