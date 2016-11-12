@@ -120,18 +120,18 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         for (let i = 0; i < tblMeta.table.primaryKey.length; ++i) {
           // This is the alias of the column in the standard
           // <table-alias>.<column-name> format.
-          pkAlias = Column.createFQColName(tblMeta.tableAlias, tblMeta.table.primaryKey[i].name);
+          pkAlias = Column.createFQColName(tblMeta.as, tblMeta.table.primaryKey[i].name);
 
           assert(this._selectCols.has(pkAlias),
             'If a column is selected from a table, then the primary key ' +
             'from that table must also be selected.  The primary key of table ' +
-            tblMeta.tableAlias +
+            tblMeta.as +
             ' is not present in the array of selected columns.');
         }
       }
 
       // The primary key from the from table is also required.
-      assert(selTables.has(this._from.getFromMeta().tableAlias),
+      assert(selTables.has(this._from.getFromMeta().as),
         'The primary key of the from table is required.');
 
       return this;
@@ -258,7 +258,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
 
         // Create the schema.  In the query, the PK column name will be the fully-qualified
         // column alias.  The serialized property should be the column alias.
-        fqColName = Column.createFQColName(tblMeta.tableAlias, pk[0].name);
+        fqColName = Column.createFQColName(tblMeta.as, pk[0].name);
         colMeta   = this._selectCols.get(fqColName);
 
         // The table might not be included (that is, no columns from the table are
@@ -267,7 +267,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
           schema = new Schema(colMeta.fqColAlias, colMeta.mapTo, colMeta.convert);
 
           // Keep a lookup of table alias->schema.
-          schemaLookup[tblMeta.tableAlias] = schema;
+          schemaLookup[tblMeta.as] = schema;
           
           // If this table has no parent then the schema is top level.  Else
           // this is a sub schema, and the parent is guaranteed to be present in
