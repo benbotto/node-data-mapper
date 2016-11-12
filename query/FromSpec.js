@@ -37,6 +37,49 @@ describe('From()', function() {
   });
 
   /**
+   * Parse from string.
+   */
+  describe('.parseFromString()', function() {
+    it('can be used with only a table name.', function() {
+      const meta = From.parseFromString('users');
+
+      expect(meta.table).toBe('users');
+      expect(meta.as).toBe('users');
+    });
+
+    it('can be used with a table and an alias.', function() {
+      const meta = From.parseFromString('users u');
+
+      expect(meta.table).toBe('users');
+      expect(meta.as).toBe('u');
+    });
+
+    it('allows "as" to be provided optionally.', function() {
+      const meta = From.parseFromString('users as u');
+      expect(meta.table).toBe('users');
+      expect(meta.as).toBe('u');
+    });
+
+    it('ignores the case of "AS."', function() {
+      const meta = From.parseFromString('users AS u');
+      expect(meta.table).toBe('users');
+      expect(meta.as).toBe('u');
+    });
+
+    it('ignores excess whitespace.', function() {
+      const meta = From.parseFromString('users    AS     u');
+      expect(meta.table).toBe('users');
+      expect(meta.as).toBe('u');
+    });
+
+    it('throws an error if the from string is invalid.', function() {
+      expect(function() {
+        From.parseFromString('not a valid');
+      }).toThrowError('From must be in the format: <table-name>[ [as ]<table-alias>].');
+    });
+  });
+
+  /**
    * Where.
    */
   describe('.where()', function() {

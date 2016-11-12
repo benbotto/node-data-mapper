@@ -49,6 +49,29 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     }
 
     /**
+     * Parse the string fromStr and return a table meta object.
+     * @param {string} fromStr - A from string, in the format
+     * &lt;table-name&gt;[ [as ]&lt;table-alias&gt;].  For example, any of
+     * these is valid: 'users'; 'users u'; 'users as u'; 'users AS u'.
+     * @return {TableMetaList~TableMeta} A meta object that has table and as
+     * set.
+     */
+    static parseFromString(fromStr) {
+      let matches, table, as;
+
+      if ((matches = fromStr.match(/^(\w+)\s+(\w+)$/)))
+        [, table, as] = matches;
+      else if ((matches = fromStr.match(/^\w+$/)))
+        table = as = fromStr;
+      else if ((matches = fromStr.match(/^(\w+)\s+(?:as|AS)\s+(\w+)$/)))
+        [, table, as] = matches;
+      else
+        throw new Error('From must be in the format: <table-name>[ [as ]<table-alias>].');
+
+      return {table, as};
+    }
+
+    /**
      * Helper method to get the meta data of the FROM table, which is the first
      * table in the _tables map.
      * @protected
