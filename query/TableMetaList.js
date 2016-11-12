@@ -10,7 +10,7 @@ function ndm_TableMetaListProducer(assert, Column, Schema) {
     /**
      * @typedef TableMetaList~TableMeta
      * @type {object}
-     * @property {string} table - The name of the table.
+     * @property {string} table - The name of the table, or a Table instance.
      * @property {string} [as=Table.name] - An alias for the table.  This is
      * needed if, for example, the same table is joined in multiple times.  If
      * not provided
@@ -102,7 +102,11 @@ function ndm_TableMetaListProducer(assert, Column, Schema) {
       assert(meta.table !== undefined, 'table is required.');
 
       // Pull the table and set up the alias.
-      table      = this.database.getTableByName(meta.table);
+      if (typeof meta.table === 'string')
+        table = this.database.getTableByName(meta.table);
+      else
+        table = meta.table;
+
       tableAlias = meta.as || table.name;
 
       // Aliases must be word characters.  They can't, for example, contain
@@ -135,13 +139,13 @@ function ndm_TableMetaListProducer(assert, Column, Schema) {
 
       // Add the table to the list of tables.
       tableMeta = {
-        tableAlias: tableAlias,
-        mapTo:      mapTo,
-        table:      table,
-        cond:       meta.cond     || null,
-        joinType:   meta.joinType || null,
-        parent:     meta.parent   || null,
-        relType:    meta.relType  || Schema.RELATIONSHIP_TYPE.MANY
+        table:    table,
+        as:       tableAlias,
+        mapTo:    mapTo,
+        cond:     meta.cond     || null,
+        parent:   meta.parent   || null,
+        relType:  meta.relType  || Schema.RELATIONSHIP_TYPE.MANY,
+        joinType: meta.joinType || null
       };
 
       this.tableMetas.set(tableAlias, tableMeta);

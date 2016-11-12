@@ -138,6 +138,12 @@ describe('TableMetaList()', function() {
         expect(tables.tableMetas.get('users').table instanceof Table).toBe(true);
       });
 
+      it('can accept a Table instance when adding a meta.', function() {
+        const users = db.getTableByName('users');
+        tables.addTable({table: users});
+        expect(tables.tableMetas.get('users').table.name).toBe('users');
+      });
+
       it('sets the cond to null if not provided.', function() {
         tables.addTable({table: 'users'});
         expect(tables.tableMetas.get('users').cond).toBeNull();
