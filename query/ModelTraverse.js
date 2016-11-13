@@ -1,127 +1,130 @@
 'use strict';
 
-/**
- * Traverse model (either an object or an array) using a depth-first traversal.
- * @param callback A function(meta) to be invoked with each object within
- *        the model.  Meta will have three properties: tableAlias, model, and
- *        parent.
- * @param database An optional Database instance.  If passed, the callback
- *        will only be called if a key in the model corresponds to a table
- *        alias.
- * @param val The object or array to traverse.
- * @param key The key associated with the object/array.
- * @param parent The parent of the current val.
- */
-function _depthFirst(callback, database, val, key, parent)
-{
-  if (val instanceof Array)
-  {
-    // Each element in the array could be a sub model.  The key for each
-    // array element is the name of the array property in the object.
-    for (var i = 0; i < val.length; ++i)
-      _depthFirst(callback, database, val[i], key, parent);
-  }
-  else if (val instanceof Object)
-  {
-    var nextParent = key && (!database || database.isTableAlias(key)) ? val : null;
+require('insulin').factory('ndm_ModelTraverse', ndm_modelTraverseProducer);
 
-    // Each property in the object could be a sub model.  Traverse each.
-    for (var nKey in val)
-      _depthFirst(callback, database, val[nKey], nKey, nextParent);
+function ndm_modelTraverseProducer() {
+  /** A class that has helper methods for traversing a database model. */
+  class ModelTraverse {
 
-    // Don't fire the callback unless key is defined (if it is undefined it is
-    // the top-level object).
-    if (key && (!database || database.isTableAlias(key)))
-      callback({tableAlias: key, model: val, parent: parent || null});
+    /**
+     * @typedef ModelTraverse~ModelMeta
+     * @type {object}
+     * @property {string} tableMapping - The mapping (mapTo) of the table with
+     * which the model is associated.
+     * @property {object} model - The model itself.
+     * @property {object} parent - The model's parent, or null if the model has
+     * no parent.
+     */
+
+    /**
+     * A callback prototype that is called upon each iteration of a model.
+     * @callback ModelTraverse~modelMetaCallback
+     * @param {ModelTraverse~ModelMeta} meta - A ModelTraverse~ModelMeta
+     * instance describing the current model.
+     */
+
+    /**
+     * Traverse the keys in model.
+     * @param {object|object[]} model - The object or array to traverse.
+     * @param {ModelTraverse~modelMetaCallback} callback - A function that
+     * shall be invoked with for each sub-model within model.
+     * @param {Database} database - An optional Database instance.  If passed,
+     * the callback will only be called if a key in the model corresponds to a
+     * table mapping.
+     */
+    modelOnly(model, callback, database) {
+      for (let tableMapping in model) {
+        const modelParts = (model[tableMapping] instanceof Array) ?
+          model[tableMapping] : [model[tableMapping]];
+
+        for (let i = 0; i < modelParts.length; ++i) {
+          if (!database || database.isTableMapping(tableMapping))
+            callback({tableMapping: tableMapping, model: modelParts[i], parent: null});
+        }
+      }
+    }
+
+    /**
+     * Traverse model (either an object or an array) using a depth-first traversal.
+     * @param {object|object[]} model - The object or array to traverse.
+     * @param {ModelTraverse~modelMetaCallback} callback - A function that
+     * shall be invoked with for each sub-model within model.
+     * @param {Database} database - An optional Database instance.  If passed,
+     * the callback will only be called if a key in the model corresponds to a
+     * table mapping.
+     */
+    depthFirst(model, callback, database) {
+      // Private helper function to recurse through the model.
+      (function _depthFirst(model, callback, database, tableMapping=null, parent=null) {
+        if (model instanceof Array) {
+          // Each element in the array could be a sub-model.  The key for each
+          // array element (the table mapping) is the name of the property in
+          // the model.
+          for (let i = 0; i < model.length; ++i)
+            _depthFirst(model[i], callback, database, tableMapping, parent);
+        }
+        else if (model instanceof Object) {
+          const nextParent =
+            tableMapping && (!database || database.isTableMapping(tableMapping)) ?
+            model : null;
+
+          // Each property in the object could be a sub model.  Traverse each.
+          for (let modelProp in model)
+            _depthFirst(model[modelProp], callback, database, modelProp, nextParent);
+
+          // Don't fire the callback unless mapping is defined (if it is
+          // undefined it is the top-level object).
+          if (tableMapping && (!database || database.isTableMapping(tableMapping)))
+            callback({tableMapping, model, parent});
+        }
+      })(model, callback, database);
+    }
+
+    /**
+     * Traverse model (either an object or an array) using a breadth-first traversal.
+     * @param {object|object[]} model - The object or array to traverse.
+     * @param {ModelTraverse~modelMetaCallback} callback - A function that
+     * shall be invoked with for each sub-model within model.
+     * @param {Database} database - An optional Database instance.  If passed,
+     * the callback will only be called if a key in the model corresponds to a
+     * table mapping.
+     */
+    breadthFirst(model, callback, database) {
+      const queue = [{tableMapping: null, model: model, parent: null}];
+
+      while (queue.length !== 0) {
+        const item = queue.shift();
+
+        if (item.model instanceof Array) {
+          // If there is a database instance, parent is only set if it is
+          // a valid table alias.
+          const parent =
+            (!database || item.parent && database.isTableMapping(item.parent.tableMapping)) ?
+            item.parent : null;
+
+          // Each element in the array could be a sub model.  The key for each
+          // array element is the name of the array property in the object.
+          for (let i = 0; i < item.model.length; ++i)
+            queue.push({tableMapping: item.tableMapping, model: item.model[i], parent: parent});
+        }
+        else if (item.model instanceof Object) {
+          const parent =
+            (!database || database.isTableMapping(item.tableMapping)) ?
+            item : null;
+
+          // Each property in the object could be a sub model.  Queue each.
+          for (let modelProp in item.model)
+            queue.push({tableMapping: modelProp, model: item.model[modelProp], parent: parent});
+
+          // Don't fire the callback unless key is non-null (if it is null it is
+          // the top-level object).
+          if (item.tableMapping && (!database || database.isTableMapping(item.tableMapping)))
+            callback(item);
+        }
+      }
+    }
   }
+
+  return ModelTraverse;
 }
-
-module.exports =
-{
-  /**
-   * Traverse the keys in model.
-   * @param model The object or array to traverse.
-   * @param callback A function(key, val) to be invoked with each object within
-   *        the model.
-   * @param database An optional Database instance.  If passed, the callback
-   *        will only be called if a key in the model corresponds to a table
-   *        alias.
-   */
-  modelOnly: function(model, callback, database)
-  {
-    var modelParts;
-
-    for (var tblAlias in model)
-    {
-      modelParts = (model[tblAlias] instanceof Array) ? model[tblAlias] : [model[tblAlias]];
-
-      for (var i = 0; i < modelParts.length; ++i)
-      {
-        if (!database || database.isTableAlias(tblAlias))
-          callback({tableAlias: tblAlias, model: modelParts[i], parent: null});
-      }
-    }
-  },
-
-  /**
-   * Traverse model (either an object or an array) using a depth-first traversal.
-   * @param model The object or array to traverse.
-   * @param callback A function(meta) to be invoked with each object within
-   *        the model.  Meta will have three properties: tableAlias, model, and
-   *        parent.
-   * @param database An optional Database instance.  If passed, the callback
-   *        will only be called if a key in the model corresponds to a table
-   *        alias.
-   */
-  depthFirst: function(model, callback, database)
-  {
-    _depthFirst(callback, database, model);
-  },
-
-  /**
-   * Traverse model (either an object or an array) using a breadth-first traversal.
-   * @param model The object or array to traverse.
-   * @param callback A function(meta) to be invoked with each object within
-   *        the model.  Meta will have three properties: tableAlias, model, and
-   *        parent.
-   * @param database An optional Database instance.  If passed, the callback
-   *        will only be called if a key in the model corresponds to a table
-   *        alias.
-   */
-  breadthFirst: function(model, callback, database)
-  {
-    var queue = [{tableAlias: null, model: model, parent: null}];
-    var parent;
-
-    while (queue.length !== 0)
-    {
-      var item = queue.shift();
-
-      if (item.model instanceof Array)
-      {
-        // If there is a database instance, parent is only set if it is
-        // a valid table alias.
-        parent = (!database || item.parent && database.isTableAlias(item.parent.tableAlias)) ? item.parent : null;
-
-        // Each element in the array could be a sub model.  The key for each
-        // array element is the name of the array property in the object.
-        for (var i = 0; i < item.model.length; ++i)
-          queue.push({tableAlias: item.tableAlias, model: item.model[i], parent: item.parent});
-      }
-      else if (item.model instanceof Object)
-      {
-        parent = (!database || database.isTableAlias(item.tableAlias)) ? item : null;
-
-        // Each property in the object could be a sub model.  Queue each.
-        for (var nKey in item.model)
-          queue.push({tableAlias: nKey, model: item.model[nKey], parent: parent});
-
-        // Don't fire the callback unless key is non-null (if it is null it is
-        // the top-level object).
-        if (item.tableAlias && (!database || database.isTableAlias(item.tableAlias)))
-          callback(item);
-      }
-    }
-  }
-};
 
