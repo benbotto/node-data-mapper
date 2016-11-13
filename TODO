@@ -1,10 +1,5 @@
 Migrate condition builder to this project.
 
-Need a short-hand from method: from('users u')
-Need a short-hand method for join: innerJoin('u.phone_numbers pn')
-
-Need to add foreign keys to the tables, and keep a lookup in the database.  Then, by default, joins can use the key to automatically join.  It should work both ways--references and referenced--but be careful of ambiguity.  That is, one table could reference another twice: picture.largeThumb references pictures.pictureID, picture.smallThumb references picture.pictureID.
-
 On insert, children get the new ID from parents.  Foreign keys should be used instead as it's better than name matching.  Also, foreign keys could be used to dictate insertion order (e.g. parent first or child first depends on which way the key goes).
 
 Implement grunt-jsdoc.

@@ -40,42 +40,124 @@ describe('From()', function() {
    * Parse from string.
    */
   describe('.parseFromString()', function() {
-    it('can be used with only a table name.', function() {
-      const meta = From.parseFromString('users');
+    let from;
 
+    beforeEach(() => from = new From(db, escaper, qryExec, {table: 'users'}));
+
+    it('can be used without an alias.', function() {
+      const meta = from.parseFromString('users');
       expect(meta.table).toBe('users');
       expect(meta.as).toBe('users');
     });
 
     it('can be used with a table and an alias.', function() {
-      const meta = From.parseFromString('users u');
-
+      const meta = from.parseFromString('users u');
       expect(meta.table).toBe('users');
       expect(meta.as).toBe('u');
     });
 
     it('allows "as" to be provided optionally.', function() {
-      const meta = From.parseFromString('users as u');
+      const meta = from.parseFromString('users as u');
       expect(meta.table).toBe('users');
       expect(meta.as).toBe('u');
     });
 
     it('ignores the case of "AS."', function() {
-      const meta = From.parseFromString('users AS u');
+      const meta = from.parseFromString('users AS u');
       expect(meta.table).toBe('users');
       expect(meta.as).toBe('u');
     });
 
     it('ignores excess whitespace.', function() {
-      const meta = From.parseFromString('users    AS     u');
+      const meta = from.parseFromString('users    AS     u');
       expect(meta.table).toBe('users');
       expect(meta.as).toBe('u');
     });
 
     it('throws an error if the from string is invalid.', function() {
       expect(function() {
-        From.parseFromString('not a valid');
+        from.parseFromString('not a valid');
       }).toThrowError('From must be in the format: <table-name>[ [as ]<table-alias>].');
+    });
+  });
+
+  /**
+   * Parse join string.
+   */
+  describe('.parseJoinString()', function() {
+    let from;
+
+    beforeEach(() => from = new From(db, escaper, qryExec, {table: 'users', as: 'u'}));
+
+    it('can be used with a parent and without an alias.', function() {
+      const meta = from.parseJoinString('u.phone_numbers');
+      expect(meta.parent).toBe('u');
+      expect(meta.table).toBe('phone_numbers');
+      expect(meta.as).toBe('phone_numbers');
+      expect(meta.relType).toBe('many');
+      expect(meta.cond).toEqual({$eq: {'u.userID': 'phone_numbers.userID'}});
+    });
+
+    it('can be used with a parent, a table, and an alias.', function() {
+      const meta = from.parseJoinString('u.phone_numbers pn');
+      expect(meta.parent).toBe('u');
+      expect(meta.table).toBe('phone_numbers');
+      expect(meta.as).toBe('pn');
+      expect(meta.relType).toBe('many');
+      expect(meta.cond).toEqual({$eq: {'u.userID': 'pn.userID'}});
+    });
+
+    it('can be used without a parent or an alias.', function() {
+      const meta = from.parseJoinString('phone_numbers');
+      expect(meta.parent).not.toBeDefined();
+      expect(meta.table).toBe('phone_numbers');
+      expect(meta.as).toBe('phone_numbers');
+      expect(meta.relType).not.toBeDefined();
+      expect(meta.cond).not.toBeDefined();
+    });
+
+    it('can be used without a parent and with an alias.', function() {
+      const meta = from.parseJoinString('phone_numbers pn');
+      expect(meta.parent).not.toBeDefined();
+      expect(meta.table).toBe('phone_numbers');
+      expect(meta.as).toBe('pn');
+      expect(meta.relType).not.toBeDefined();
+    });
+
+    it('sets the relType to single if the child owns the foreign key.', function() {
+      const from = new From(db, escaper, qryExec, {table: 'phone_numbers', as: 'pn'});
+      const meta = from.parseJoinString('pn.users u');
+
+      expect(meta.parent).toBe('pn');
+      expect(meta.table).toBe('users');
+      expect(meta.as).toBe('u');
+      expect(meta.relType).toBe('single');
+      expect(meta.cond).toEqual({$eq: {'pn.userID': 'u.userID'}});
+    });
+
+    it('throws an error if the joinStr is invalid.', function() {
+      expect(function() {
+        from.parseJoinString('not a valid');
+      }).toThrowError('Join must be in the format: ' +
+        '[<parent-table-alias>.]<table-name>[ [as ]<table-alias>].');
+    });
+
+    it('throws an error if there is not exactly 1 relationship between parent and child.',
+      function() {
+
+      expect(function() {
+        // 2 relationships.
+        const from = new From(db, escaper, qryExec, {table: 'photos', as: 'p'});
+        from.parseJoinString('p.photos thumb');
+      }).toThrowError('Automatic joins can only be performed if there is ' +
+        'exactly one relationship between the parent and child tables.');
+
+      expect(function() {
+        // 0 relationships.
+        const from = new From(db, escaper, qryExec, {table: 'users', as: 'u'});
+        from.parseJoinString('u.products p');
+      }).toThrowError('Automatic joins can only be performed if there is ' +
+        'exactly one relationship between the parent and child tables.');
     });
   });
 
@@ -166,6 +248,15 @@ describe('From()', function() {
           .innerJoin({table: 'phone_numbers', as: 'pn', on: {$eq: {'u.INVALID':'pn.userID'}}});
       }).toThrowError('The column alias u.INVALID is not available for an on condition.');
     });
+
+    it('allows tables to be joined automatically.', function() {
+      const query = new From(db, escaper, qryExec, 'users u')
+        .innerJoin('u.phone_numbers pn');
+
+      expect(query.toString()).toBe(
+        'FROM    `users` AS `u`\n' +
+        'INNER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`');
+    });
   });
 
   /**
@@ -182,6 +273,15 @@ describe('From()', function() {
         'LEFT OUTER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`\n' +
         'WHERE   `pn`.`phoneNumberID` IS NULL');
     });
+
+    it('allows tables to be joined automatically.', function() {
+      const query = new From(db, escaper, qryExec, 'users u')
+        .leftOuterJoin('u.phone_numbers pn');
+
+      expect(query.toString()).toBe(
+        'FROM    `users` AS `u`\n' +
+        'LEFT OUTER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`');
+    });
   });
 
   /**
@@ -195,6 +295,15 @@ describe('From()', function() {
       expect(query.toString()).toBe(
         'FROM    `users` AS `u`\n' +
         'RIGHT OUTER JOIN `phone_numbers` AS `pn` ON (`u`.`userID` = `pn`.`userID` AND `pn`.`type` = \'mobile\')');
+    });
+
+    it('allows tables to be joined automatically.', function() {
+      const query = new From(db, escaper, qryExec, 'users u')
+        .rightOuterJoin('u.phone_numbers pn');
+
+      expect(query.toString()).toBe(
+        'FROM    `users` AS `u`\n' +
+        'RIGHT OUTER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`');
     });
   });
 });

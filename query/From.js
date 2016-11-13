@@ -2,11 +2,11 @@
 
 require('insulin').factory('ndm_From',
   ['ndm_assert', 'ndm_ConditionLexer', 'ndm_ConditionParser',
-  'ndm_ConditionCompiler', 'ndm_Query', 'ndm_TableMetaList'],
+  'ndm_ConditionCompiler', 'ndm_Query', 'ndm_TableMetaList', 'ndm_Column'],
   ndm_FromProducer);
 
 function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
-  ConditionCompiler, Query, TableMetaList) {
+  ConditionCompiler, Query, TableMetaList, Column) {
 
   /**
    * A From can be used to create a SELECT, DELETE, or UPDATE query.
@@ -43,7 +43,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
 
       // Add the FROM table.  
       if (typeof meta === 'string')
-        this._tableMetaList.addTable({table: meta});
+        this._tableMetaList.addTable(this.parseFromString(meta));
       else
         this._tableMetaList.addTable(meta);
     }
@@ -53,22 +53,102 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @param {string} fromStr - A from string, in the format
      * &lt;table-name&gt;[ [as ]&lt;table-alias&gt;].  For example, any of
      * these is valid: 'users'; 'users u'; 'users as u'; 'users AS u'.
-     * @return {TableMetaList~TableMeta} A meta object that has table and as
-     * set.
+     * @return {TableMetaList~TableMeta} A meta object that has "table" and
+     * "as" set.
      */
-    static parseFromString(fromStr) {
+    parseFromString(fromStr) {
       let matches, table, as;
 
+      // table t.
       if ((matches = fromStr.match(/^(\w+)\s+(\w+)$/)))
         [, table, as] = matches;
+      // table
       else if ((matches = fromStr.match(/^\w+$/)))
         table = as = fromStr;
+      // table as t
       else if ((matches = fromStr.match(/^(\w+)\s+(?:as|AS)\s+(\w+)$/)))
         [, table, as] = matches;
       else
         throw new Error('From must be in the format: <table-name>[ [as ]<table-alias>].');
 
       return {table, as};
+    }
+
+    /**
+     * Parse the string joinStr and return a table meta object.
+     *
+     * If a parent alias is provided, there must be exactly 1 relationship
+     * between the parent table and the child table, or an exception shall be
+     * raised.
+     *
+     * If the parent table owns the primary key, the relType will be single
+     * (e.g. it is a many-to-one relationship).
+     *
+     * If the child table owns the primary key, the relType will be many (it is
+     * a one-to-many relationship).
+     *
+     * @param {string} joinStr - A join string, in the format
+     * [&lt;parent-table-alias&gt;.]&lt;table-name&gt;[ [as ]&lt;table-alias&gt;].
+     * For example, any of these is valid (assuming 'u' is a valid parent table
+     * alias): 'u.phone_numbers'; 'u.phone_numbers pn'; 'u.phone_numbers as pn';
+     * 'u.phone_numbers AS pn'; 'phone_numbers'; 'phone_numbers pn';
+     * 'phone_numbers as pn'; 'phone_numbers AS pn'.
+     * @return {TableMetaList~TableMeta} A meta object that has at least
+     * "table" and "as" set. "parent", "relType" and "cond" will also be set if
+     * a parent table alias is provided.
+     */
+    parseJoinString(joinStr) {
+      const parentRE = /^(\w+)\./;
+
+      let matches, parent, meta;
+
+      // Check for a parent.
+      if ((matches = joinStr.match(parentRE))) {
+        [, parent] = matches;
+        joinStr = joinStr.replace(parentRE, '');
+      }
+
+      // Without a parent, the remaining string is the same as a from string.
+      try {
+        meta = this.parseFromString(joinStr);
+      }
+      catch (ex) { // jshint:ignore line
+        // The error is customized.
+        throw new Error('Join must be in the format: ' +
+          '[<parent-table-alias>.]<table-name>[ [as ]<table-alias>].');
+      }
+
+      // If there is a parent alias provided, figoure out how to join the two
+      // tables.
+      if (parent) {
+        const parTblMeta = this._tableMetaList.tableMetas.get(parent);
+        const parTblName = parTblMeta.table.name;
+        const fks        = this.database.relStore.getRelationships(
+          meta.table, parTblName);
+        let   parCol, childCol;
+
+        assert(fks.length === 1,
+          'Automatic joins can only be performed if there is exactly one '+
+          'relationship between the parent and child tables.');
+
+        if (fks[0].table === parTblName) {
+          // Parent owns the foreign key.
+          parCol       = Column.createFQColName(parent,  fks[0].column);
+          childCol     = Column.createFQColName(meta.as, fks[0].references.column);
+          meta.relType = 'single';
+        }
+        else {
+          // Child owns the foreign key.
+          parCol       = Column.createFQColName(parent,  fks[0].references.column);
+          childCol     = Column.createFQColName(meta.as, fks[0].column);
+          meta.relType = 'many';
+        }
+
+        meta.cond   = {$eq: {[parCol]: childCol}};
+        meta.parent = parent;
+      }
+
+      return meta;
     }
 
     /**
@@ -129,14 +209,18 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {this}
      */
     join(meta, params) {
+      // "on" is a convenience alias for "cond", as "on" is more intuitive when
+      // joining tables.
+      const on = meta.on || meta.cond;
+
       let tokens, tree;
 
       // The joinType is required.
       assert(meta.joinType, 'joinType is required.');
 
-      if (meta.on) {
+      if (on) {
         // Lex, parse, and compile the condition.
-        tokens    = this._condLexer.parse(meta.on);
+        tokens    = this._condLexer.parse(on);
         tree      = this._condParser.parse(tokens);
         meta.cond = this._condCompiler.compile(tree, params);
       }
@@ -146,7 +230,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
 
       // Make sure that each column used in the join is available (e.g. belongs to
       // one of the tables in the query).
-      if (meta.on) {
+      if (on) {
         this._condCompiler.getColumns(tree).forEach(function(col) {
           assert(this._tableMetaList.isColumnAvailable(col),
             `The column alias ${col} is not available for an on condition.`);
@@ -164,6 +248,9 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {this}
      */
     innerJoin(meta, params) {
+      if (typeof meta === 'string')
+        meta = this.parseJoinString(meta);
+
       meta.joinType = From.JOIN_TYPE.INNER;
       return this.join(meta, params);
     }
@@ -176,6 +263,9 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {this}
      */
     leftOuterJoin(meta, params) {
+      if (typeof meta === 'string')
+        meta = this.parseJoinString(meta);
+
       meta.joinType = From.JOIN_TYPE.LEFT_OUTER;
       return this.join(meta, params);
     }
@@ -188,6 +278,9 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {this}
      */
     rightOuterJoin(meta, params) {
+      if (typeof meta === 'string')
+        meta = this.parseJoinString(meta);
+
       meta.joinType = From.JOIN_TYPE.RIGHT_OUTER;
       return this.join(meta, params);
     }
@@ -200,7 +293,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     getFromString() {
       const fromMeta  = this.getFromMeta();
       const fromName  = this.escaper.escapeProperty(fromMeta.table.name);
-      const fromAlias = this.escaper.escapeProperty(fromMeta.tableAlias);
+      const fromAlias = this.escaper.escapeProperty(fromMeta.as);
 
       return `FROM    ${fromName} AS ${fromAlias}`;
     }
@@ -216,7 +309,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
       // next() call on the table iterator.
       this.getJoinMeta().forEach(function(tblMeta) {
         const joinName  = this.escaper.escapeProperty(tblMeta.table.name);
-        const joinAlias = this.escaper.escapeProperty(tblMeta.tableAlias);
+        const joinAlias = this.escaper.escapeProperty(tblMeta.as);
         let   sql       = `${tblMeta.joinType} ${joinName} AS ${joinAlias}`;
         
         if (tblMeta.cond)
