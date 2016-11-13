@@ -241,6 +241,22 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     }
 
     /**
+     * Private helper method for joins.
+     * @private.
+     * @param {TableMetaList~TableMeta} meta - The table metadata.
+     * @param {object} params - An object of key-value pairs that are used to
+     * replace parameters in the query.
+     * @param {From.JOIN_TYPE} joinType - The type of join.
+     * @return {this}
+     */
+    _join(meta, params, joinType) {
+      if (typeof meta === 'string')
+        meta = this.parseJoinString(meta);
+      meta.joinType = joinType;
+      return this.join(meta, params);
+    }
+
+    /**
      * Inner join a table.
      * @param {TableMetaList~TableMeta} meta - The table metadata.
      * @param {object} params - An object of key-value pairs that are used to
@@ -248,11 +264,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {this}
      */
     innerJoin(meta, params) {
-      if (typeof meta === 'string')
-        meta = this.parseJoinString(meta);
-
-      meta.joinType = From.JOIN_TYPE.INNER;
-      return this.join(meta, params);
+      return this._join(meta, params, From.JOIN_TYPE.INNER);
     }
 
     /**
@@ -263,11 +275,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {this}
      */
     leftOuterJoin(meta, params) {
-      if (typeof meta === 'string')
-        meta = this.parseJoinString(meta);
-
-      meta.joinType = From.JOIN_TYPE.LEFT_OUTER;
-      return this.join(meta, params);
+      return this._join(meta, params, From.JOIN_TYPE.LEFT_OUTER);
     }
 
     /**
@@ -278,11 +286,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @return {this}
      */
     rightOuterJoin(meta, params) {
-      if (typeof meta === 'string')
-        meta = this.parseJoinString(meta);
-
-      meta.joinType = From.JOIN_TYPE.RIGHT_OUTER;
-      return this.join(meta, params);
+      return this._join(meta, params, From.JOIN_TYPE.RIGHT_OUTER);
     }
 
     /**
