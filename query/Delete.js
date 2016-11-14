@@ -9,40 +9,50 @@ function ndm_DeleteProducer(deferred, Query, assert) {
     /**
      * Initialize the query.
      * @param {From} from - An instance of a From.
-     * @param {string} tableAlias - The alias of the table from which records
-     * will be deleted.  Optional, defaults to the alias of the from table.
+     * @param {string} tableAlias - The unique alias of the table from which
+     * records will be deleted.  Optional, defaults to the alias of the from
+     * table.
      */
     constructor(from, tableAlias) {
-      super(from.getDatabase(), from.getEscaper(), from.getQueryExecuter());
+      super(from.database, from.escaper, from.queryExecuter);
 
-      this._from         = from;
-      this._delTableMeta = (tableAlias) ?
-        this._from._tableAliasLookup[tableAlias] : this._from._tables[0];
+      this._from = from;
 
-      assert(this._delTableMeta,
-        'Table alias ' + tableAlias + ' is not a valid table alias.');
+      if (tableAlias) {
+        // Alias provided.  Get the meta from the TableMetaList instance.
+        assert(this._from._tableMetaList.tableMetas.has(tableAlias),
+          `"${tableAlias}" is not a valid table alias.`);
+
+        this._delTableMeta = this._from._tableMetaList.tableMetas.get(tableAlias);
+      }
+      else {
+        // Use the FROM table.
+        this._delTableMeta = this._from.getFromMeta();
+      }
     }
 
     /**
      * Create the delete SQL.
+     * @return {string} The SQL representation of the DELETE statement.
      */
-    toString(){
-      var fromAlias = this._escaper.escapeProperty(this._delTableMeta.tableAlias);
-      var sql  = 'DELETE  ' + fromAlias + '\n';
+    toString() {
+      const fromAlias = this.escaper.escapeProperty(this._delTableMeta.as);
+      const from      = this._from.toString();
 
-      // Add the FROM (which includes the JOINS and WHERE).
-      sql += this._from.toString();
-
-      return sql;
+      return `DELETE  ${fromAlias}\n${from}`;
     }
 
     /**
      * Execute the query.
+     * @return {Promise} A promise instance that will be resolved with an
+     * object.  The object will have an affectedRows property.  If there is a
+     * failure executing the query, the returned promise will be rejected with
+     * that error.
      */
-    execute(){
-      var defer = deferred();
+    execute() {
+      const defer = deferred();
 
-      this._queryExecuter.delete(this.toString(), function(err, result){
+      this.queryExecuter.delete(this.toString(), function(err, result){
         if (err)
           defer.reject(err);
         else
