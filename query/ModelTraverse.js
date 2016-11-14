@@ -31,6 +31,7 @@ function ndm_modelTraverseProducer() {
      * @param {Database} database - An optional Database instance.  If passed,
      * the callback will only be called if a key in the model corresponds to a
      * table mapping.
+     * @return {void}
      */
     modelOnly(model, callback, database) {
       for (let tableMapping in model) {
@@ -52,6 +53,7 @@ function ndm_modelTraverseProducer() {
      * @param {Database} database - An optional Database instance.  If passed,
      * the callback will only be called if a key in the model corresponds to a
      * table mapping.
+     * @return {void}
      */
     depthFirst(model, callback, database) {
       // Private helper function to recurse through the model.
@@ -88,6 +90,7 @@ function ndm_modelTraverseProducer() {
      * @param {Database} database - An optional Database instance.  If passed,
      * the callback will only be called if a key in the model corresponds to a
      * table mapping.
+     * @return {void}
      */
     breadthFirst(model, callback, database) {
       const queue = [{tableMapping: null, model: model, parent: null}];
