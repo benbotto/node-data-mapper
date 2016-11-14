@@ -98,13 +98,13 @@ function ndm_MutateModelProducer(deferred, assert, From, Query, Column, ModelTra
       // Execute one query at a time.  (Self-executing function.)
       (function processQuery() {
         // No more queries in the queue.  Resolve the promise.
-        if (self._queries.length === 0) {
+        if (self.queries.length === 0) {
           defer.resolve(res);
           return;
         }
 
         // Get the next query in the queue and execute it.
-        self._queries
+        self.queries
           .shift()
           .execute()
           .then(function(result) {
