@@ -19,15 +19,9 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @param {Escaper} escaper - An instance of an Escaper matching the
      * database type (i.e.  MySQLEscaper or MSSQLEscaper).
      * @param {QueryExecuter} queryExecuter - A QueryExecuter instance.
-     * @param {object|string} meta - Either the name of the table to query
-     * from, or a meta object describing the table:
-     * @param {string} meta.table - The table name.
-     * @param {string} meta.as - A unique alias for the table, which provides a
-     * convient short-hand notation when querying, and also is used to prevent
-     * ambiguity if the same table is referenced multiple times (for example,
-     * via joins).
-     * @param {string} meta.mapTo - The table mapping.  That is, the name of
-     * the property in the resulting normalised object.
+     * @param {TableMetaList~TableMeta|string} meta - Either a TableMeta
+     * instance containing information about the table to query from, or a
+     * string that can be parsed using the parseFromString method.
      */
     constructor(database, escaper, queryExecuter, meta) {
       super(database, escaper, queryExecuter);
@@ -194,7 +188,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
       columns = this._condCompiler.getColumns(tree);
       for (let i = 0; i < columns.length; ++i) {
         assert(this._tableMetaList.isColumnAvailable(columns[i]),
-          `The column alias ${columns[i]} is not available for a where condition.`);
+          `The column "${columns[i]}" is not available for a where condition.`);
       }
 
       fromMeta.cond = this._condCompiler.compile(tree, params);
@@ -233,7 +227,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
       if (on) {
         this._condCompiler.getColumns(tree).forEach(function(col) {
           assert(this._tableMetaList.isColumnAvailable(col),
-            `The column alias ${col} is not available for an on condition.`);
+            `The column "${col}" is not available for an on condition.`);
         }, this);
       }
 

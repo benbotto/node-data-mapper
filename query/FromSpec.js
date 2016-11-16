@@ -186,7 +186,7 @@ describe('From()', function() {
       expect(function() {
         new From(db, escaper, qryExec, {table: 'users'})
           .where({$eq: {userID: 4}}); // Should be users.userID.
-      }).toThrowError('The column alias userID is not available for a where condition.');
+      }).toThrowError('The column "userID" is not available for a where condition.');
     });
 
     it('replaces parameters in where conditions.', function() {
@@ -246,7 +246,7 @@ describe('From()', function() {
       expect(function() {
         new From(db, escaper, qryExec, {table: 'users', as: 'u'})
           .innerJoin({table: 'phone_numbers', as: 'pn', on: {$eq: {'u.INVALID':'pn.userID'}}});
-      }).toThrowError('The column alias u.INVALID is not available for an on condition.');
+      }).toThrowError('The column "u.INVALID" is not available for an on condition.');
     });
 
     it('allows tables to be joined automatically.', function() {
