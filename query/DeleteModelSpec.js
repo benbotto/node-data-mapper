@@ -1,90 +1,88 @@
-xdescribe('DeleteModel test suite.', function()
-{
+describe('DeleteModel()', function() {
   'use strict';
 
-  var DeleteModel  = require('./DeleteModel');
-  var Database     = require('../database/Database');
-  var MySQLEscaper = require('./MySQLEscaper');
-  var db           = new Database(require('../spec/testDB'));
-  var escaper      = new MySQLEscaper();
-  var qryExec;
+  const insulin      = require('insulin');
+  const DeleteModel  = insulin.get('ndm_DeleteModel');
+  const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
+  const db           = insulin.get('ndm_testDB');
+  const escaper      = new MySQLEscaper();
+  let qryExec;
 
-  beforeEach(function()
-  {
-    qryExec = jasmine.createSpyObj('qryExec', ['delete']);
-  });
+  beforeEach(() => qryExec = jasmine.createSpyObj('qryExec', ['delete']));
 
-  xdescribe('DeleteModel toString test suite.', function()
-  {
-    // Checks that a single-model query is correct.
-    it('checks that a single-model query is correct.', function()
-    {
-      var del = new DeleteModel(db, escaper, qryExec, {users: {ID: 1}});
+  /**
+   * To string.
+   */
+  describe('.toString()', function() {
+    it('generates the correct sql for a single model.', function() {
+      const del = new DeleteModel(db, escaper, qryExec, {users: {ID: 1}});
 
-      expect(del.toString()).toBe
-      (
+      expect(del.toString()).toBe(
         'DELETE  `users`\n' +
         'FROM    `users` AS `users`\n' +
         'WHERE   (`users`.`userID` = 1)'
       );
     });
 
-    // If one works, multiple will work.  A multi-model spec is in
-    // MutateModelSpec.js.
+    it('generates the correct sql for multiple models.', function() {
+      const users = {users: [{ID: 1}, {ID: 3}]};
+      const del = new DeleteModel(db, escaper, qryExec, users);
+
+      expect(del.toString()).toBe(
+        'DELETE  `users`\n' +
+        'FROM    `users` AS `users`\n' +
+        'WHERE   (`users`.`userID` = 1);\n\n' +
+
+        'DELETE  `users`\n' +
+        'FROM    `users` AS `users`\n' +
+        'WHERE   (`users`.`userID` = 3)'
+      );
+    });
   });
 
-  xdescribe('DeleteModel execute test suite.', function()
-  {
-    // Deletes a single model.
-    it('deletes a single model.', function()
-    {
-      qryExec.delete.and.callFake(function(query, callback)
-      {
+  /**
+   * Execute.
+   */
+  describe('.execute()', function() {
+    it('can delete a single model using QueryExecuter.delete().', function() {
+      qryExec.delete.and.callFake(function(query, callback) {
         callback(null, {affectedRows: 1});
       });
 
       new DeleteModel(db, escaper, qryExec, {users: {ID: 14}})
         .execute()
-        .then(function(result)
-        {
-          expect(result.affectedRows).toBe(1);
-        });
+        .then(result => expect(result.affectedRows).toBe(1))
+        .catch(() => expect(true).toBe(false))
+        .done();
 
       expect(qryExec.delete).toHaveBeenCalled();
     });
 
-    // Deletes multiple models.
-    it('deletes multiple models.', function()
-    {
-      qryExec.delete.and.callFake(function(query, callback)
-      {
+    it('can delete multiple models, and reports the correct number of affected rows.',
+      function() {
+      qryExec.delete.and.callFake(function(query, callback) {
         callback(null, {affectedRows: 1});
       });
 
       new DeleteModel(db, escaper, qryExec, {users: [{ID: 14}, {ID: 33}]})
         .execute()
-        .then(function(result)
-        {
-          expect(result.affectedRows).toBe(2);
-        });
+        .then(result => expect(result.affectedRows).toBe(2))
+        .catch(() => expect(true).toBe(false))
+        .done();
 
       expect(qryExec.delete.calls.count()).toBe(2);
     });
 
-    // Checks that an error can be caught.
-    it('checks that an error can be caught.', function()
-    {
-      qryExec.delete.and.callFake(function(query, callback)
-      {
+    it('propagates query execution errors.', function() {
+      qryExec.delete.and.callFake(function(query, callback) {
         callback('FAILURE');
       });
 
       new DeleteModel(db, escaper, qryExec, {users: [{ID: 14}, {ID: 33}]})
         .execute()
-        .catch(function(err)
-        {
-          expect(err).toBe('FAILURE');
-        });
+        .then(() => expect(true).toBe(false))
+        .catch(err => expect(err).toBe('FAILURE'))
+        .done();
 
       expect(qryExec.delete).toHaveBeenCalled();
     });
