@@ -11,9 +11,9 @@ function ndm_TableMetaListProducer(assert, Column, Schema) {
      * @typedef TableMetaList~TableMeta
      * @type {object}
      * @property {string} table - The name of the table, or a Table instance.
-     * @property {string} [as=Table.name] - An alias for the table.  This is
+     * @property {string} [as=Table.mapTo] - An alias for the table.  This is
      * needed if, for example, the same table is joined in multiple times.  If
-     * not provided
+     * not provided the alias defaults to the table mapping.
      * @property {string} [mapTo=Table.mapTo] - The table mapping.  That is,
      * the name of the property in the resulting normalised object.
      * @property {Condition} [cond=null] - The condition (WHERE or ON)
@@ -107,7 +107,7 @@ function ndm_TableMetaListProducer(assert, Column, Schema) {
       else
         table = meta.table;
 
-      tableAlias = meta.as || table.name;
+      tableAlias = meta.as || table.mapTo;
 
       // Aliases must be word characters.  They can't, for example, contain
       // periods.

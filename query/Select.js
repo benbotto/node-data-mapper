@@ -124,9 +124,9 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
 
           assert(this._selectCols.has(pkAlias),
             'If a column is selected from a table, then the primary key ' +
-            'from that table must also be selected.  The primary key of table ' +
+            'from that table must also be selected.  The primary key of table "' +
             tblMeta.as +
-            ' is not present in the array of selected columns.');
+            '" is not present in the array of selected columns.');
         }
       }
 

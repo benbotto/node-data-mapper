@@ -58,14 +58,14 @@ function ndm_MutateModelProducer(deferred, assert, From, Query, Column, ModelTra
 
       table.primaryKey.forEach(function(pk) {
         // Each part of the PK is combined together in an AND'd WHERE condition.
-        const fqColName = Column.createFQColName(table.name, pk.name);
+        const fqColName = Column.createFQColName(table.mapTo, pk.name);
         const pkCond    = {$eq: {[fqColName]: `:${fqColName}`}};
 
         where.$and.push(pkCond);
 
         // The primary key is required on each model.
         assert(meta.model[pk.mapTo],
-          `Primary key not provided on model ${meta.tableMapping}.`);
+          `Primary key not provided on model "${meta.tableMapping}."`);
 
         params[fqColName] = meta.model[pk.mapTo];
       });

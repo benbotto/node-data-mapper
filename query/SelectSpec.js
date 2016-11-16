@@ -114,7 +114,7 @@ describe('Select()', function() {
       expect(function() {
         new Select(getFrom({table: 'users'}), qryExec).select('users.firstName');
       }).toThrowError('If a column is selected from a table, then the primary key ' +
-        'from that table must also be selected.  The primary key of table users ' +
+        'from that table must also be selected.  The primary key of table "users" ' +
         'is not present in the array of selected columns.');
     });
 
@@ -124,7 +124,7 @@ describe('Select()', function() {
           .innerJoin({table: 'phone_numbers', parent: 'users'});
 
         new Select(from, qryExec)
-          .select('phone_numbers.phoneNumberID');
+          .select('phoneNumbers.phoneNumberID');
       }).toThrowError('The primary key of the from table is required.');
     });
 
@@ -134,9 +134,9 @@ describe('Select()', function() {
           .innerJoin({table: 'phone_numbers', parent: 'users'});
 
         new Select(from, qryExec)
-          .select('users.userID', 'users.firstName', 'phone_numbers.phoneNumber');
+          .select('users.userID', 'users.firstName', 'phoneNumbers.phoneNumber');
       }).toThrowError('If a column is selected from a table, then the primary key ' +
-        'from that table must also be selected.  The primary key of table phone_numbers ' +
+        'from that table must also be selected.  The primary key of table "phoneNumbers" ' +
         'is not present in the array of selected columns.');
     });
 

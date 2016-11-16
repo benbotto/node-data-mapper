@@ -110,10 +110,10 @@ describe('TableMetaList()', function() {
     });
 
     describe('table meta -', function() {
-      it('uses the table name for the alias if no alias is provided.', function() {
-        expect(tables.tableMetas.has('users')).toBe(false);
-        tables.addTable({table: 'users'});
-        expect(tables.tableMetas.has('users')).toBe(true);
+      it('uses the table mapTo for the alias if no alias is provided.', function() {
+        expect(tables.tableMetas.has('phone_numbers')).toBe(false);
+        tables.addTable({table: 'phone_numbers'});
+        expect(tables.tableMetas.has('phoneNumbers')).toBe(true);
       });
 
       it('uses the supplied alias when present.', function() {
@@ -174,7 +174,7 @@ describe('TableMetaList()', function() {
         tables
           .addTable({table: 'users'})
           .addTable({table: 'phone_numbers', parent: 'users'});
-        expect(tables.tableMetas.get('phone_numbers').parent).toBe('users');
+        expect(tables.tableMetas.get('phoneNumbers').parent).toBe('users');
       });
 
       it('sets the relType to "many" if not provided.', function() {
@@ -186,7 +186,7 @@ describe('TableMetaList()', function() {
         tables
           .addTable({table: 'users'})
           .addTable({table: 'phone_numbers', parent: 'users', relType: 'many'});
-        expect(tables.tableMetas.get('phone_numbers').relType).toBe('many');
+        expect(tables.tableMetas.get('phoneNumbers').relType).toBe('many');
       });
     });
 

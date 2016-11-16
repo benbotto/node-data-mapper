@@ -46,7 +46,7 @@ describe('MutateModel test suite.', function() {
     it('throws an error if the primary key is not provided.', function() {
       expect(function() {
         new MutateModel(db, escaper, qryExec, {users: {first: 'Joe'}});
-      }).toThrowError('Primary key not provided on model users.');
+      }).toThrowError('Primary key not provided on model "users."');
     });
   });
 
@@ -127,11 +127,11 @@ describe('MutateModel test suite.', function() {
         'FROM    `users` AS `users`\n' +
         'WHERE   (`users`.`userID` = 44);\n\n' +
 
-        'FROM    `phone_numbers` AS `phone_numbers`\n' +
-        'WHERE   (`phone_numbers`.`phoneNumberID` = 1);\n\n' +
+        'FROM    `phone_numbers` AS `phoneNumbers`\n' +
+        'WHERE   (`phoneNumbers`.`phoneNumberID` = 1);\n\n' +
 
-        'FROM    `phone_numbers` AS `phone_numbers`\n' +
-        'WHERE   (`phone_numbers`.`phoneNumberID` = 8)'
+        'FROM    `phone_numbers` AS `phoneNumbers`\n' +
+        'WHERE   (`phoneNumbers`.`phoneNumberID` = 8)'
       );
     });
   });
