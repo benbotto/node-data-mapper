@@ -44,8 +44,8 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
      * @return {this}
      */
     select(...cols) {
-      const selTables  = new Set();
-      const colAliases = new Set();
+      const selTables = new Set();
+      const colMaps   = new Set();
       let   tblMeta, pkAlias;
 
       // Select may only be performed once on a query.
@@ -57,7 +57,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         return this.selectAll();
 
       cols.forEach(function(userSelColMeta) {
-        let fqColName, mapTo, fqColAlias, availColMeta, selColMeta, convert;
+        let fqColName, mapTo, fqColMap, availColMeta, selColMeta, convert;
 
         // Each column is an object, but can be short-handed as a string.  If a
         // a string is passed convert it to object format.
@@ -73,27 +73,24 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         // Store the necessary metadata about the column selection.
         // This is what's needed for converting the query to a string, and
         // for serialization.
-        // The fully-qualified column alias is formed using the table alias and
-        // the mapping.  This is used to ensure that the mapping is unique
-        // (below), and allows the user to see the mapping in the query.
         availColMeta = this._from._tableMetaList.availableCols.get(fqColName);
         mapTo        = userSelColMeta.mapTo || availColMeta.column.mapTo;
-        fqColAlias   = Column.createFQColName(availColMeta.tableAlias, mapTo);
+        fqColMap     = Column.createFQColName(availColMeta.tableAlias, mapTo);
         convert      = userSelColMeta.convert || availColMeta.column.converter.onRetrieve;
 
         selColMeta = {
           tableAlias: availColMeta.tableAlias,
           column:     availColMeta.column,
           mapTo:      mapTo,
-          fqColAlias: fqColAlias,
           fqColName:  fqColName,
           convert:    convert
         };
 
-        // Each alias must be unique.
-        assert(!colAliases.has(fqColAlias),
-          `Column alias ${fqColAlias} already selected.`);
-        colAliases.add(fqColAlias);
+        // Column mapping must be unique (e.g. there cannot be two results
+        // mapped to user.name).
+        assert(!colMaps.has(fqColMap),
+          `Column mapping "${fqColMap}" already selected.`);
+        colMaps.add(fqColMap);
 
         // Each column can only be selected once.  This is only a constraint because
         // of the way that the primary key is found in execute.  If the primary key
@@ -207,7 +204,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
       cols = Array.from(this._selectCols.values());
       sql += cols.map(function(col) {
         const colName  = this.escaper.escapeProperty(col.column.name);
-        const colAlias = this.escaper.escapeProperty(col.fqColAlias);
+        const colAlias = this.escaper.escapeProperty(col.fqColName);
         const tblAlias = this.escaper.escapeProperty(col.tableAlias);
 
         return tblAlias + '.' + colName + ' AS ' + colAlias;
@@ -264,7 +261,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         // The table might not be included (that is, no columns from the table are
         // selected).
         if (colMeta !== undefined) {
-          schema = new Schema(colMeta.fqColAlias, colMeta.mapTo, colMeta.convert);
+          schema = new Schema(colMeta.fqColName, colMeta.mapTo, colMeta.convert);
 
           // Keep a lookup of table alias->schema.
           schemaLookup[tblMeta.as] = schema;
@@ -284,7 +281,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         // PK already present.
         if (!colMeta.column.isPrimary) {
           schemaLookup[colMeta.tableAlias].addProperty(
-            colMeta.fqColAlias, colMeta.mapTo, colMeta.convert);
+            colMeta.fqColName, colMeta.mapTo, colMeta.convert);
         }
       });
 

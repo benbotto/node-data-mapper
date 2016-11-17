@@ -51,9 +51,9 @@ describe('Select()', function() {
       const query = new Select(getFrom('users'), qryExec);
 
       expect(query.toString()).toBe(
-        'SELECT  `users`.`userID` AS `users.ID`,\n'       +
-        '        `users`.`firstName` AS `users.first`,\n' +
-        '        `users`.`lastName` AS `users.last`\n'    +
+        'SELECT  `users`.`userID` AS `users.userID`,\n'       +
+        '        `users`.`firstName` AS `users.firstName`,\n' +
+        '        `users`.`lastName` AS `users.lastName`\n'    +
         'FROM    `users` AS `users`');
     });
 
@@ -61,9 +61,9 @@ describe('Select()', function() {
       const query = new Select(getFrom({table: 'users', as: 'admins'}), qryExec);
 
       expect(query.toString()).toBe(
-        'SELECT  `admins`.`userID` AS `admins.ID`,\n'       +
-        '        `admins`.`firstName` AS `admins.first`,\n' +
-        '        `admins`.`lastName` AS `admins.last`\n'    +
+        'SELECT  `admins`.`userID` AS `admins.userID`,\n'       +
+        '        `admins`.`firstName` AS `admins.firstName`,\n' +
+        '        `admins`.`lastName` AS `admins.lastName`\n'    +
         'FROM    `users` AS `admins`');
     });
       
@@ -72,9 +72,9 @@ describe('Select()', function() {
         .select('users.userID', 'users.firstName', 'users.lastName');
 
       expect(query.toString()).toBe(
-        'SELECT  `users`.`userID` AS `users.ID`,\n'       +
-        '        `users`.`firstName` AS `users.first`,\n' +
-        '        `users`.`lastName` AS `users.last`\n'    +
+        'SELECT  `users`.`userID` AS `users.userID`,\n'       +
+        '        `users`.`firstName` AS `users.firstName`,\n' +
+        '        `users`.`lastName` AS `users.lastName`\n'    +
         'FROM    `users` AS `users`');
     });
   });
@@ -89,9 +89,9 @@ describe('Select()', function() {
       const query = new Select(getFrom({table: 'users'}), qryExec).select();
 
       expect(query.toString()).toBe(
-        'SELECT  `users`.`userID` AS `users.ID`,\n'       +
-        '        `users`.`firstName` AS `users.first`,\n' +
-        '        `users`.`lastName` AS `users.last`\n'    +
+        'SELECT  `users`.`userID` AS `users.userID`,\n'       +
+        '        `users`.`firstName` AS `users.firstName`,\n' +
+        '        `users`.`lastName` AS `users.lastName`\n'    +
         'FROM    `users` AS `users`');
     });
 
@@ -155,8 +155,8 @@ describe('Select()', function() {
         .select('users.userID', {column: 'users.firstName', mapTo: 'name'});
 
       expect(query.toString()).toBe(
-        'SELECT  `users`.`userID` AS `users.ID`,\n'     +
-        '        `users`.`firstName` AS `users.name`\n' +
+        'SELECT  `users`.`userID` AS `users.userID`,\n'     +
+        '        `users`.`firstName` AS `users.firstName`\n' +
         'FROM    `users` AS `users`');
     });
 
@@ -166,8 +166,8 @@ describe('Select()', function() {
           .select(
             'users.userID',
             {column: 'users.firstName', mapTo: 'name'},
-            {column: 'users.lastName', mapTo: 'name'});
-      }).toThrowError('Column alias users.name already selected.');
+            {column: 'users.lastName',  mapTo: 'name'});
+      }).toThrowError('Column mapping "users.name" already selected.');
     });
 
     it('throw an error if the same column is selected twice.', function() {
@@ -216,7 +216,7 @@ describe('Select()', function() {
           .execute();
 
         expect(Schema.calls.count()).toBe(1);
-        expect(Schema).toHaveBeenCalledWith('users.ID', 'ID', undefined);
+        expect(Schema).toHaveBeenCalledWith('users.userID', 'ID', undefined);
       });
 
       it('creates a Schema for each table.', function() {
@@ -231,8 +231,8 @@ describe('Select()', function() {
         new Select(from, qryExec).execute();
 
         expect(Schema.calls.count()).toBe(2);
-        expect(Schema.calls.argsFor(0)).toEqual(['u.ID',  'ID', undefined]);
-        expect(Schema.calls.argsFor(1)).toEqual(['pn.ID', 'ID', undefined]);
+        expect(Schema.calls.argsFor(0)).toEqual(['u.userID', 'ID', undefined]);
+        expect(Schema.calls.argsFor(1)).toEqual(['pn.phoneNumberID', 'ID', undefined]);
         expect(Schema.prototype.addSchema.calls.count()).toBe(1);
         expect(Schema.prototype.addSchema.calls.argsFor(0)[0]).toBe('phoneNumbers');
       });
@@ -250,8 +250,8 @@ describe('Select()', function() {
 
         expect(Schema.prototype.addProperty.calls.count()).toBe(5);
         expect(Schema.prototype.addProperty.calls.allArgs()).toEqual([
-          ['u.first',        'first',       undefined],
-          ['u.last',         'last',        undefined],
+          ['u.firstName',    'first',       undefined],
+          ['u.lastName',     'last',        undefined],
           ['pn.userID',      'userID',      undefined],
           ['pn.phoneNumber', 'phoneNumber', undefined],
           ['pn.type',        'type',        undefined]
@@ -268,10 +268,10 @@ describe('Select()', function() {
           .execute();
 
         expect(Schema.calls.count()).toBe(1);
-        expect(Schema).toHaveBeenCalledWith('u.ID', 'ID', convert);
+        expect(Schema).toHaveBeenCalledWith('u.userID', 'ID', convert);
         expect(Schema.prototype.addProperty.calls.count()).toBe(1);
         expect(Schema.prototype.addProperty.calls.argsFor(0))
-          .toEqual(['u.first', 'first', convert]);
+          .toEqual(['u.firstName', 'first', convert]);
       });
 
       it('uses converters from the database schema.', function() {
@@ -348,9 +348,9 @@ describe('Select()', function() {
         // Dummy response from the query executer.
         qryExec.select.and.callFake(function(query, callback) {
           const result = [
-            {'u.ID': 1, 'u.last': 'smith', 'pn.ID': 11, 'pn.phoneNumber': '111-111-1111'},
-            {'u.ID': 1, 'u.last': 'smith', 'pn.ID': 12, 'pn.phoneNumber': '222-222-3333'},
-            {'u.ID': 1, 'u.last': 'smith', 'pn.ID': 13, 'pn.phoneNumber': '333-444-4444'}
+            {'u.userID': 1, 'u.lastName': 'smith', 'pn.phoneNumberID': 11, 'pn.phoneNumber': '111-111-1111'},
+            {'u.userID': 1, 'u.lastName': 'smith', 'pn.phoneNumberID': 12, 'pn.phoneNumber': '222-222-3333'},
+            {'u.userID': 1, 'u.lastName': 'smith', 'pn.phoneNumberID': 13, 'pn.phoneNumber': '333-444-4444'}
           ];
 
           callback(null, result);
@@ -375,9 +375,9 @@ describe('Select()', function() {
       it('serializes multiple top-level schemata.', function() {
         qryExec.select.and.callFake(function(query, callback) {
           const result = [
-            {'u.ID': 1, 'u.last': 'smith', 'pn.ID': 11, 'pn.phoneNumber': '111-111-1111'},
-            {'u.ID': 1, 'u.last': 'smith', 'pn.ID': 12, 'pn.phoneNumber': '222-222-3333'},
-            {'u.ID': 1, 'u.last': 'smith', 'pn.ID': 13, 'pn.phoneNumber': '333-444-4444'}
+            {'u.userID': 1, 'u.lastName': 'smith', 'pn.phoneNumberID': 11, 'pn.phoneNumber': '111-111-1111'},
+            {'u.userID': 1, 'u.lastName': 'smith', 'pn.phoneNumberID': 12, 'pn.phoneNumber': '222-222-3333'},
+            {'u.userID': 1, 'u.lastName': 'smith', 'pn.phoneNumberID': 13, 'pn.phoneNumber': '333-444-4444'}
           ];
 
           callback(null, result);
@@ -408,9 +408,9 @@ describe('Select()', function() {
       it('checks that relationship type is respected.', function() {
         qryExec.select.and.callFake(function(query, callback) {
           const result = [
-            {'u.ID': 1, 'pn.ID': 11, 'pn.userID': 1},
-            {'u.ID': 1, 'pn.ID': 12, 'pn.userID': 1},
-            {'u.ID': 2, 'pn.ID': 13, 'pn.userID': 2}
+            {'u.userID': 1, 'pn.phoneNumberID': 11, 'pn.userID': 1},
+            {'u.userID': 1, 'pn.phoneNumberID': 12, 'pn.userID': 1},
+            {'u.userID': 2, 'pn.phoneNumberID': 13, 'pn.userID': 2}
           ];
 
           callback(null, result);
@@ -442,9 +442,9 @@ describe('Select()', function() {
       it('allows a table to be excluded if no columns are selected from that table.', function() {
         qryExec.select.and.callFake(function(query, callback) {
           const result = [
-            {'users.ID': 1, 'users.first': 'joe'},
-            {'users.ID': 2, 'users.first': 'sue'},
-            {'users.ID': 3, 'users.first': 'bob'}
+            {'users.userID': 1, 'users.firstName': 'joe'},
+            {'users.userID': 2, 'users.firstName': 'sue'},
+            {'users.userID': 3, 'users.firstName': 'bob'}
           ];
 
           callback(null, result);
@@ -511,9 +511,9 @@ describe('Select()', function() {
         .orderBy('users.firstName');
 
       expect(query.toString()).toBe(
-        'SELECT  `users`.`userID` AS `users.ID`,\n'       +
-        '        `users`.`firstName` AS `users.first`,\n' +
-        '        `users`.`lastName` AS `users.last`\n'    +
+        'SELECT  `users`.`userID` AS `users.userID`,\n'       +
+        '        `users`.`firstName` AS `users.firstName`,\n' +
+        '        `users`.`lastName` AS `users.lastName`\n'    +
         'FROM    `users` AS `users`\n' +
         'ORDER BY `users`.`firstName` ASC');
     });
@@ -524,9 +524,9 @@ describe('Select()', function() {
         .orderBy('users.userID', 'users.firstName', 'users.lastName');
 
       expect(query.toString()).toBe(
-        'SELECT  `users`.`userID` AS `users.ID`,\n'       +
-        '        `users`.`firstName` AS `users.first`,\n' +
-        '        `users`.`lastName` AS `users.last`\n'    +
+        'SELECT  `users`.`userID` AS `users.userID`,\n'       +
+        '        `users`.`firstName` AS `users.firstName`,\n' +
+        '        `users`.`lastName` AS `users.lastName`\n'    +
         'FROM    `users` AS `users`\n' +
         'ORDER BY `users`.`userID` ASC, `users`.`firstName` ASC, `users`.`lastName` ASC');
     });
@@ -540,9 +540,9 @@ describe('Select()', function() {
           {column: 'users.lastName', dir: 'DESC'});
 
       expect(query.toString()).toBe(
-        'SELECT  `users`.`userID` AS `users.ID`,\n'       +
-        '        `users`.`firstName` AS `users.first`,\n' +
-        '        `users`.`lastName` AS `users.last`\n'    +
+        'SELECT  `users`.`userID` AS `users.userID`,\n'       +
+        '        `users`.`firstName` AS `users.firstName`,\n' +
+        '        `users`.`lastName` AS `users.lastName`\n'    +
         'FROM    `users` AS `users`\n' +
         'ORDER BY `users`.`userID` ASC, `users`.`firstName` ASC, `users`.`lastName` DESC');
     });
