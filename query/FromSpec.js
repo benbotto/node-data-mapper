@@ -93,9 +93,9 @@ describe('From()', function() {
       const meta = from.parseJoinString('u.phone_numbers');
       expect(meta.parent).toBe('u');
       expect(meta.table).toBe('phone_numbers');
-      expect(meta.as).toBe('phoneNumbers'); // Defaults to table mapping.
+      expect(meta.as).toBe('phone_numbers'); // Defaults to table name.
       expect(meta.relType).toBe('many');
-      expect(meta.cond).toEqual({$eq: {'u.userID': 'phoneNumbers.userID'}});
+      expect(meta.cond).toEqual({$eq: {'u.userID': 'phone_numbers.userID'}});
     });
 
     it('can be used with a parent, a table, and an alias.', function() {
@@ -111,7 +111,7 @@ describe('From()', function() {
       const meta = from.parseJoinString('phone_numbers');
       expect(meta.parent).not.toBeDefined();
       expect(meta.table).toBe('phone_numbers');
-      expect(meta.as).toBe('phoneNumbers');
+      expect(meta.as).toBe('phone_numbers');
       expect(meta.relType).not.toBeDefined();
       expect(meta.cond).not.toBeDefined();
     });
@@ -224,13 +224,13 @@ describe('From()', function() {
         'INNER JOIN `phone_numbers` AS `pn`');
     });
 
-    it('defaults the table alias to the table mapping.', function() {
+    it('defaults the table alias to the table name.', function() {
       const query = new From(db, escaper, qryExec, {table: 'users', as: 'u'})
         .innerJoin({table: 'phone_numbers'});
 
       expect(query.toString()).toBe(
         'FROM    `users` AS `u`\n' +
-        'INNER JOIN `phone_numbers` AS `phoneNumbers`');
+        'INNER JOIN `phone_numbers` AS `phone_numbers`');
     });
 
     it('allows the ON condition to be set explicitly.', function() {

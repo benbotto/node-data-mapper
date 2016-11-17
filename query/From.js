@@ -57,12 +57,8 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
       if ((matches = fromStr.match(/^(\w+)\s+(\w+)$/)))
         [, table, as] = matches;
       // table
-      else if ((matches = fromStr.match(/^\w+$/))) {
-        table = fromStr;
-
-        // Alias defaults to the table mapping.
-        as    = this.database.getTableByName(table).mapTo;
-      }
+      else if ((matches = fromStr.match(/^\w+$/)))
+        table = as = fromStr;
       // table as t
       else if ((matches = fromStr.match(/^(\w+)\s+(?:as|AS)\s+(\w+)$/)))
         [, table, as] = matches;

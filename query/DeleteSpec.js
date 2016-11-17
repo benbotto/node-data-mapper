@@ -72,7 +72,7 @@ describe('Delete()', function() {
         .innerJoin({
           table: 'phone_numbers',
           parent: 'users',
-          on: {$eq: {'users.userID':'phoneNumbers.userID'}}
+          on: {$eq: {'users.userID':'phone_numbers.userID'}}
         })
         .where({$eq: {'users.userID': 1}});
       const del = new Delete(from);
@@ -80,7 +80,7 @@ describe('Delete()', function() {
       expect(del.toString()).toBe(
         'DELETE  `users`\n' +
         'FROM    `users` AS `users`\n' +
-        'INNER JOIN `phone_numbers` AS `phoneNumbers` ON `users`.`userID` = `phoneNumbers`.`userID`\n' +
+        'INNER JOIN `phone_numbers` AS `phone_numbers` ON `users`.`userID` = `phone_numbers`.`userID`\n' +
         'WHERE   `users`.`userID` = 1'
       );
     });
