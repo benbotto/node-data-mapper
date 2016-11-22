@@ -59,7 +59,8 @@ function ndm_ConditionCompilerProducer(assert) {
           else if (token.type === 'parameter') {
             // Find the value in the params list (the leading colon is removed).
             const value = params[token.value.substring(1)];
-            assert(value, `Replacement value for parameter ${token.value} not present.`);
+            assert(value !== undefined,
+              `Replacement value for parameter ${token.value} not present.`);
             return escaper.escapeLiteral(value);
           }
           else
