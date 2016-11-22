@@ -257,6 +257,17 @@ describe('ConditionCompiler test suite.', function()
     }).toThrowError('Replacement value for parameter :gender not present.');
   });
 
+  // Checks that a parameter can be replaced by 0.
+  it('checks that a parameter can be replaced by 0.', function() {
+    var cond, tokens, tree;
+
+    cond   = {$eq: {isActive: ':isActive'}};
+    tokens = lexer.parse(cond);
+    tree   = parser.parse(tokens);
+
+    expect(compiler.compile(tree, {isActive: 0})).toBe('`isActive` = 0');
+  });
+
   describe('ConditionCompiler parseColumns test suite', function()
   {
     // Parses the columns from trivial queries.
