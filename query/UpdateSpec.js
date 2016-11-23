@@ -65,6 +65,16 @@ describe('Update test suite.', function() {
         "`u`.`lastName` = 'O\\'Hare',\n" +
         "`u`.`firstName` = 'Joe'");
     });
+
+    it('uses onSave converters that are defined in the Database instance.', function() {
+      const upd = new Update(getFrom('products p'), {
+        'p.isActive': false
+      });
+
+      expect(upd.getSetString()).toBe(
+        'SET\n'+
+        '`p`.`isActive` = 0');
+    });
   });
 
   /**

@@ -37,16 +37,24 @@ function ndm_UpdateProducer(deferred, Query, assert) {
      */
     getSetString() {
       const sets = [];
-      let   set  = 'SET\n';
 
-      for (let col in this._model) {
-        const colName = this.escaper.escapeFullyQualifiedColumn(col);
-        const colVal  = this.escaper.escapeLiteral(this._model[col]);
+      for (let fqColName in this._model) {
+        const col     = this._from._tableMetaList.availableCols.get(fqColName).column;
+        const colName = this.escaper.escapeFullyQualifiedColumn(fqColName);
+        let   colVal  = this._model[fqColName];
+
+        // The column may need to be transformed (e.g. from a boolean to a bit).
+        if (col.converter.onSave)
+          colVal = col.converter.onSave(colVal);
+        colVal = this.escaper.escapeLiteral(colVal);
 
         sets.push(`${colName} = ${colVal}`);
       }
 
-      return sets.length ? set + sets.join(',\n') : '';
+      if (sets.length ===0)
+        return '';
+
+      return 'SET\n' + sets.join(',\n');
     }
 
     /**
