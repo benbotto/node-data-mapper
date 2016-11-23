@@ -30,7 +30,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
 
     /**
      * Select columns manually.
-     * @param {...(object|string)} col - An optional set of columns to select.
+     * @param {...(object|string)} cols - An optional set of columns to select.
      * Each argument can either be a fully-qualified column name in the form
      * &lt;table-alias&gt;.&lt;column-name&gt;, or an object with the following
      * properties below.  If no columns are specified, then all columns are
