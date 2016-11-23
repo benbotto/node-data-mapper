@@ -70,13 +70,13 @@ function ndm_testDBSchemaProducer(bitConverter) {
             converter: bitConverter
           },
           {
-            name: 'photoID'
+            name: 'primaryPhotoID'
           }
         ],
         foreignKeys: [
           {
-            column: 'photoID',
-            name: 'fk_photoID_photos_photoID',
+            column: 'primaryPhotoID',
+            name: 'fk_primaryPhotoID_photos_photoID',
             references: {
               table: 'photos',
               column: 'photoID'
@@ -100,6 +100,9 @@ function ndm_testDBSchemaProducer(bitConverter) {
           {
             name: 'smallThumbnailID'
           },
+          {
+            name: 'prodID' // Note the name.  Circular reference.
+          }
         ],
         foreignKeys: [
           {
@@ -116,6 +119,14 @@ function ndm_testDBSchemaProducer(bitConverter) {
             references: {
               table: 'photos',
               column: 'photoID'
+            }
+          },
+          {
+            column: 'prodID',
+            name: 'fk_prodID_products_productID',
+            references: {
+              table: 'products',
+              column: 'productID'
             }
           }
         ]
