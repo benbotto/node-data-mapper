@@ -1,3 +1,41 @@
+-------------------------------------------------
+Insert is in progress.  Sub-model inserts should work, but has not been tested.  An issue is that the toString() method will not accurately show the SQL, because only the top-level models are iterated over.  How can those be displayed?  The parent key does not exist...  Maybe wait until there are parameters, and then show the parametrized SQL?  Also, there is an issue with the way keys are updated.  Consider the photo table that has self-referencing keys for thumbnails.  Both of the keys are owned by the photos table, and both point to the photoID, so inserting a photo with thumbnails will set both of these keys on the child.  That's not correct...
+On further thought, there are a number of issues with recursive inserts:
+
+1) Self-referencing tables -- no way to determine insertion order, becuase both the parent and the child own the key.
+2) Foreign keys that reference non-primary keys (not sure why someone would do this, but foreign keys can reference any unique column).
+3) Security.  If used with web services, for example, this would allow malicious users to insert sub-objects that they shouldn't be inserting (potentially).
+
+Here's the code, though, for child insertions (child-owned relationships only).
+
+            // Update keys on the child if possible.
+            traverse.modelOnly(queryDatum.modelMeta.model, function(cMeta) {
+              // Get the relationships between the two tables that the child
+              // table owns (parent-owned relationships are ignored).
+              const cTbl = self.database.getTableByMapping(cMeta.tableMapping);
+              const fks  = self.database.relStore.getRelationships(
+                cTbl.name, tbl.name, true);
+
+              fks.forEach(function(fk) {
+                const cCol = cTbl.getColumnByName(fk.column);
+                const pCol = tbl.getColumnByName(fk.references.column);
+
+                // Foreign keys should always point to the parent ID, but just
+                // in case the user has a strange relationship (in which case
+                // the sub model is not inserted).
+                if (pCol.name === tbl.primaryKey[0].name) {
+                  // Set the referenced ID.
+                  cMeta.model[cCol.mapTo] = result.insertId;
+
+                  // Queue the child for insertion.
+                  queueQueryData(cMeta);
+                }
+              });
+            }, self.database);
+
+--------------------------------------
+
+
 Migrate condition builder to this project.
 
 On insert, children get the new ID from parents.  Foreign keys should be used instead as it's better than name matching.  Also, foreign keys could be used to dictate insertion order (e.g. parent first or child first depends on which way the key goes).
