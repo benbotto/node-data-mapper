@@ -1,214 +1,142 @@
-xdescribe('Insert test suite.', function()
-{
+describe('Insert test suite.', function() {
   'use strict';
 
-  var Insert       = require('./Insert');
-  var Database     = require('../database/Database');
-  var MySQLEscaper = require('./MySQLEscaper');
-  var db           = new Database(require('../spec/testDB'));
-  var escaper      = new MySQLEscaper();
-  var qryExec;
+  const insulin      = require('insulin');
+  const Insert       = insulin.get('ndm_Insert');
+  const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
+  const db           = insulin.get('ndm_testDB');
+  const escaper      = new MySQLEscaper();
+  let qryExec;
 
-  beforeEach(function()
-  {
-    qryExec = jasmine.createSpyObj('qryExec', ['insert']);
-  });
+  beforeEach(() => qryExec = jasmine.createSpyObj('qryExec', ['insert']));
 
-  xdescribe('Insert constructor test suite.', function()
-  {
-    // Checks the basic constructor.
-    it('checks the basic constructor.', function()
-    {
-      new Insert(db, escaper, qryExec, {});
-    });
+  /**
+   * Ctor.
+   */
+  describe('.constructor()', function() {
+    it('extends Query.', function() {
+      const Query = insulin.get('ndm_Query');
+      const ins   = new Insert(db, escaper, qryExec, {});
 
-    // Checks that the database can be retrieved.
-    it('checks that the database can be retrieved.', function()
-    {
-      var query = new Insert(db, escaper, qryExec, {});
-      expect(query.getDatabase()).toBe(db);
+      expect(ins instanceof Query).toBe(true);
     });
   });
 
-  xdescribe('Insert toString test suite.', function()
-  {
-    // Converts a basic model to a string.
-    it('converts a basic model to a string.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users:
-        [
-          {first: 'Sandy', last: 'Perkins'}
-        ]
+  /**
+   * To string.
+   */
+  describe('.toString()', function() {
+    it('generates SQL for a single model.', function() {
+      const query = new Insert(db, escaper, qryExec, {
+        users: {first: 'Sandy', last: 'Perkins'}
       });
 
-      expect(query.toString()).toEqual
-      (
+      expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', 'Perkins')"
-      );
+        "VALUES ('Sandy', 'Perkins')");
     });
 
-    // Checks that properties that are not table aliases are ignored.
-    it('checks that properties that are not table aliases are ignored.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users:
-        [
-          {first: 'Sandy', last: 'Perkins'}
-        ],
-        another: []
+    it('returns an empty string if there are no columns to insert.', function() {
+      const query = new Insert(db, escaper, qryExec, {users: {}});
+
+      expect(query.toString()).toEqual('');
+    });
+
+    it('ignores nested model properties that don\'t map to columns.', function() {
+      const query = new Insert(db, escaper, qryExec, {
+        users: {first: 'Sandy', last: 'Perkins', occupation: 'Code Wrangler'}
       });
 
-      expect(query.toString()).toEqual
-      (
+      expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', 'Perkins')"
-      );
+        "VALUES ('Sandy', 'Perkins')");
     });
 
-    // Checks that aliased table inserts are generated correctly.
-    it('checks that aliased table inserts are generated correctly.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
+    it('converts table mappings to names.', function() {
+      const query = new Insert(db, escaper, qryExec, {
         phoneNumbers: {userID: 12, phoneNumber: '444-555-6666', type: 'mobile'}
       });
 
-      expect(query.toString()).toBe
-      (
+      expect(query.toString()).toBe(
         'INSERT INTO `phone_numbers` (`userID`, `phoneNumber`, `type`)\n' +
         "VALUES (12, '444-555-6666', 'mobile')"
       );
     });
 
-    // Checks that apostrophes get escaped.
-    it('checks that apostrophes get escaped.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
+    it('escapes reserverd characters.', function() {
+      const query = new Insert(db, escaper, qryExec, {
         users: {first: 'Sandy', last: "O'Hare"}
       });
 
-      expect(query.toString()).toEqual
-      (
+      expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', 'O\\'Hare')"
-      );
+        "VALUES ('Sandy', 'O\\'Hare')");
     });
 
-    // Checks that undefined values are skipped.
-    it('checks that undefined values are skipped.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users: {first: 'Sandy'}
-      });
-
-      expect(query.toString()).toEqual
-      (
-        'INSERT INTO `users` (`firstName`)\n' +
-        "VALUES ('Sandy')"
-      );
-    });
-
-    // Checks that null values work.
-    it('checks that null values work.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
+    it('sets columns to NULL when a model property is null. ', function() {
+      const query = new Insert(db, escaper, qryExec, {
         users: {first: 'Sandy', last: null}
       });
 
-      expect(query.toString()).toEqual
-      (
+      expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', NULL)"
-      );
+        "VALUES ('Sandy', NULL)");
     });
 
-    // Checks that an array of models can be inserted.
-    it('checks that an array of models can be inserted.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users:
-        [
+    it('generates a query for each model in an array.', function() {
+      const query = new Insert(db, escaper, qryExec, {
+        users: [
           {first: 'Sandy', last: 'Perkins'},
           {first: 'Sandy', last: "O'Hare"}
         ]
       });
 
-      expect(query.toString()).toEqual
-      (
+      expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
         "VALUES ('Sandy', 'Perkins');\n\n" +
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', 'O\\'Hare')"
-      );
+        "VALUES ('Sandy', 'O\\'Hare')");
     });
 
-    // Checks that converters are used.
-    it('checks that converters are used.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        products:
-        [
+    it('uses converters when present in the Database instance.', function() {
+      const query = new Insert(db, escaper, qryExec, {
+        products: [
           {description: 'Innova Valkyrie', isActive: true},
           {description: 'Innova Valkyrie', isActive: false},
           {description: 'Innova Valkyrie', isActive: null}
         ]
       });
 
-      var converter = db.getTableByName('products').getColumnByName('isActive').getConverter();
-      spyOn(converter, 'onSave').and.callThrough();
-
-      expect(query.toString()).toEqual
-      (
+      expect(query.toString()).toEqual(
         'INSERT INTO `products` (`description`, `isActive`)\n' +
         "VALUES ('Innova Valkyrie', 1);\n\n" +
         'INSERT INTO `products` (`description`, `isActive`)\n' +
         "VALUES ('Innova Valkyrie', 0);\n\n" +
         'INSERT INTO `products` (`description`, `isActive`)\n' +
-        "VALUES ('Innova Valkyrie', NULL)"
-      );
-
-      // The onSave method should not be called with nulls, so there should be
-      // a call count of 2.
-      expect(converter.onSave.calls.count()).toBe(2);
+        "VALUES ('Innova Valkyrie', NULL)");
     });
   });
 
-  xdescribe('Insert execute test suite.', function()
-  {
-    var insertId;
+  /**
+   * Execute.
+   */
+  describe('.execute()', function() {
+    let insertId;
 
-    beforeEach(function()
-    {
+    beforeEach(function() {
       insertId = 0;
       qryExec  = jasmine.createSpyObj('qryExec', ['insert']);
 
       // When the QueryExecuter.insert method is called return
       // immediately with an insertId.  The insertId starts at
       // 1 and is incremented on each query.
-      qryExec.insert.and.callFake(function(query, callback)
-      {
-        callback(undefined, {insertId: ++insertId});
-      });
+      qryExec.insert.and.callFake((query, callback) => 
+        callback(undefined, {insertId: ++insertId}));
     });
 
-    // Makes sure that the query executer is called.
-    it('makes sure that the query executer is called.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users:
-        [
-          {first: 'Sandy', last: 'Perkins'}
-        ]
+    it('uses the queryExecuter.insert() method to insert models.', function() {
+      const query = new Insert(db, escaper, qryExec, {
+        users: {first: 'Sandy', last: 'Perkins'}
       });
 
       query.execute();
@@ -216,13 +144,9 @@ xdescribe('Insert test suite.', function()
       expect(insertId).toBe(1);
     });
 
-    // Makes sure the query executer is called once for each model.
-    it('makes sure the query executer is called once for each model.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users:
-        [
+    it('calls the queryExecuter.insert() method once for each model.', function() {
+      const query = new Insert(db, escaper, qryExec, {
+        users: [
           {first: 'Sandy',  last: 'Perkins'},
           {first: 'Cindy',  last: 'Perkins'},
           {first: 'Donald', last: 'Perkins'}
@@ -234,165 +158,53 @@ xdescribe('Insert test suite.', function()
       expect(insertId).toBe(3);
     });
 
-    // Checks that the primary key gets updated.
-    it('checks that the primary key gets updated.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users: {first: 'Sandy', last: 'Perkins'}
-      });
-
-      query.execute().then(function(result)
-      {
-        expect(result.users.ID).toBe(1);
-      });
-    });
-
-    // Checks that the primary key gets updated on multiple models.
-    it('checks that the primary key gets updated on multiple models.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users:
-        [
+    it('updates the primary key on the model when the insertId is available.', function() {
+      const query = new Insert(db, escaper, qryExec, {
+        users: [
           {first: 'Sandy',  last: 'Perkins'},
           {first: 'Cindy',  last: 'Perkins'},
           {first: 'Donald', last: 'Perkins'}
         ]
       });
 
-      query.execute().then(function(result)
-      {
-        expect(result.users[0].ID).toBe(1);
-        expect(result.users[1].ID).toBe(2);
-        expect(result.users[2].ID).toBe(3);
-      });
+      query
+        .execute()
+        .then(function(result) {
+          expect(result.users[0].ID).toBe(1);
+          expect(result.users[1].ID).toBe(2);
+          expect(result.users[2].ID).toBe(3);
+        })
+        .catch(() => expect(true).toBe(false))
+        .done();
     });
 
-    // Checks that the primary key gets updated on children.
-    it('checks that the primary key gets updated on children.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users:
-        [
-          {
-            first: 'Sandy',
-            last: 'Perkins',
-            phoneNumbers:
-            [
-              {phoneNumber: '111-222-3333'},
-              {phoneNumber: '444-555-6666'}
-
-            ]
-          },
-          {
-            first: 'Randy',
-            last: 'Perkins',
-            phoneNumbers:
-            [
-              {phoneNumber: '777-888-9999'}
-            ]
-          }
-        ]
-      });
-
-      query.execute().then(function(result)
-      {
-        expect(result.users[0].ID).toBe(1);
-        expect(result.users[0].phoneNumbers[0].userID).toBe(1);
-        expect(result.users[0].phoneNumbers[1].userID).toBe(1);
-        expect(result.users[1].ID).toBe(2);
-        expect(result.users[1].phoneNumbers[0].userID).toBe(2);
-      });
-    });
-
-    // Verifies the option to not update foreign keys.
-    it('verifies the option to not update foreign keys.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users:
-        {
-          first: 'Sandy',
-          last: 'Perkins',
-          phoneNumbers:
-          [
-            {phoneNumber: '111-222-3333'}
-          ]
-        }
-      });
-
-      query.setUpdateChildKeys(false);
-      query.execute().then(function(result)
-      {
-        expect(result.users.ID).toBe(1);
-        expect(result.users.phoneNumbers[0].userID).not.toBeDefined();
-      });
-    });
-
-    // Checks the behavior of a failed execute.
-    it('checks the behavior of a failed execute.', function()
-    {
-      qryExec.insert.and.callFake(function(query, callback)
-      {
-        callback({error: 'An error occurred.'});
-      });
-
-      var err   = false;
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users: {first: 'Sandy', last: 'Perkins'}
-      });
-
-      query.execute().catch(function()
-      {
-        err = true;
-      });
-
-      expect(err).toBe(true);
-    });
-
-    // Checks that if an insertId is not returned, the model is not updated.
-    it('checks that if an insertId is not returned, the model is not updated.', function()
-    {
-      qryExec.insert.and.callFake(function(query, callback)
-      {
+    it('does not modify the model if no insertId is returned.', function() {
+      qryExec.insert.and.callFake(function(query, callback) {
         callback(undefined, {});
       });
 
-      var query = new Insert(db, escaper, qryExec,
-      {
+      const query = new Insert(db, escaper, qryExec, {
         users: {first: 'Sandy', last: 'Perkins'}
       });
 
-      query.execute().then(function(result)
-      {
+      query.execute().then(function(result) {
         expect(result.users.ID).not.toBeDefined();
       });
     });
 
-    // Checks that unrelated children are not updated.
-    it('checks that unrelated children are not updated.', function()
-    {
-      var query = new Insert(db, escaper, qryExec,
-      {
-        users:
-        {
-          first: 'Sandy',
-          last: 'Perkins',
-          products:
-          {
-            productID: 8
-          }
-        }
+    it('propagates errors from the queryExecuter.insert() method.', function() {
+      const err   = new Error();
+      const query = new Insert(db, escaper, qryExec, {
+        users: {first: 'Sandy', last: 'Perkins'}
       });
 
-      query.execute().then(function(result)
-      {
-        expect(result.users.ID).toBe(1);
-        expect(result.users.bikeShops.userID).not.toBeDefined();
-      });
+      qryExec.insert.and.callFake((query, callback) => callback(err));
+
+      query
+        .execute()
+        .then(() => expect(true).toBe(false))
+        .catch(e => expect(e).toBe(err))
+        .done();
     });
   });
 });

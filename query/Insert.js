@@ -1,171 +1,152 @@
 'use strict';
 
-var deferred    = require('deferred');
-var MetaBuilder = require('./MetaBuilder');
-var traverse    = require('./modelTraverse');
-var Query       = require('./Query');
+require('insulin').factory('ndm_Insert',
+  ['deferred', 'ndm_ModelTraverse', 'ndm_Query'], ndm_InsertProducer);
 
-/**
- * Construct a new INSERT query.
- * @param database The database to insert into.
- * @param escaper An instance of an Escaper matching the database type (i.e.
- *        MySQLEscaper or MSSQLEscaper).
- * @param queryExecuter A QueryExecuter instance that implements the
- *        insert method.
- * @param model A model object to insert.  Each key in the object should be a
- *        table alias.  The value associated with the key should be an object
- *        (or an array of objects) wherein each key corresponds to a column
- *        alias.
- */
-function Insert(database, escaper, queryExecuter, model)
-{
-  Query.call(this, database, escaper, queryExecuter);
+function ndm_InsertProducer(deferred, ModelTraverse, Query) {
+  /**
+   * A Query class that represents an INSERT query.  Instances of the class can
+   * be used to insert models in a database.
+   * @extends Query
+   */
+  class Insert extends Query {
+    /**
+     * Initialize the Query.
+     * @param {Database} database - A Database instance that will be queried.
+     * @param {Escaper} escaper - An instance of an Escaper matching the
+     * database type (i.e.  MySQLEscaper or MSSQLEscaper).
+     * @param {QueryExecuter} queryExecuter - A QueryExecuter instance.
+     * @param {object} model - A model object to insert.  Each key in the
+     * object should map to a table.  The value associated with the key should
+     * be an object or an array of objects wherein each key maps to a column.
+     */
+    constructor(database, escaper, queryExecuter, model) {
+      super(database, escaper, queryExecuter);
 
-  this._model          = model;
-  this._updateChildren = true;
-}
-
-// Insert extends Query.
-//Insert.prototype = Object.create(Query.prototype);
-//Insert.prototype.constructor = Query;
-
-/**
- * Set whether or not to update the foreign keys of children after
- * a query is executed.  Defaults to true.
- * @param update A boolean that determines whether or not to update children.
- */
-Insert.prototype.setUpdateChildKeys = function(update)
-{
-  this._updateChildren = update;
-  return this;
-};
-
-/**
- * Private helper to build an INSERT query.
- * @param modelMeta A meta object with comes from a modelTraverse method.
- */
-Insert.prototype._buildQuery = function(modelMeta)
-{
-  var meta = new MetaBuilder().buildMeta(this._database, modelMeta.tableAlias, modelMeta.model);
-  var sql;
-
-  sql  = 'INSERT INTO ';
-  sql += this._escaper.escapeProperty(meta.tableName);
-  sql += ' (';
-  sql += meta.fields.map(function(field)
-  {
-    return this._escaper.escapeProperty(field.columnName);
-  }, this).join(', ');
-  sql += ')\n';
-
-  sql += 'VALUES (';
-  sql += meta.fields.map(function(field)
-  {
-    return this._escaper.escapeLiteral(field.value);
-  }, this).join(', ');
-  sql += ')';
-
-  return sql;
-};
-
-/**
- * Create the SQL string.
- */
-Insert.prototype.toString = function()
-{
-  var queries = [];
-
-  traverse.modelOnly(this._model,
-    (mm) => queries.push(this._buildQuery(mm)), this._database);
-
-  return queries.join(';\n\n');
-};
-
-/**
- * Execute the query.
- */
-Insert.prototype.execute = function()
-{
-  var defer     = deferred();
-  var self      = this;
-  var queryData = [];
-
-  // Queue all the queries and model meta data.
-  traverse.modelOnly(this._model, queueQueryData, this._database);
-  function queueQueryData(modelMeta)
-  {
-    queryData.push
-    ({
-      modelMeta: modelMeta,
-      query:     self._buildQuery(modelMeta)
-    });
-  }
-
-  // The queryData are executed in order.  processQuery() grabs the first query
-  // out of the queryData queue, executes it, and removes it from the array.
-  // The result of the query is passed to processQueryResult(), which in
-  // turn fires processQuery.  When the queue of queryData is empty, the
-  // defered is resolved.
-  // If an error occurs at any point, the deferred is rejected and processing
-  // halts.
-  processQuery();
-
-  // Process the first query in the queryData queue.
-  function processQuery()
-  {
-    var queryDatum;
-
-    if (queryData.length === 0)
-    {
-      defer.resolve(self._model);
-      return;
+      this._model = model;
     }
 
-    queryDatum = queryData.shift();
-    self._queryExecuter.insert(queryDatum.query, function(err, result)
-    {
-      if (err)
-      {
-        defer.reject(err);
-        return;
-      }
+    /**
+     * Private helper to build a SQL representation of an INSERT query.
+     * @private
+     * @param modelMeta A meta object with comes from a modelTraverse method.
+     * @param {ModelTraverse~ModelMeta} meta - A meta object as created by the
+     * modelTraverse class.
+     * @return {string} A string representation of the INSERT query.
+     */
+    _buildQuery(meta) {
+      const table     = this.database.getTableByMapping(meta.tableMapping);
+      const tableName = this.escaper.escapeProperty(table.name);
+      const cols      = [];
+      const vals      = [];
 
-      // If there is an auto-generated ID, set it on the model.
-      if (result.insertId)
-      {
-        var table   = self._database.getTableByAlias(queryDatum.modelMeta.tableAlias);
-        var pk      = table.getPrimaryKey();
-        var pkAlias = pk[0].getAlias();
+      for (let colMapping in meta.model) {
+        // If the property is not a table mapping it is ignored.  (The model
+        // can have extra user-defined data.)
+        if (table.isColumnMapping(colMapping)) {
+          // Mappings are used in the model, but the column name is needed for
+          // an insert statement.
+          const col     = table.getColumnByMapping(colMapping);
+          const colName = this.escaper.escapeProperty(col.name);
+          let   colVal  = meta.model[colMapping];
 
-        queryDatum.modelMeta.model[pkAlias] = result.insertId;
+          // Transform the column if needed (e.g. from a boolean to a bit).
+          if (col.converter.onSave)
+            colVal = col.converter.onSave(colVal);
+          colVal = this.escaper.escapeLiteral(colVal);
 
-        if (self._updateChildren)
-        {
-          // Update the related key on any children when possible.
-          traverse.modelOnly(queryDatum.modelMeta.model, function(childModelMeta)
-          {
-            var childTable = self._database.getTableByAlias(childModelMeta.tableAlias);
-            var pkName     = pk[0].getName();
-            var childColAlias;
-
-            // If the primary key of the inserted table is a valid column
-            // name on the child table, set the insertId on the child.
-            if (childTable.isColumnName(pkName))
-            {
-              childColAlias = childTable.getColumnByName(pkName).getAlias();
-              childModelMeta.model[childColAlias] = result.insertId;
-            }
-          }, self._database);
+          cols.push(colName);
+          vals.push(colVal);
         }
       }
 
+      // If there are no columns/values to insert, return an empty string.
+      if (!cols.length)
+        return '';
+
+      return `INSERT INTO ${tableName} (${cols.join(', ')})\n` +
+             `VALUES (${vals.join(', ')})`;
+    }
+
+    /**
+     * Create the SQL string.
+     * @return {string} A SQL representation of the INSERT query, as a string.
+     */
+    toString() {
+      const queries  = [];
+      const traverse = new ModelTraverse();
+
+      traverse.modelOnly(this._model, mm =>
+        queries.push(this._buildQuery(mm)), this.database);
+
+      return queries.join(';\n\n');
+    }
+
+    /**
+     * Execute the query.
+     * @return {Promise<object>} A promise that shall be resolved with the
+     * model.  If the underlying queryExecuter returns the insertId of the
+     * model, the model will be updated with the ID.  If an error occurs during
+     * execution, the promise shall be rejected with the error (unmodified).
+     */
+    execute() {
+      const self      = this;
+      const defer     = deferred();
+      const queryData = [];
+      const traverse  = new ModelTraverse();
+
+      // Queue all the queries and model meta data.
+      traverse.modelOnly(this._model, queueQueryData, this.database);
+
+      function queueQueryData(modelMeta) {
+        queryData.push({
+          modelMeta: modelMeta,
+          query:     self._buildQuery(modelMeta)
+        });
+      }
+
+      // The queryData are executed in order.  processQuery() grabs the first query
+      // out of the queryData queue, executes it, and removes it from the array.
+      // The result of the query is passed to processQueryResult(), which in
+      // turn fires processQuery.  When the queue of queryData is empty, the
+      // defered is resolved.
+      // If an error occurs at any point, the deferred is rejected and processing
+      // halts.
       processQuery();
-    });
+
+      // Process the first query in the queryData queue.
+      function processQuery() {
+        let queryDatum;
+
+        if (queryData.length === 0) {
+          defer.resolve(self._model);
+          return;
+        }
+
+        queryDatum = queryData.shift();
+        self.queryExecuter.insert(queryDatum.query, function(err, result) {
+          if (err) {
+            defer.reject(err);
+            return;
+          }
+
+          // If there is an auto-generated ID, set it on the model.
+          if (result.insertId) {
+            const tbl   = self.database.getTableByMapping(queryDatum.modelMeta.tableMapping);
+            const pkMap = tbl.primaryKey[0].mapTo;
+
+            queryDatum.modelMeta.model[pkMap] = result.insertId;
+          }
+
+          processQuery();
+        });
+      }
+
+      // A promise is returned.  It will be resolved with the updated models.
+      return defer.promise;
+    }
   }
 
-  // A promise is returned.  It will be resolved with the updated models.
-  return defer.promise;
-};
-
-module.exports = Insert;
+  return Insert;
+}
 
