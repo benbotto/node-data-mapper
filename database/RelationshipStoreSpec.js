@@ -79,6 +79,21 @@ describe('RelationshipStore()', function() {
       expect(rels[0].name).toEqual('fk_userID_users_userID');
     });
 
+    it('handles circular references.', function() {
+      const rels = relStore.getRelationships('products', 'photos');
+
+      expect(rels.length).toBe(2);
+      expect(rels[0].name).toBe('fk_primaryPhotoID_photos_photoID');
+      expect(rels[1].name).toBe('fk_prodID_products_productID');
+    });
+
+    it('can restrict the returned keys to those owned by the first table.', function() {
+      const rels = relStore.getRelationships('products', 'photos', true);
+
+      expect(rels.length).toBe(1);
+      expect(rels[0].name).toBe('fk_primaryPhotoID_photos_photoID');
+    });
+
     it('does not duplicate self-referencing foreign keys.', function() {
       const rels = relStore.getRelationships('photos', 'photos');
       expect(rels.length).toBe(2);

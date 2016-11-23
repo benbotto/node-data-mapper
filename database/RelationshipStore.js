@@ -47,9 +47,11 @@ function ndm_RelationshipStoreProducer(assert) {
      * table names does not matter.
      * @param {string} tableName1 - The first table name.
      * @param {string} tableName2 - The second table name.
+     * @param {boolean} [oneWay=false] - When true, only return the
+     * relationships between table1 and table2 that table1 owns.
      * @return {ForeignKey[]} An array of ForeignKey instances.
      */
-    getRelationships(tableName1, tableName2) {
+    getRelationships(tableName1, tableName2, oneWay=false) {
       let t1Rels, t2Rels;
 
       assert(this._tables.has(tableName1), `${tableName1} is not indexed.`);
@@ -57,6 +59,9 @@ function ndm_RelationshipStoreProducer(assert) {
 
       t1Rels = this._tables.get(tableName1)
         .filter(fk => fk.references.table === tableName2);
+
+      if (oneWay)
+        return t1Rels;
 
       // If the table names are the same, then the user wants the relationships
       // between the table and itself, like a photo with a thumbnailID.  No
