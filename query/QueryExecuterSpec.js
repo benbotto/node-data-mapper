@@ -1,7 +1,8 @@
-xdescribe('QueryExeucter test suite.', function() {
+describe('QueryExeucter test suite.', function() {
   'use strict';
 
-  const QueryExecuter = require('./QueryExecuter');
+  const insulin       = require('insulin');
+  const QueryExecuter = insulin.get('ndm_QueryExecuter');
   let   qe;
 
   beforeEach(() => qe = new QueryExecuter());
