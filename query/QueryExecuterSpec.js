@@ -1,49 +1,41 @@
-xdescribe('QueryExeucter test suite.', function()
-{
+xdescribe('QueryExeucter test suite.', function() {
   'use strict';
 
-  var QueryExecuter = require('./QueryExecuter');
-  var qe;
+  const QueryExecuter = require('./QueryExecuter');
+  let   qe;
 
-  beforeEach(function()
-  {
-    qe = new QueryExecuter();
+  beforeEach(() => qe = new QueryExecuter());
+
+  describe('.select()', function() {
+    it('is not implemented.', function() {
+      expect(function() {
+        qe.select();
+      }).toThrowError('QueryExecuter::select not implemented.');
+    }); 
   });
 
-  // Checks that select is not implemented.
-  it('checks that select is not implemented.', function()
-  {
-    expect(function()
-    {
-      qe.select();
-    }).toThrowError('QueryExecuter::select not implemented.');
+  describe('.update()', function() {
+    it('is not implemented.', function() {
+      expect(function() {
+        qe.update();
+      }).toThrowError('QueryExecuter::update not implemented.');
+    });
   });
 
-  // Checks that update is not implemented.
-  it('checks that update is not implemented.', function()
-  {
-    expect(function()
-    {
-      qe.update();
-    }).toThrowError('QueryExecuter::update not implemented.');
+  describe('.delete()', function() {
+    it('is not implemented.', function() {
+      expect(function() {
+        qe.delete();
+      }).toThrowError('QueryExecuter::delete not implemented.');
+    });
   });
 
-  // Checks that delete is not implemented.
-  it('checks that delete is not implemented.', function()
-  {
-    expect(function()
-    {
-      qe.delete();
-    }).toThrowError('QueryExecuter::delete not implemented.');
-  });
-
-  // Checks that insert is not implemented.
-  it('checks that insert is not implemented.', function()
-  {
-    expect(function()
-    {
-      qe.insert();
-    }).toThrowError('QueryExecuter::insert not implemented.');
+  describe('.insert()', function() {
+    it('is not implemented.', function() {
+      expect(function() {
+        qe.insert();
+      }).toThrowError('QueryExecuter::insert not implemented.');
+    });
   });
 });
 
