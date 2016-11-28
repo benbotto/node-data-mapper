@@ -1,4 +1,4 @@
-describe('QueryExeucter test suite.', function() {
+describe('QueryExecucter()', function() {
   'use strict';
 
   const insulin       = require('insulin');

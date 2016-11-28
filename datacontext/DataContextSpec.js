@@ -1,4 +1,4 @@
-describe('DataContext test suite', function() {
+describe('DataContext()', function() {
   'use strict';
 
   const insulin      = require('insulin');

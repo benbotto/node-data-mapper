@@ -1,4 +1,4 @@
-describe('MySQLQueryExecuter test suite.', function() {
+describe('MySQLQueryExecuter()', function() {
   'use strict';
 
   const insulin            = require('insulin');

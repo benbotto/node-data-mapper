@@ -1,4 +1,4 @@
-describe('UpdateModel test suite.', function() {
+describe('UpdateModel()', function() {
   'use strict';
 
   const insulin      = require('insulin');

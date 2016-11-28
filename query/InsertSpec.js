@@ -1,4 +1,4 @@
-describe('Insert test suite.', function() {
+describe('Insert()', function() {
   'use strict';
 
   const insulin      = require('insulin');

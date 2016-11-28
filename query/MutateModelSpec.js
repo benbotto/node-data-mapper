@@ -1,4 +1,4 @@
-describe('MutateModel test suite.', function() {
+describe('MutateModel()', function() {
   'use strict';
 
   // Note: This is a base class.  The execute method is tested in subclasses

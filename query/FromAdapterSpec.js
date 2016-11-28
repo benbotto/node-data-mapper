@@ -1,4 +1,4 @@
-describe('FromAdapterAdapter()', function() {
+describe('FromAdapter()', function() {
   'use strict';
 
   const insulin      = require('insulin');
