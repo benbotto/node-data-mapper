@@ -1,25 +1,27 @@
 'use strict';
 
-var DataContext        = require('./DataContext');
-var MySQLEscaper       = require('../query/MySQLEscaper');
-var MySQLQueryExecuter = require('../query/MySQLQueryExecuter');
+require('insulin').factory('ndm_MySQLDataContext',
+  ['ndm_DataContext', 'ndm_MySQLEscaper', 'ndm_MySQLQueryExecuter'],
+  ndm_MySQLDataContextProducer);
 
-/**
- * A DataContext for MySQL databases.
- * @param database An instance of a Database.
- * @param pool A connection pool as created by mysql.createPool.
- */
-function MySQLDataContext(database, pool)
-{
-  var queryExec = new MySQLQueryExecuter(pool);
-  var escaper   = new MySQLEscaper();
+function ndm_MySQLDataContextProducer(DataContext, MySQLEscaper, MySQLQueryExecuter) {
+  /** 
+   * A MySQL-specialized DataContext.
+   * @extends DatContext
+   */
+  class MySQLDataContext extends DataContext {
+    /**
+     * @param {Database} database - A Database instance to query.
+     * @param {Object} pool - A MySQL connection pool instance (or a single
+     * connection).  It is the user's responsibility to end the pool when the
+     * application closes.  See {@link
+     * https://github.com/mysqljs/mysql#pooling-connections}
+     */
+    constructor(database, pool) {
+      super(database, new MySQLEscaper(), new MySQLQueryExecuter(pool));
+    }
+  }
 
-  DataContext.call(this, database, escaper, queryExec);
+  return MySQLDataContext;
 }
-
-// MySQLDataContext extends DataContext.
-MySQLDataContext.prototype = Object.create(DataContext.prototype);
-MySQLDataContext.prototype.constructor = DataContext;
-
-module.exports = MySQLDataContext;
 

@@ -1,19 +1,25 @@
-xdescribe('MySQLDataContext test suite', function()
-{
+describe('MySQLDataContext()', function() {
   'use strict';
 
-  var DataContext      = require('./DataContext');
-  var MySQLDataContext = require('./MySQLDataContext');
-  var Database         = require('../database/Database');
-  var db               = new Database(require('../spec/testDB'));
-  var pool             = {};
+  const insulin          = require('insulin');
+  const MySQLDataContext = insulin.get('ndm_MySQLDataContext');
+  const db               = insulin.get('ndm_testDB');
+  const pool             = {};
 
-  // Checks the constructor.
-  it('checks the constructor.', function()
-  {
-    var dc = new MySQLDataContext(db, pool);
+  /**
+   * Ctor.
+   */
+  describe('.constructor()', function() {
+    it('extends DataContext.', function() {
+      const dc          = new MySQLDataContext(db, pool);
+      const DataContext = insulin.get('ndm_DataContext');
 
-    expect(dc instanceof DataContext).toBe(true);
-    expect(dc.getQueryExecuter().getConnectionPool()).toBe(pool);
+      expect(dc instanceof DataContext).toBe(true);
+    });
+
+    it('passes the pool to the MySQLQueryExecuter constructor.', function() {
+      const dc = new MySQLDataContext(db, pool);
+      expect(dc.queryExecuter.pool).toBe(pool);
+    });
   });
 });
