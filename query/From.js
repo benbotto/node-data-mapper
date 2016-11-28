@@ -236,7 +236,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
 
     /**
      * Private helper method for joins.
-     * @private.
+     * @private
      * @param {TableMetaList~TableMeta} meta - The table metadata.
      * @param {Object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
