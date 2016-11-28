@@ -24,7 +24,7 @@ function ndm_QueryExecuterProducer() {
      * that is called after the query is executed.
      * @return {void}
      */
-    select(/*query, callback*/) {
+    select() {
       throw new Error('QueryExecuter::select not implemented.');
     }
 
