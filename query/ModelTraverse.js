@@ -8,11 +8,11 @@ function ndm_modelTraverseProducer() {
 
     /**
      * @typedef ModelTraverse~ModelMeta
-     * @type {object}
+     * @type {Object}
      * @property {string} tableMapping - The mapping (mapTo) of the table with
      * which the model is associated.
-     * @property {object} model - The model itself.
-     * @property {object} parent - The model's parent, or null if the model has
+     * @property {Object} model - The model itself.
+     * @property {Object} parent - The model's parent, or null if the model has
      * no parent.
      */
 
@@ -25,7 +25,7 @@ function ndm_modelTraverseProducer() {
 
     /**
      * Traverse the keys in model.
-     * @param {object|object[]} model - The object or array to traverse.
+     * @param {Object|object[]} model - The object or array to traverse.
      * @param {ModelTraverse~modelMetaCallback} callback - A function that
      * shall be invoked with for each sub-model within model.
      * @param {Database} database - An optional Database instance.  If passed,
@@ -47,7 +47,7 @@ function ndm_modelTraverseProducer() {
 
     /**
      * Traverse model (either an object or an array) using a depth-first traversal.
-     * @param {object|object[]} model - The object or array to traverse.
+     * @param {Object|object[]} model - The object or array to traverse.
      * @param {ModelTraverse~modelMetaCallback} callback - A function that
      * shall be invoked with for each sub-model within model.
      * @param {Database} database - An optional Database instance.  If passed,
@@ -84,7 +84,7 @@ function ndm_modelTraverseProducer() {
 
     /**
      * Traverse model (either an object or an array) using a breadth-first traversal.
-     * @param {object|object[]} model - The object or array to traverse.
+     * @param {Object|object[]} model - The object or array to traverse.
      * @param {ModelTraverse~modelMetaCallback} callback - A function that
      * shall be invoked with for each sub-model within model.
      * @param {Database} database - An optional Database instance.  If passed,

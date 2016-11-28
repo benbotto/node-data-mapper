@@ -169,7 +169,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * Add a where condition.
      * @param {Condition} cond - The condition object.  For the format specs,
      * reference ConditionCompiler.
-     * @param {object} params - An object of key-value pairs that are used to
+     * @param {Object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @return {this}
      */
@@ -198,7 +198,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Join a table.
      * @param {TableMetaList~TableMeta} meta - The table metadata.
-     * @param {object} params - An object of key-value pairs that are used to
+     * @param {Object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @return {this}
      */
@@ -238,7 +238,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * Private helper method for joins.
      * @private.
      * @param {TableMetaList~TableMeta} meta - The table metadata.
-     * @param {object} params - An object of key-value pairs that are used to
+     * @param {Object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @param {From.JOIN_TYPE} joinType - The type of join.
      * @return {this}
@@ -253,7 +253,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Inner join a table.
      * @param {TableMetaList~TableMeta} meta - The table metadata.
-     * @param {object} params - An object of key-value pairs that are used to
+     * @param {Object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @return {this}
      */
@@ -264,7 +264,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Left outer join a table.
      * @param {TableMetaList~TableMeta} meta - The table metadata.
-     * @param {object} params - An object of key-value pairs that are used to
+     * @param {Object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @return {this}
      */
@@ -275,7 +275,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Right outer join a table.
      * @param {TableMetaList~TableMeta} meta - The table metadata.
-     * @param {object} params - An object of key-value pairs that are used to
+     * @param {Object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @return {this}
      */
@@ -349,7 +349,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
    * @typedef From.JOIN_TYPE
    * @constant
    * @static
-   * @type {object}
+   * @type {Object}
    * @property {string} INNER - INNER JOIN.
    * @property {string} LEFT_OUTER - LEFT OUTER JOIN.
    * @property {string} RIGHT_OUTER - RIGHT OUTER JOIN.

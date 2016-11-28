@@ -135,7 +135,7 @@ function ndm_SchemaProducer(assert) {
    * @typedef Schema.RELATIONSHIP_TYPE
    * @constant
    * @static
-   * @type {object}
+   * @type {Object}
    * @property {string} MANY - Map to an array.
    * @property {string} SINGLE - Map to an object.
    */

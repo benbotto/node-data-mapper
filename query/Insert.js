@@ -16,7 +16,7 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query) {
      * @param {Escaper} escaper - An instance of an Escaper matching the
      * database type (i.e.  MySQLEscaper or MSSQLEscaper).
      * @param {QueryExecuter} queryExecuter - A QueryExecuter instance.
-     * @param {object} model - A model object to insert.  Each key in the
+     * @param {Object} model - A model object to insert.  Each key in the
      * object should map to a table.  The value associated with the key should
      * be an object or an array of objects wherein each key maps to a column.
      */

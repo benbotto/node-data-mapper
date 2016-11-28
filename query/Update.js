@@ -12,7 +12,7 @@ function ndm_UpdateProducer(deferred, Query, assert) {
     /**
      * Initialize the Query.
      * @param {From} from - A From instance.
-     * @param {object} model - An object containing key-value pairs.  Each key
+     * @param {Object} model - An object containing key-value pairs.  Each key
      * must correspond to a fully-qualified column name, as created by the
      * Column.createFQColName() method
      * (&lt;table-alias&gt;.&lt;column-name&gt;), and each associated value is

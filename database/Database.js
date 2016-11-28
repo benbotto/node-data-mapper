@@ -8,7 +8,7 @@ function ndm_DatabaseProducer(assert, Table, RelationshipStore) {
   class Database {
     /**
      * Initialize the database from a schema object.
-     * @param {object} database - A schema object representing the database.  Any
+     * @param {Object} database - A schema object representing the database.  Any
      * custom properties on the database shall be preserved.
      * @param {string} database.name - The name of the database.
      * @param {Table[]} database.tables - An array of Tables.  If, instead, an

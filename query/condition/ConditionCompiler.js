@@ -18,9 +18,9 @@ function ndm_ConditionCompilerProducer(assert) {
 
     /**
      * Compile the parse tree.
-     * @param {object} parseTree - A parse tree object, as created by the
+     * @param {Object} parseTree - A parse tree object, as created by the
      * ConditionParser.parse() method.
-     * @param {object} params - An object containing key-value pairs that are used to
+     * @param {Object} params - An object containing key-value pairs that are used to
      * replace parameters in the query.
      * @return {string} The compiled condition as a SQL string.
      */

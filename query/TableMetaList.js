@@ -9,7 +9,7 @@ function ndm_TableMetaListProducer(assert, Column, Schema) {
   class TableMetaList {
     /**
      * @typedef TableMetaList~TableMeta
-     * @type {object}
+     * @type {Object}
      * @property {string} table - The name of the table, or a Table instance.
      * @property {string} [as=Table.name] - An alias for the table.  This is
      * needed if, for example, the same table is joined in multiple times.  If
@@ -31,7 +31,7 @@ function ndm_TableMetaListProducer(assert, Column, Schema) {
 
     /**
      * @typedef TableMetaList~ColumnMeta
-     * @type {object}
+     * @type {Object}
      * @property {string} tableAlias - The unique alias of the table to which
      * the column belongs.
      * @property {Column} column - The Column instance.

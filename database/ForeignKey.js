@@ -8,11 +8,11 @@ function ndm_ForeignKeyProducer(assert) {
   class ForeignKey {
     /**
      * Initialize the foreign key.
-     * @param {object} foreignKey - An object containing a FK definition.
+     * @param {Object} foreignKey - An object containing a FK definition.
      * @param {string} foreignKey.table - The name of the owning table.
      * @param {string} foreignKey.column - The name of the column in the owning
      * table.
-     * @param {object} foreignKey.references - An object representing the
+     * @param {Object} foreignKey.references - An object representing the
      * referenced table-column combination.
      * @param {string} foreignKey.references.table - The name of the referenced
      * table.

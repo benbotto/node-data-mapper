@@ -19,7 +19,7 @@ function ndm_MutateModelProducer(deferred, assert, From, Query, Column, ModelTra
      * database type (e.g. MySQLEscaper).
      * @param {QueryExecuter} queryExecuter - A QueryExecuter instance that
      * implements the mutate (update or delete) method.
-     * @param {object} model - A model object to mutate.  Each key in the
+     * @param {Object} model - A model object to mutate.  Each key in the
      * object should map to a table.  The value associated with the key should
      * be an object or an array of objects wherein each key maps to a column.
      * The primary key is required for each model.

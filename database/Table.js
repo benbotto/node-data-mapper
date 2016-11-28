@@ -9,7 +9,7 @@ function ndm_TableProducer(assert, Column, ForeignKey) {
   class Table {
     /**
      * Initialize the table using a schema object.
-     * @param {object} table - An object containing a table definition.
+     * @param {Object} table - An object containing a table definition.
      * @param {string} table.name - The name of the table.
      * @param {string} [table.mapTo=table.name] - When a resource is pulled from
      * this table and serialized, this mapping will be used in the resulting

@@ -7,14 +7,14 @@ function ColumnProducer(assert) {
   class Column {
     /**
      * Initialize the column.
-     * @param {object} column - An object representing the database column.  Any
+     * @param {Object} column - An object representing the database column.  Any
      * custom properties on the object shall be preserved.
      * @param {string} column.name - The name of the column.
      * @param {string} [column.mapTo=column.name] - When the column is
      * serialized, the resulting object will use this property name.
      * @param {boolean} [column.isPrimary=false] Whether or not this column is a
      * primary key.
-     * @param {object} [column.converter={}] An optional converter object
+     * @param {Object} [column.converter={}] An optional converter object
      * containing onRetrieve and/or onSave methods.  These methods will be called
      * when a column is serialized after a select, and before the column is saved
      * to the database, respectively.

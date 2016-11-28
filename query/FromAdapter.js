@@ -39,7 +39,7 @@ function ndm_FromAdapterProducer(From, Select, Update, Delete) {
 
     /**
      * Update a table.
-     * @param {object} model - The model describing what to update.
+     * @param {Object} model - The model describing what to update.
      * @see Update
      * @return {Update} An Update instance that can be executed.
      */
