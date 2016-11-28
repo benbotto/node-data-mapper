@@ -1,56 +1,81 @@
-xdescribe('MySQLQueryExecuter test suite.', function()
-{
+describe('MySQLQueryExecuter test suite.', function() {
   'use strict';
 
-  var MySQLQueryExecuter = require('./MySQLQueryExecuter');
-  var qe, con;
+  const insulin            = require('insulin');
+  const MySQLQueryExecuter = insulin.get('ndm_MySQLQueryExecuter');
+  let qe, con;
 
-  beforeEach(function()
-  {
+  beforeEach(function() {
     // Mocked node-mysql connection.
     con = jasmine.createSpyObj('con', ['query']);
-
-    qe = new MySQLQueryExecuter(con);
+    qe  = new MySQLQueryExecuter(con);
   });
 
-  // Checks the select method.
-  it('checks the select method.', function()
-  {
-    var callback = null; // Only checking the argument.  Normally this is a function.
-    var query    = 'SELECT userID FROM users';
-    qe.select(query, callback);
+  /**
+   * Ctor.
+   */
+  describe('.constructor()', function() {
+    it('extends QueryExecuter.', function() {
+      const QueryExecuter = insulin.get('ndm_QueryExecuter');
 
-    expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
+      expect(qe instanceof QueryExecuter).toBe(true);
+    });
+
+    it('exposes a "pool" object.', function() {
+      expect(qe.pool).toBe(con);
+    });
   });
 
-  // Checks the insert method.
-  it('checks the insert method.', function()
-  {
-    var callback = null;
-    var query = 'INSERT INTO users (userName) VALUES (\'foo bar\')';
-    qe.insert(query, callback);
+  /**
+   * Select.
+   */
+  describe('.select()', function() {
+    it('uses pool.query() to execute the select statements.', function() {
+      const callback = {}; // Only checking the argument.  Normally this is a function.
+      const query    = 'SELECT userID FROM users';
+      qe.select(query, callback);
 
-    expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
+      expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
+    });
   });
 
-  // Checks the delete method.
-  it('checks the delete method.', function()
-  {
-    var callback = null;
-    var query = 'DELETE FROM users WHERE userID = 1';
-    qe.delete(query, callback);
+  /**
+   * Insert.
+   */
+  describe('.insert()', function() {
+    it('uses pool.query() to execute insert statements.', function() {
+      const callback = {};
+      const query    = 'INSERT INTO users (userName) VALUES (\'foo bar\')';
+      qe.insert(query, callback);
 
-    expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
+      expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
+    });
   });
 
-  // Checks the update method.
-  it('checks the update method.', function()
-  {
-    var callback = null;
-    var query = "UPDATE users SET firstName = 'Joe' WHERE userID = 2";
-    qe.update(query, callback);
+  /**
+   * Delete.
+   */
+  describe('.delete()', function() {
+    it('uses pool.query() to execute delete statements.', function() {
+      const callback = {};
+      const query    = 'DELETE FROM users WHERE userID = 1';
+      qe.delete(query, callback);
 
-    expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
+      expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
+    });
+  });
+
+  /**
+   * Update.
+   */
+  describe('.update()', function() {
+    it('uses pool.query() to execute update statements.', function() {
+      const callback = null;
+      const query = "UPDATE users SET firstName = 'Joe' WHERE userID = 2";
+      qe.update(query, callback);
+
+      expect(con.query.calls.argsFor(0)).toEqual([query, callback]);
+    });
   });
 });
 
