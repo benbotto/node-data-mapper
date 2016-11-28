@@ -1,103 +1,115 @@
-xdescribe('DataContext test suite', function()
-{
+describe('DataContext test suite', function() {
   'use strict';
 
-  var DataContext  = require('./DataContext');
-  var Database     = require('../database/Database');
-  var MySQLEscaper = require('../query/MySQLEscaper');
-  var From         = require('../query/From');
-  var Insert       = require('../query/Insert');
-  var DeleteModel  = require('../query/DeleteModel');
-  var UpdateModel  = require('../query/UpdateModel');
-  var db           = new Database(require('../spec/testDB'));
-  var escaper      = new MySQLEscaper();
-  var exec         = {};
+  const insulin      = require('insulin');
+  const DataContext  = insulin.get('ndm_DataContext');
+  const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
+  const db           = insulin.get('ndm_testDB');
+  const escaper      = new MySQLEscaper();
+  const exec         = {};
 
-  // Checks the constructor.
-  it('checks the constructor.', function()
-  {
-    var dc = new DataContext(db, escaper, exec);
+  // Helper function to "clone" the db instance.
+  function cloneDB() {
+    const Database = insulin.get('ndm_Database');
 
-    expect(dc.getDatabase()).toBe(db);
-    expect(dc.getEscaper()).toBe(escaper);
-    expect(dc.getQueryExecuter()).toBe(exec);
+    return new Database(JSON.parse(JSON.stringify(db)));
+  }
+
+  /**
+   * Ctor.
+   */
+  describe('.constructor()', function() {
+    it('stores the database, escaper, and executer.', function() {
+      const dc = new DataContext(db, escaper, exec);
+
+      expect(dc.database).toBe(db);
+      expect(dc.escaper).toBe(escaper);
+      expect(dc.queryExecuter).toBe(exec);
+    });
   });
 
-  // Checks that a From query can be created.
-  it('checks that a From query can be created.', function()
-  {
-    var dc   = new DataContext(db, escaper);
-    var from = dc.from({table: 'users'});
+  /**
+   * From.
+   */
+  describe('.from()', function() {
+    it('returns a FromAdapter instance.', function() {
+      const dc          = new DataContext(db, escaper);
+      const from        = dc.from({table: 'users'});
+      const FromAdapter = insulin.get('ndm_FromAdapter');
 
-    expect(from instanceof From).toBe(true);
+      expect(from instanceof FromAdapter).toBe(true);
+    });
+
+    it('accepts an optional database argument, and passes it to the FromAdapter ctor.', function() {
+      const dc   = new DataContext(db, escaper);
+      const db2  = cloneDB();
+      const from = dc.from({table: 'users'}, db2);
+
+      expect(from.database).toBe(db2);
+    });
   });
 
-  // Checks that a database can be passed as a second parameter to from.
-  it('checks that a database can be passed as a second parameter to from.', function()
-  {
-    var dc   = new DataContext(db, escaper);
-    var db2  = db.clone();
-    var from = dc.from({table: 'users'}, db2);
+  /**
+   * Insert.
+   */
+  describe('.insert()', function() {
+    it('returns an Insert instance.', function() {
+      const dc     = new DataContext(db, escaper);
+      const insert = dc.insert({});
+      const Insert = insulin.get('ndm_Insert');
 
-    expect(from instanceof From).toBe(true);
-    expect(from.getDatabase()).toBe(db2);
+      expect(insert instanceof Insert).toBe(true);
+    });
+
+    it('accepts an optional database argument, and passes it to the Insert ctor.', function() {
+      const dc     = new DataContext(db, escaper);
+      const db2    = cloneDB();
+      const insert = dc.insert({}, db2);
+
+      expect(insert.database).toBe(db2);
+    });
   });
 
-  // Checks that an Insert query can be created.
-  it('checks that an Insert query can be created.', function()
-  {
-    var dc     = new DataContext(db, escaper);
-    var insert = dc.insert({});
+  /**
+   * Delete.
+   */
+  describe('.delete()', function() {
+    it('returns a DeleteModel instance.', function() {
+      const dc          = new DataContext(db, escaper);
+      const del         = dc.delete({});
+      const DeleteModel = insulin.get('ndm_DeleteModel');
 
-    expect(insert instanceof Insert).toBe(true);
+      expect(del instanceof DeleteModel).toBe(true);
+    });
+
+    it('accepts an optional database argument, and passes it to the DeleteModel ctor.', function() {
+      const dc  = new DataContext(db, escaper);
+      const db2 = cloneDB();
+      const del = dc.delete({}, db2);
+
+      expect(del.database).toBe(db2);
+    });
   });
 
-  // Checks that a database can be passed as a second parameter to insert.
-  it('checks that a database can be passed as a second parameter to insert.', function()
-  {
-    var dc     = new DataContext(db, escaper);
-    var db2    = db.clone();
-    var insert = dc.insert({}, db2);
+  /**
+   * Update.
+   */
+  describe('.update()', function() {
+    it('returns an UpdateModel instance.', function() {
+      const dc          = new DataContext(db, escaper);
+      const del         = dc.update({});
+      const UpdateModel = insulin.get('ndm_UpdateModel');
 
-    expect(insert.getDatabase()).toBe(db2);
-  });
+      expect(del instanceof UpdateModel).toBe(true);
+    });
 
-  // Checks that a Delete query can be created.
-  it('checks that a Delete query can be created.', function()
-  {
-    var dc  = new DataContext(db, escaper);
-    var del = dc.delete({});
+    it('accepts an optional database argument, and passes it to the UpdateModel ctor.', function() {
+      const dc  = new DataContext(db, escaper);
+      const db2 = cloneDB();
+      const del = dc.update({}, db2);
 
-    expect(del instanceof DeleteModel).toBe(true);
-  });
-
-  // Checks that a database can be passed as a second parameter to Delete.
-  it('checks that a database can be passed as a second parameter to Delete.', function()
-  {
-    var dc  = new DataContext(db, escaper);
-    var db2 = db.clone();
-    var del = dc.delete({}, db2);
-
-    expect(del.getDatabase()).toBe(db2);
-  });
-
-  // Checks that a Update query can be created.
-  it('checks that a Update query can be created.', function()
-  {
-    var dc  = new DataContext(db, escaper);
-    var del = dc.update({});
-
-    expect(del instanceof UpdateModel).toBe(true);
-  });
-
-  // Checks that a database can be passed as a second parameter to Update.
-  it('checks that a database can be passed as a second parameter to Update.', function()
-  {
-    var dc  = new DataContext(db, escaper);
-    var db2 = db.clone();
-    var del = dc.update({}, db2);
-
-    expect(del.getDatabase()).toBe(db2);
+      expect(del.database).toBe(db2);
+    });
   });
 });
 
