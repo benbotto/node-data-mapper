@@ -13,7 +13,7 @@ insulin
   .factory('deferred', () => require('deferred'));
 
 // Application (dynamic) dependencies.
-scripts.forEach(script => require(`${__dirname}/${script}`));
+scripts.forEach(script => require(script));
 
 // Export the list of files.
 module.exports = scripts;

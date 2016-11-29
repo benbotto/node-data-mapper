@@ -14,7 +14,7 @@ const exp   = {};
 files.forEach(f => {
   // Remove the everything up to the final "/" and the ".js" extension.
   const name = f.replace(/^.*\/([^\/]+)\.js$/, '$1');
-  exp[name]  = insulin.get(name);
+  exp[name]  = insulin.get(`ndm_${name}`);
 });
 
 module.exports = exp;
