@@ -207,7 +207,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         const colAlias = this.escaper.escapeProperty(col.fqColName);
         const tblAlias = this.escaper.escapeProperty(col.tableAlias);
 
-        return tblAlias + '.' + colName + ' AS ' + colAlias;
+        return `${tblAlias}.${colName} AS ${colAlias}`;
       }, this).join(',\n        ');
 
       // Add the FROM (which includes the JOINS and WHERE).
