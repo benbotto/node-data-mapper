@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: database/Table.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: database/Table.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+
+require('insulin')
+  .factory('ndm_Table', ['ndm_assert', 'ndm_Column', 'ndm_ForeignKey'],
+  ndm_TableProducer);
+
+function ndm_TableProducer(assert, Column, ForeignKey) {
+  /** Represents a database table. */
+  class Table {
+    /**
+     * Initialize the table using a schema object.
+     * @param {Object} table - An object containing a table definition.
+     * @param {string} table.name - The name of the table.
+     * @param {string} [table.mapTo=table.name] - When a resource is pulled from
+     * this table and serialized, this mapping will be used in the resulting
+     * object.
+     * @param {Column[]|object[]} table.columns - An array of Columns--or
+     * object suitable for the Column constructor--that make up the table.
+     * Refer to the Column constructor for property details.  At least one of
+     * the columns must be a primary key.
+     * @param {ForeignKey[]|object[]} table.foreignKeys - An array of
+     * ForeignKey instances, or objects suitable for the ForeignKey
+     * constructor.
+     */
+    constructor(table) {
+      assert(table.name, 'name is required.');
+      assert(table.columns &amp;&amp; (table.columns instanceof Array) &amp;&amp; table.columns.length !== 0,
+        'columns is required.');
+
+      // Copy all the properties from table.  Anything that the user adds to the
+      // table will be preserved.
+      Object.assign(this, table);
+
+      // Objects are used here instead of Maps for efficiency reasons.
+      this._nameLookup  = {};
+      this._mapToLookup = {};
+
+      /**
+       * The name of the column.
+       * @type {string}
+       * @name Table#name
+       * @public
+       */
+
+      /**
+       * The property name in the resulting normalized object.
+       * @type {string}
+       * @name Table#mapTo
+       * @default table.name
+       * @public
+       */
+      this.mapTo = this.mapTo || this.name;
+
+      /**
+       * The array of columns.
+       * @type {Column[]}
+       * @name Table#columns
+       * @public
+       */
+      this.columns = [];
+
+      /**
+       * The table's primary key.
+       * @type {Column[]}
+       * @name Table#primaryKey
+       * @public
+       */
+      this.primaryKey = [];
+
+      /**
+       * An array of ForeignKey instances describing the relationship between
+       * this table and others.
+       * @type {ForeignKey[]}
+       * @name Table#foreignKeys
+       * @public
+       */
+      if (!this.foreignKeys)
+        this.foreignKeys = [];
+      else {
+        // The table name is added explicitly.
+        this.foreignKeys = this.foreignKeys.map(fk =>
+          new ForeignKey(Object.assign({table: this.name}, fk)));
+      }
+
+      // Add all the columns.
+      table.columns.forEach(this.addColumn, this);
+
+      // Make sure there is at least one primary key.
+      assert(this.primaryKey.length !== 0,
+        'At least one column must be a primary key.');
+    }
+
+    /**
+     * Add a column.
+     * @param {Column|object} column - The Column, or a suitable schema object
+     * for the Column constructor.
+     * @return {this}
+     */
+    addColumn(column) {
+      // Either an instance of Column or an object can be used.  If an object is
+      // passed in, then a Column instance is created.
+      if (!(column instanceof Column))
+        column = new Column(column);
+
+      // Name and mapTo have to be unique.
+      assert(this._nameLookup[column.name] === undefined,
+        `Column ${column.name} already exists in table ${this.name}.`);
+      assert(this._mapToLookup[column.mapTo] === undefined,
+        `Column mapping ${column.mapTo} already exists in table ${this.name}.`);
+
+      // Store the column, and keep some lookups.
+      this.columns.push(column);
+      this._nameLookup[column.name]   = column;
+      this._mapToLookup[column.mapTo] = column;
+
+      if (column.isPrimary)
+        this.primaryKey.push(column);
+
+      return this;
+    }
+
+    /**
+     * Get a column by name.
+     * @param {string} name - The column name.
+     * @return {Column} The Column instance.
+     */
+    getColumnByName(name) {
+      assert(this._nameLookup[name] !== undefined,
+        `Column ${name} does not exist in table ${this.name}.`);
+
+      return this._nameLookup[name];
+    }
+
+    /**
+     * Check if name matches a column.
+     * @param {string} name - The column name.
+     * @return {boolean}
+     */
+    isColumnName(name) {
+      return this._nameLookup[name] !== undefined;
+    }
+
+    /**
+     * Get a column by mapping (it's mapTo property).
+     * @param {string} mapping - The column's mapTo property.
+     * @return {Column} The column instance.
+     */
+    getColumnByMapping(mapping) {
+      assert(this._mapToLookup[mapping] !== undefined,
+        `Column mapping ${mapping} does not exist in table ${this.name}.`);
+
+      return this._mapToLookup[mapping];
+    }
+
+    /**
+     * Check if mapping matches a column.
+     * @param {string} mapping - The column's mapTo property.
+     * @return {boolean}
+     */
+    isColumnMapping(mapping) {
+      return this._mapToLookup[mapping] !== undefined;
+    }
+  }
+
+  return Table;
+}
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BitConverter.html">BitConverter</a></li><li><a href="Column.html">Column</a></li><li><a href="ConditionCompiler.html">ConditionCompiler</a></li><li><a href="ConditionLexer.html">ConditionLexer</a></li><li><a href="ConditionParser.html">ConditionParser</a></li><li><a href="Database.html">Database</a></li><li><a href="DataContext.html">DataContext</a></li><li><a href="DataMapper.html">DataMapper</a></li><li><a href="Delete.html">Delete</a></li><li><a href="DeleteModel.html">DeleteModel</a></li><li><a href="Escaper.html">Escaper</a></li><li><a href="ForeignKey.html">ForeignKey</a></li><li><a href="From.html">From</a></li><li><a href="FromAdapter.html">FromAdapter</a></li><li><a href="Insert.html">Insert</a></li><li><a href="ModelTraverse.html">ModelTraverse</a></li><li><a href="MutateModel.html">MutateModel</a></li><li><a href="Query.html">Query</a></li><li><a href="QueryExecuter.html">QueryExecuter</a></li><li><a href="RelationshipStore.html">RelationshipStore</a></li><li><a href="Schema.html">Schema</a></li><li><a href="Select.html">Select</a></li><li><a href="Table.html">Table</a></li><li><a href="TableMetaList.html">TableMetaList</a></li><li><a href="Update.html">Update</a></li><li><a href="UpdateModel.html">UpdateModel</a></li><li><a href="UTCConverter.html">UTCConverter</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Sun Dec 04 2016 13:52:15 GMT-0800 (PST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

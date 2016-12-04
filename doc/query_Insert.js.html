@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: query/Insert.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: query/Insert.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+
+require('insulin').factory('ndm_Insert',
+  ['deferred', 'ndm_ModelTraverse', 'ndm_Query'], ndm_InsertProducer);
+
+function ndm_InsertProducer(deferred, ModelTraverse, Query) {
+  /**
+   * A Query class that represents an INSERT query.  Instances of the class can
+   * be used to insert models in a database.
+   * @extends Query
+   */
+  class Insert extends Query {
+    /**
+     * Initialize the Query.
+     * @param {Database} database - A Database instance that will be queried.
+     * @param {Escaper} escaper - An instance of an Escaper matching the
+     * database type (i.e.  MySQLEscaper or MSSQLEscaper).
+     * @param {QueryExecuter} queryExecuter - A QueryExecuter instance.
+     * @param {Object} model - A model object to insert.  Each key in the
+     * object should map to a table.  The value associated with the key should
+     * be an object or an array of objects wherein each key maps to a column.
+     */
+    constructor(database, escaper, queryExecuter, model) {
+      super(database, escaper, queryExecuter);
+
+      this._model = model;
+    }
+
+    /**
+     * Private helper to build a SQL representation of an INSERT query.
+     * @private
+     * @param modelMeta A meta object with comes from a modelTraverse method.
+     * @param {ModelTraverse~ModelMeta} meta - A meta object as created by the
+     * modelTraverse class.
+     * @return {string} A string representation of the INSERT query.
+     */
+    _buildQuery(meta) {
+      const table     = this.database.getTableByMapping(meta.tableMapping);
+      const tableName = this.escaper.escapeProperty(table.name);
+      const cols      = [];
+      const vals      = [];
+
+      for (let colMapping in meta.model) {
+        // If the property is not a table mapping it is ignored.  (The model
+        // can have extra user-defined data.)
+        if (table.isColumnMapping(colMapping)) {
+          // Mappings are used in the model, but the column name is needed for
+          // an insert statement.
+          const col     = table.getColumnByMapping(colMapping);
+          const colName = this.escaper.escapeProperty(col.name);
+          let   colVal  = meta.model[colMapping];
+
+          // Transform the column if needed (e.g. from a boolean to a bit).
+          if (col.converter.onSave)
+            colVal = col.converter.onSave(colVal);
+          colVal = this.escaper.escapeLiteral(colVal);
+
+          cols.push(colName);
+          vals.push(colVal);
+        }
+      }
+
+      // If there are no columns/values to insert, return an empty string.
+      if (!cols.length)
+        return '';
+
+      return `INSERT INTO ${tableName} (${cols.join(', ')})\n` +
+             `VALUES (${vals.join(', ')})`;
+    }
+
+    /**
+     * Create the SQL string.
+     * @return {string} A SQL representation of the INSERT query, as a string.
+     */
+    toString() {
+      const queries  = [];
+      const traverse = new ModelTraverse();
+
+      traverse.modelOnly(this._model, mm =>
+        queries.push(this._buildQuery(mm)), this.database);
+
+      return queries.join(';\n\n');
+    }
+
+    /**
+     * Execute the query.
+     * @return {Promise&lt;object>} A promise that shall be resolved with the
+     * model.  If the underlying queryExecuter returns the insertId of the
+     * model, the model will be updated with the ID.  If an error occurs during
+     * execution, the promise shall be rejected with the error (unmodified).
+     */
+    execute() {
+      const self      = this;
+      const defer     = deferred();
+      const queryData = [];
+      const traverse  = new ModelTraverse();
+
+      // Queue all the queries and model meta data.
+      traverse.modelOnly(this._model, queueQueryData, this.database);
+
+      function queueQueryData(modelMeta) {
+        queryData.push({
+          modelMeta: modelMeta,
+          query:     self._buildQuery(modelMeta)
+        });
+      }
+
+      // The queryData are executed in order.  processQuery() grabs the first query
+      // out of the queryData queue, executes it, and removes it from the array.
+      // The result of the query is passed to processQueryResult(), which in
+      // turn fires processQuery.  When the queue of queryData is empty, the
+      // defered is resolved.
+      // If an error occurs at any point, the deferred is rejected and processing
+      // halts.
+      processQuery();
+
+      // Process the first query in the queryData queue.
+      function processQuery() {
+        let queryDatum;
+
+        if (queryData.length === 0) {
+          defer.resolve(self._model);
+          return;
+        }
+
+        queryDatum = queryData.shift();
+        self.queryExecuter.insert(queryDatum.query, function(err, result) {
+          if (err) {
+            defer.reject(err);
+            return;
+          }
+
+          // If there is an auto-generated ID, set it on the model.
+          if (result.insertId) {
+            const tbl   = self.database.getTableByMapping(queryDatum.modelMeta.tableMapping);
+            const pkMap = tbl.primaryKey[0].mapTo;
+
+            queryDatum.modelMeta.model[pkMap] = result.insertId;
+          }
+
+          processQuery();
+        });
+      }
+
+      // A promise is returned.  It will be resolved with the updated models.
+      return defer.promise;
+    }
+  }
+
+  return Insert;
+}
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BitConverter.html">BitConverter</a></li><li><a href="Column.html">Column</a></li><li><a href="ConditionCompiler.html">ConditionCompiler</a></li><li><a href="ConditionLexer.html">ConditionLexer</a></li><li><a href="ConditionParser.html">ConditionParser</a></li><li><a href="Database.html">Database</a></li><li><a href="DataContext.html">DataContext</a></li><li><a href="DataMapper.html">DataMapper</a></li><li><a href="Delete.html">Delete</a></li><li><a href="DeleteModel.html">DeleteModel</a></li><li><a href="Escaper.html">Escaper</a></li><li><a href="ForeignKey.html">ForeignKey</a></li><li><a href="From.html">From</a></li><li><a href="FromAdapter.html">FromAdapter</a></li><li><a href="Insert.html">Insert</a></li><li><a href="ModelTraverse.html">ModelTraverse</a></li><li><a href="MutateModel.html">MutateModel</a></li><li><a href="Query.html">Query</a></li><li><a href="QueryExecuter.html">QueryExecuter</a></li><li><a href="RelationshipStore.html">RelationshipStore</a></li><li><a href="Schema.html">Schema</a></li><li><a href="Select.html">Select</a></li><li><a href="Table.html">Table</a></li><li><a href="TableMetaList.html">TableMetaList</a></li><li><a href="Update.html">Update</a></li><li><a href="UpdateModel.html">UpdateModel</a></li><li><a href="UTCConverter.html">UTCConverter</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Sun Dec 04 2016 13:52:15 GMT-0800 (PST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

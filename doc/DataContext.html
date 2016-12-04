@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: DataContext</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: DataContext</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>DataContext</h2>
+        
+            <div class="class-description">The main interface to the ORM, which provides access to CRUD operations.
+This class is expected to be extended by the user, or created as a
+singleton.</div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+    <h2>Constructor</h2>
+    
+
+    <h4 class="name" id="DataContext"><span class="type-signature"></span>new DataContext<span class="signature">(database, escaper, queryExecuter)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Initialize the DC.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>database</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Database.html">Database</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A Database instance to query.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>escaper</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Escaper.html">Escaper</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An instance of an Escaper matching the
+database type (i.e. MySQLEscaper or MSSQLEscaper).</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>queryExecuter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="QueryExecuter.html">QueryExecuter</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">queryExecuter A QueryExecuter instance.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="datacontext_DataContext.js.html">datacontext/DataContext.js</a>, <a href="datacontext_DataContext.js.html#line13">line 13</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="database"><span class="type-signature"></span>database<span class="type-signature"></span></h4>
+
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>database</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Database.html">Database</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A database instance.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>escaper</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Escaper.html">Escaper</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An instance of an Escaper class that can
+escape query parts.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>queryExecuter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="QueryExecuter.html">QueryExecuter</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An instance of a
+QueryExecuter that can execute CRUD operations.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="datacontext_DataContext.js.html">datacontext/DataContext.js</a>, <a href="datacontext_DataContext.js.html#line29">line 29</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="delete"><span class="type-signature"></span>delete<span class="signature">(model, database<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="DeleteModel.html">DeleteModel</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Create a new <a href="DeleteModel.html">DeleteModel</a> instance that can be used to delete a
+model by ID.  For complex DELETE operations, use the <a href="DataContext.html#from">DataContext#from</a> method to obtain a <a href="FromAdapter.html">FromAdapter</a> instance, and
+then call <a href="FromAdapter.html#delete">FromAdapter#delete</a> on that instance.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">See the <a href="DeleteModel.html">DeleteModel</a> constructor.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>database</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Database.html">Database</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">An optional Database instance.  If
+passed, this parameter is used instead of the Database that's provided
+to the ctor.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="datacontext_DataContext.js.html">datacontext/DataContext.js</a>, <a href="datacontext_DataContext.js.html#line75">line 75</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A DeleteModel instance.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DeleteModel.html">DeleteModel</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="from"><span class="type-signature"></span>from<span class="signature">(meta, database<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="FromAdapter.html">FromAdapter</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Create a new <a href="FromAdapter.html">FromAdapter</a> instance, which can then be used to
+SELECT, DELETE, or UPDATE.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>meta</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a></span>
+|
+
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">See the <a href="From.html">From</a>
+constructor.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>database</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Database.html">Database</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">An optional Database instance.  If
+passed, this parameter is used instead of the Database that's provided
+to the ctor.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="datacontext_DataContext.js.html">datacontext/DataContext.js</a>, <a href="datacontext_DataContext.js.html#line46">line 46</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="FromAdapter.html">FromAdapter</a></li>
+        
+            <li><a href="From.html">From</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A FromAdapter instance.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="FromAdapter.html">FromAdapter</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="insert"><span class="type-signature"></span>insert<span class="signature">(model, database<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="Insert.html">Insert</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Create a new <a href="Insert.html">Insert</a> instance.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">See the <a href="Insert.html">Insert</a> constructor.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>database</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Database.html">Database</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">An optional Database instance.  If
+passed, this parameter is used instead of the Database that's provided
+to the ctor.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="datacontext_DataContext.js.html">datacontext/DataContext.js</a>, <a href="datacontext_DataContext.js.html#line59">line 59</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    An Insert instance.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Insert.html">Insert</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="update"><span class="type-signature"></span>update<span class="signature">(model, database<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="UpdateModel.html">UpdateModel</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Create a new UpdateModel instance that can be used to UPDATE a model by
+ID.  For complex UPDATE operations, use the <a href="DataContext.html#from">DataContext#from</a>
+method to obtain a <a href="FromAdapter.html">FromAdapter</a> instance, and then call <a href="FromAdapter.html#update">FromAdapter#update</a> on that instance.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">See the <a href="UpdateModel.html">UpdateModel</a> constructor.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>database</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Database.html">Database</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">An optional Database instance.  If
+passed, this parameter is used instead of the Database that's provided
+to the ctor.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="datacontext_DataContext.js.html">datacontext/DataContext.js</a>, <a href="datacontext_DataContext.js.html#line91">line 91</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A UpdateModel instance.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="UpdateModel.html">UpdateModel</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BitConverter.html">BitConverter</a></li><li><a href="Column.html">Column</a></li><li><a href="ConditionCompiler.html">ConditionCompiler</a></li><li><a href="ConditionLexer.html">ConditionLexer</a></li><li><a href="ConditionParser.html">ConditionParser</a></li><li><a href="Database.html">Database</a></li><li><a href="DataContext.html">DataContext</a></li><li><a href="DataMapper.html">DataMapper</a></li><li><a href="Delete.html">Delete</a></li><li><a href="DeleteModel.html">DeleteModel</a></li><li><a href="Escaper.html">Escaper</a></li><li><a href="ForeignKey.html">ForeignKey</a></li><li><a href="From.html">From</a></li><li><a href="FromAdapter.html">FromAdapter</a></li><li><a href="Insert.html">Insert</a></li><li><a href="ModelTraverse.html">ModelTraverse</a></li><li><a href="MutateModel.html">MutateModel</a></li><li><a href="Query.html">Query</a></li><li><a href="QueryExecuter.html">QueryExecuter</a></li><li><a href="RelationshipStore.html">RelationshipStore</a></li><li><a href="Schema.html">Schema</a></li><li><a href="Select.html">Select</a></li><li><a href="Table.html">Table</a></li><li><a href="TableMetaList.html">TableMetaList</a></li><li><a href="Update.html">Update</a></li><li><a href="UpdateModel.html">UpdateModel</a></li><li><a href="UTCConverter.html">UTCConverter</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Sun Dec 04 2016 13:52:15 GMT-0800 (PST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

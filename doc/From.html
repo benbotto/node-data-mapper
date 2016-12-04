@@ -1,0 +1,2457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: From</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: From</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>From</h2>
+        
+            <div class="class-description">A From can be used to create a SELECT, DELETE, or UPDATE query.</div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+    <h2>Constructor</h2>
+    
+
+    <h4 class="name" id="From"><span class="type-signature"></span>new From<span class="signature">(database, escaper, queryExecuter, meta)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Initialize the From instance.  WHERE and JOINs can be applied.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>database</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Database.html">Database</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A Database instance that will be queried.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>escaper</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Escaper.html">Escaper</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An instance of an Escaper matching the
+database type (i.e.  MySQLEscaper or MSSQLEscaper).</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>queryExecuter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="QueryExecuter.html">QueryExecuter</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A QueryExecuter instance.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>meta</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a></span>
+|
+
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Either a TableMeta
+instance containing information about the table to query from, or a
+string that can be parsed using the parseFromString method.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line15">line 15</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+        <h3 class="subsection-title">Extends</h3>
+
+        
+
+
+    <ul>
+        <li><a href="Query.html">Query</a></li>
+    </ul>
+
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id=".JOIN_TYPE"><span class="type-signature">(static, constant) </span>JOIN_TYPE<span class="type-signature"> :Object</span></h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>INNER</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">INNER JOIN.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>LEFT_OUTER</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">LEFT OUTER JOIN.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>RIGHT_OUTER</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">RIGHT OUTER JOIN.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line348">line 348</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="database"><span class="type-signature"></span>database<span class="type-signature"></span></h4>
+
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>database</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Database.html">Database</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A database instance.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>escaper</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Escaper.html">Escaper</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An instance of an Escaper class that can
+escape query parts.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>queryExecuter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="QueryExecuter.html">QueryExecuter</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An instance of a
+QueryExecuter that can execute CRUD operations.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+    <dt class="inherited-from">Inherited From:</dt>
+    <dd class="inherited-from"><ul class="dummy"><li>
+        <a href="Query.html#database">Query#database</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_Query.js.html">query/Query.js</a>, <a href="query_Query.js.html#line23">line 23</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="getFromMeta"><span class="type-signature">(protected) </span>getFromMeta<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Helper method to get the meta data of the FROM table, which is the first
+table in the _tables map.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line154">line 154</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A meta object describing the table.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getFromString"><span class="type-signature"></span>getFromString<span class="signature">()</span><span class="type-signature"> &rarr; {string}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Get the FROM portion of the query as a string.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line291">line 291</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The FROM portion of the query (FROM &lt;table&gt; AS
+&lt;alias&gt;), escaped.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getJoinMeta"><span class="type-signature">(protected) </span>getJoinMeta<span class="signature">()</span><span class="type-signature"> &rarr; {Array.&lt;<a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a>>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Helper method to get the meta data of the JOIN'd in tables.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line163">line 163</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A meta object describing the table.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array.&lt;<a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a>></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getJoinString"><span class="type-signature"></span>getJoinString<span class="signature">()</span><span class="type-signature"> &rarr; {string}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Get the JOIN parts of the query string.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line303">line 303</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The JOIN parts of the query, escaped.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getWhereString"><span class="type-signature"></span>getWhereString<span class="signature">()</span><span class="type-signature"> &rarr; {string}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Get the WHERE portion of the query string.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line326">line 326</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The WHERE part of the query, or a blank string if there
+is no where clause.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="innerJoin"><span class="type-signature"></span>innerJoin<span class="signature">(meta, params)</span><span class="type-signature"> &rarr; {this}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Inner join a table.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>meta</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The table metadata.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>params</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An object of key-value pairs that are used to
+replace parameters in the query.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line260">line 260</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">this</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="join"><span class="type-signature"></span>join<span class="signature">(meta, params)</span><span class="type-signature"> &rarr; {this}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Join a table.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>meta</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The table metadata.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>params</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An object of key-value pairs that are used to
+replace parameters in the query.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line205">line 205</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">this</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="leftOuterJoin"><span class="type-signature"></span>leftOuterJoin<span class="signature">(meta, params)</span><span class="type-signature"> &rarr; {this}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Left outer join a table.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>meta</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The table metadata.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>params</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An object of key-value pairs that are used to
+replace parameters in the query.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line271">line 271</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">this</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="parseFromString"><span class="type-signature"></span>parseFromString<span class="signature">(fromStr)</span><span class="type-signature"> &rarr; {<a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Parse the string fromStr and return a table meta object.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fromStr</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A from string, in the format
+&lt;table-name&gt;[ [as ]&lt;table-alias&gt;].  For example, any of
+these is valid: 'users'; 'users u'; 'users as u'; 'users AS u'.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line53">line 53</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A meta object that has "table" and
+"as" set.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="parseJoinString"><span class="type-signature"></span>parseJoinString<span class="signature">(joinStr)</span><span class="type-signature"> &rarr; {<a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Parse the string joinStr and return a table meta object.
+
+If a parent alias is provided, there must be exactly 1 relationship
+between the parent table and the child table, or an exception shall be
+raised.
+
+If the parent table owns the primary key, the relType will be single
+(e.g. it is a many-to-one relationship).
+
+If the child table owns the primary key, the relType will be many (it is
+a one-to-many relationship).
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>joinStr</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A join string, in the format
+[&lt;parent-table-alias&gt;.]&lt;table-name&gt;[ [as ]&lt;table-alias&gt;].
+For example, any of these is valid (assuming 'u' is a valid parent table
+alias): 'u.phone_numbers'; 'u.phone_numbers pn'; 'u.phone_numbers as pn';
+'u.phone_numbers AS pn'; 'phone_numbers'; 'phone_numbers pn';
+'phone_numbers as pn'; 'phone_numbers AS pn'.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line94">line 94</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A meta object that has at least
+"table" and "as" set. "parent", "relType" and "cond" will also be set if
+a parent table alias is provided.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="rightOuterJoin"><span class="type-signature"></span>rightOuterJoin<span class="signature">(meta, params)</span><span class="type-signature"> &rarr; {this}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Right outer join a table.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>meta</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="TableMetaList.html#~TableMeta">TableMetaList~TableMeta</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The table metadata.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>params</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An object of key-value pairs that are used to
+replace parameters in the query.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line282">line 282</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">this</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="toString"><span class="type-signature"></span>toString<span class="signature">()</span><span class="type-signature"> &rarr; {string}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Get the SQL that represents the query.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line335">line 335</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The actual SQL query (FROM, JOINS, and WHERE).
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="where"><span class="type-signature"></span>where<span class="signature">(cond, params)</span><span class="type-signature"> &rarr; {this}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Add a where condition.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>cond</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Condition</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The condition object.  For the format specs,
+reference ConditionCompiler.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>params</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An object of key-value pairs that are used to
+replace parameters in the query.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="query_From.js.html">query/From.js</a>, <a href="query_From.js.html#line176">line 176</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">this</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BitConverter.html">BitConverter</a></li><li><a href="Column.html">Column</a></li><li><a href="ConditionCompiler.html">ConditionCompiler</a></li><li><a href="ConditionLexer.html">ConditionLexer</a></li><li><a href="ConditionParser.html">ConditionParser</a></li><li><a href="Database.html">Database</a></li><li><a href="DataContext.html">DataContext</a></li><li><a href="DataMapper.html">DataMapper</a></li><li><a href="Delete.html">Delete</a></li><li><a href="DeleteModel.html">DeleteModel</a></li><li><a href="Escaper.html">Escaper</a></li><li><a href="ForeignKey.html">ForeignKey</a></li><li><a href="From.html">From</a></li><li><a href="FromAdapter.html">FromAdapter</a></li><li><a href="Insert.html">Insert</a></li><li><a href="ModelTraverse.html">ModelTraverse</a></li><li><a href="MutateModel.html">MutateModel</a></li><li><a href="Query.html">Query</a></li><li><a href="QueryExecuter.html">QueryExecuter</a></li><li><a href="RelationshipStore.html">RelationshipStore</a></li><li><a href="Schema.html">Schema</a></li><li><a href="Select.html">Select</a></li><li><a href="Table.html">Table</a></li><li><a href="TableMetaList.html">TableMetaList</a></li><li><a href="Update.html">Update</a></li><li><a href="UpdateModel.html">UpdateModel</a></li><li><a href="UTCConverter.html">UTCConverter</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Sun Dec 04 2016 13:52:15 GMT-0800 (PST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
