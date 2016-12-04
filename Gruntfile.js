@@ -11,6 +11,6 @@ module.exports = function(grunt) {
     jsdoc:          require('./grunt/jsdoc')(grunt, scripts)
   });
 
-  grunt.registerTask('default', ['jshint', 'jasmine_nodejs' /*, 'jsdoc'*/]);
+  grunt.registerTask('default', ['jshint', 'jasmine_nodejs', 'jsdoc']);
 };
 
