@@ -1,2 +1,0 @@
-%s/\S\+.prototype.\(\S\+\) = function/\1/g
-%s/\n^\s*\({\|\[\)$/\1/gc
