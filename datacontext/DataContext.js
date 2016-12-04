@@ -15,7 +15,7 @@ function ndm_DataContextProducer(FromAdapter, Insert, DeleteModel, UpdateModel) 
      * Initialize the DC.
      * @param {Database} database - A Database instance to query.
      * @param {Escaper} escaper - An instance of an Escaper matching the
-     * database type (i.e.  MySQLEscaper or MSSQLEscaper).
+     * database type (i.e. MySQLEscaper or MSSQLEscaper).
      * @param {QueryExecuter} - queryExecuter A QueryExecuter instance.
      */
     constructor(database, escaper, queryExecuter) {
