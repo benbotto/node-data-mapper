@@ -49,5 +49,19 @@ describe('ParameterList()', function() {
       }).not.toThrow();
     });
   });
+
+  /**
+   * Add parameters.
+   */
+  describe('.addParameters()', function() {
+    let paramList;
+
+    beforeEach(() => paramList = new ParameterList());
+
+    it('can copy key-value pairs from an object.', function() {
+      const params = {name: 'Jack', age: 50};
+      paramList.addParameters(params);
+    });
+  });
 });
 

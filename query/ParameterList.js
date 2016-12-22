@@ -24,8 +24,9 @@ function ndm_ParameterListProducer() {
      * @param {string} key - The name of the parameter.
      * @param {any} value - The parameter value.
      * @param {boolean} [overwrite=false] - By default, an exception will be
-     * raised if a parameter matching key already exists.  If this flag is set
-     * to true, however, then parameters will be blindly overwritten.
+     * raised if a parameter matching key already exists, and the value is
+     * different.  If this flag is set to true, however, then parameters will
+     * be blindly overwritten.
      * @return {this}
      */
     addParameter(key, value, overwrite=false) {
@@ -33,6 +34,21 @@ function ndm_ParameterListProducer() {
         this.params[key] = value;
       else
         throw new Error(`Parameter "${key}" already exists with value "${this.params[key]}".`);
+
+      return this;
+    }
+
+    /**
+     * Add parameters to the list.
+     * @param {Object} params - An object containing key-value pairs.
+     * @param {boolean} [overwrite=false] - Whether or not to blindly overwrite
+     * existing parameters.
+     * @return {this}
+     */
+    addParameters(params, overwrite=false) {
+      for (let key in params) {
+        this.addParameter(key, params[key], overwrite);
+      }
 
       return this;
     }
