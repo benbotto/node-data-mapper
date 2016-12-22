@@ -1,8 +1,8 @@
 'use strict';
 
-require('insulin').factory('ndm_ParameterList', ndm_ParameterListProducer);
+require('insulin').factory('ndm_ParameterList', ['ndm_assert'], ndm_ParameterListProducer);
 
-function ndm_ParameterListProducer() {
+function ndm_ParameterListProducer(assert) {
   /** A class that holds query parameters. */
   class ParameterList {
     /**
@@ -30,10 +30,13 @@ function ndm_ParameterListProducer() {
      * @return {this}
      */
     addParameter(key, value, overwrite=false) {
-      if (this.params[key] === undefined || this.params[key] === value || overwrite)
-        this.params[key] = value;
-      else
-        throw new Error(`Parameter "${key}" already exists with value "${this.params[key]}".`);
+      assert(key.match(/^[A-Za-z][\w\-]*$/),
+        'Parameter keys must match "/^[A-Za-z][\w\-]*$/".');
+
+      assert(this.params[key] === undefined || this.params[key] === value || overwrite,
+        `Parameter "${key}" already exists with value "${this.params[key]}".`);
+
+      this.params[key] = value;
 
       return this;
     }

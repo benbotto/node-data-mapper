@@ -48,6 +48,16 @@ describe('ParameterList()', function() {
         paramList.addParameter('name', 'Jill', true);
       }).not.toThrow();
     });
+
+    it('raises an exception of the parameter has invalid characters.', function() {
+      paramList.addParameter('test-1',   'asdf');
+      paramList.addParameter('test_2',   'asdf');
+      paramList.addParameter('test_2-3', 'asdf');
+
+      expect(function() {
+        paramList.addParameter('0test', 'asdf');
+      }).toThrowError('Parameter keys must match "/^[A-Za-z][w-]*$/".');
+    });
   });
 
   /**
