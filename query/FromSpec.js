@@ -194,7 +194,7 @@ describe('From()', function() {
         .where({$eq: {'users.firstName':':firstName'}}, {firstName: 'Sally'});
       expect(query.toString()).toBe(
         'FROM    `users` AS `users`\n' +
-        'WHERE   `users`.`firstName` = \'Sally\'');
+        'WHERE   `users`.`firstName` = :firstName');
     });
   });
 
@@ -294,7 +294,7 @@ describe('From()', function() {
 
       expect(query.toString()).toBe(
         'FROM    `users` AS `u`\n' +
-        'RIGHT OUTER JOIN `phone_numbers` AS `pn` ON (`u`.`userID` = `pn`.`userID` AND `pn`.`type` = \'mobile\')');
+        'RIGHT OUTER JOIN `phone_numbers` AS `pn` ON (`u`.`userID` = `pn`.`userID` AND `pn`.`type` = :phoneType)');
     });
 
     it('allows tables to be joined automatically.', function() {

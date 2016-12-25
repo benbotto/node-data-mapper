@@ -51,7 +51,7 @@ describe('Update()', function() {
 
       expect(upd.getSetString()).toBe(
         'SET\n'+
-        "`u`.`lastName` = 'O\\'Hare'");
+        '`u`.`lastName` = :u_lastName_0');
     });
 
     it('returns multiple SET columns if there are multiple columns to update.', function() {
@@ -62,18 +62,8 @@ describe('Update()', function() {
 
       expect(upd.getSetString()).toBe(
         'SET\n'+
-        "`u`.`lastName` = 'O\\'Hare',\n" +
-        "`u`.`firstName` = 'Joe'");
-    });
-
-    it('uses onSave converters that are defined in the Database instance.', function() {
-      const upd = new Update(getFrom('products p'), {
-        'p.isActive': false
-      });
-
-      expect(upd.getSetString()).toBe(
-        'SET\n'+
-        '`p`.`isActive` = 0');
+        "`u`.`lastName` = :u_lastName_0,\n" +
+        "`u`.`firstName` = :u_firstName_1");
     });
   });
 
@@ -95,7 +85,7 @@ describe('Update()', function() {
       expect(upd.toString()).toBe(
         'UPDATE  `users` AS `u`\n' +
         'SET\n'+
-        "`u`.`firstName` = 'Joe'");
+        '`u`.`firstName` = :u_firstName_0');
     });
 
     it('returns a valid SQL string if there are multiple columns.', function() {
@@ -107,13 +97,13 @@ describe('Update()', function() {
       expect(upd.toString()).toBe(
         'UPDATE  `users` AS `u`\n' +
         'SET\n'+
-        "`u`.`lastName` = 'O\\'Hare',\n" +
-        "`u`.`firstName` = 'Joe'");
+        '`u`.`lastName` = :u_lastName_0,\n' +
+        '`u`.`firstName` = :u_firstName_1');
     });
 
     it('returns a valid SQL string if a WHERE clause is provided.', function() {
       const from = getFrom('users u')
-        .where({$eq: {'u.userID': 12}});
+        .where({$eq: {'u.userID': ':userID'}}, {userID: 12});
       const upd  = new Update(from, {
         'u.firstName': 'Joe'
       });
@@ -121,8 +111,8 @@ describe('Update()', function() {
       expect(upd.toString()).toBe(
         'UPDATE  `users` AS `u`\n' +
         'SET\n'+
-        "`u`.`firstName` = 'Joe'\n" +
-        'WHERE   `u`.`userID` = 12');
+        '`u`.`firstName` = :u_firstName_0\n' +
+        'WHERE   `u`.`userID` = :userID');
     });
 
     it('returns a valid SQL string if a JOIN is provided.', function() {
@@ -138,8 +128,8 @@ describe('Update()', function() {
         'UPDATE  `users` AS `u`\n' +
         'INNER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`\n' +
         'SET\n'+
-        "`u`.`firstName` = 'Joe',\n" +
-        "`pn`.`phoneNumber` = '123-456-789'\n" +
+        '`u`.`firstName` = :u_firstName_0,\n' +
+        '`pn`.`phoneNumber` = :pn_phoneNumber_1\n' +
         'WHERE   `u`.`userID` = 12');
     });
   });
@@ -176,7 +166,7 @@ describe('Update()', function() {
       'queryExecuter.update() method.', function() {
       const upd = new Update(getFrom('users u'), {'u.firstName':'joe'});
 
-      qryExec.update.and.callFake((query, callback) =>
+      qryExec.update.and.callFake((query, params, callback) =>
         callback(null, {affectedRows: 1}));
 
       upd
@@ -190,12 +180,46 @@ describe('Update()', function() {
       const err = new Error();
       const upd = new Update(getFrom('users u'), {'u.firstName':'joe'});
 
-      qryExec.update.and.callFake((query, callback) => callback(err));
+      qryExec.update.and.callFake((query, params, callback) => callback(err));
 
       upd
         .execute()
         .then(() => expect(true).toBe(false))
         .catch(e => expect(e).toBe(err))
+        .done();
+    });
+
+    it('passes the query parameters to the queryExecuter.update() method.', function() {
+      const from = getFrom('users u')
+        .where({$eq: {'u.userID': ':userID'}}, {userID: 12});
+      const upd  = new Update(from, {
+        'u.firstName': 'Joe'
+      });
+
+      qryExec.update.and.callFake((query, params, callback) => {
+        expect(params).toEqual({userID: 12, u_firstName_0: 'Joe'});
+        callback(null, {affectedRows: 1});
+      });
+
+      upd
+        .execute()
+        .catch(() => expect(true).toBe(false))
+        .done();
+    });
+
+    it('uses onSave converters that are defined in the Database instance.', function() {
+      const upd = new Update(getFrom('products p'), {
+        'p.isActive': false
+      });
+
+      qryExec.update.and.callFake((query, params, callback) => {
+        expect(params).toEqual({p_isActive_0: 0});
+        callback(null, {affectedRows: 1});
+      });
+
+      upd
+        .execute()
+        .catch(() => expect(true).toBe(false))
         .done();
     });
   });

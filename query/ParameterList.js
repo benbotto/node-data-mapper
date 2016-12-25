@@ -16,7 +16,18 @@ function ndm_ParameterListProducer(assert) {
        * @name ParameterList#params
        * @public
        */
-      this.params = {};
+      this.params   = {};
+      this._paramID = 0;
+    }
+
+    /**
+     * Create a parameter name by replacing all non-word characters with
+     * underscores and adding a unique ID at the end.
+     * @param {string} key - The parameter key.
+     * @return {string} The unique parameter name.
+     */
+    createParameterName(key) {
+      return `${key.replace(/[^\w]/g, '_')}_${this._paramID++}`;
     }
 
     /**
@@ -31,7 +42,7 @@ function ndm_ParameterListProducer(assert) {
      */
     addParameter(key, value, overwrite=false) {
       assert(key.match(/^[A-Za-z][\w\-]*$/),
-        'Parameter keys must match "/^[A-Za-z][\w\-]*$/".');
+        'Parameter keys must match "/^[A-Za-z][\\w\\-]*$/".');
 
       assert(this.params[key] === undefined || this.params[key] === value || overwrite,
         `Parameter "${key}" already exists with value "${this.params[key]}".`);

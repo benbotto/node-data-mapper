@@ -74,7 +74,7 @@ describe('MutateModel()', function() {
 
       expect(mm.toString()).toBe(
         'FROM    `example` AS `example`\n' +
-        "WHERE   (`example`.`ex` = 'Joe\\'s Shop')"
+        "WHERE   (`example`.`ex` = :example_ex_0)"
       );
     });
 
@@ -102,7 +102,7 @@ describe('MutateModel()', function() {
 
       expect(mm.toString()).toBe(
         'FROM    `example` AS `example`\n' +
-        'WHERE   (`example`.`ex1` = 13 AND `example`.`ex2` = 44)'
+        'WHERE   (`example`.`ex1` = :example_ex1_0 AND `example`.`ex2` = :example_ex2_1)'
       );
     });
 
@@ -122,16 +122,16 @@ describe('MutateModel()', function() {
 
       expect(mm.toString()).toBe(
         'FROM    `users` AS `users`\n' +
-        'WHERE   (`users`.`userID` = 12);\n\n' +
+        'WHERE   (`users`.`userID` = :users_userID_0);\n\n' +
 
         'FROM    `users` AS `users`\n' +
-        'WHERE   (`users`.`userID` = 44);\n\n' +
+        'WHERE   (`users`.`userID` = :users_userID_0);\n\n' +
 
         'FROM    `phone_numbers` AS `phone_numbers`\n' +
-        'WHERE   (`phone_numbers`.`phoneNumberID` = 1);\n\n' +
+        'WHERE   (`phone_numbers`.`phoneNumberID` = :phone_numbers_phoneNumberID_0);\n\n' +
 
         'FROM    `phone_numbers` AS `phone_numbers`\n' +
-        'WHERE   (`phone_numbers`.`phoneNumberID` = 8)'
+        'WHERE   (`phone_numbers`.`phoneNumberID` = :phone_numbers_phoneNumberID_0)'
       );
     });
   });

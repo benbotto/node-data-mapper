@@ -20,6 +20,8 @@ function ndm_QueryExecuterProducer() {
     /**
      * Execute a select query.
      * @param {string} query - The SQL to execute.
+     * @param {Object} params - An object containing query parameters for the
+     * query.  Each parameter will be preceded with a colon in query.
      * @param {QueryExecuter~selectCallback} callback - A callback function
      * that is called after the query is executed.
      * @return {void}
@@ -40,6 +42,8 @@ function ndm_QueryExecuterProducer() {
     /**
      * Execute an insert query.
      * @param {string} query - The SQL to execute.
+     * @param {Object} params - An object containing query parameters for the
+     * query.  Each parameter will be preceded with a colon in query.
      * @param {QueryExecuter~insertCallback} callback - A callback function
      * that is called after the query is executed.
      * @return {void}
@@ -60,6 +64,8 @@ function ndm_QueryExecuterProducer() {
     /**
      * Execute an update query.
      * @param {string} query - The SQL to execute.
+     * @param {Object} params - An object containing query parameters for the
+     * query.  Each parameter will be preceded with a colon in query.
      * @param {QueryExecuter~mutateCallback} callback - A callback function
      * that is called after the query is executed.
      * @return {void}
@@ -71,6 +77,8 @@ function ndm_QueryExecuterProducer() {
     /**
      * Execute a delete query.
      * @param {string} query - The SQL to execute.
+     * @param {Object} params - An object containing query parameters for the
+     * query.  Each parameter will be preceded with a colon in query.
      * @param {QueryExecuter~mutateCallback} callback - A callback function
      * that is called after the query is executed.
      * @return {void}

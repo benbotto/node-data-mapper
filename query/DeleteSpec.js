@@ -121,10 +121,8 @@ describe('Delete()', function() {
     it('returns a promise that resolves with the result of QueryExecuter.delete().', function() {
       const del = new Delete(getFrom('users'));
 
-      qryExec.delete.and.callFake(function(query, callback) {
-        const result = {affectedRows: 42};
-        callback(null, result);
-      });
+      qryExec.delete.and.callFake((query, params, callback) =>
+        callback(null, {affectedRows: 42}));
 
       del.execute().then(function(result) {
         expect(result.affectedRows).toBe(42);
@@ -134,13 +132,29 @@ describe('Delete()', function() {
     it('propagates errors from the QueryExecuter.delete() method.', function() {
       const del = new Delete(getFrom('users'));
 
-      qryExec.delete.and.callFake(function(query, callback) {
+      qryExec.delete.and.callFake(function(query, params, callback) {
         callback('FAIL');
       });
 
       del.execute().catch(function(err) {
         expect(err).toBe('FAIL');
       });
+    });
+
+    it('passes the parameters to the QueryExecuter.delete() method.', function() {
+      const from = getFrom('users')
+        .where({$eq: {'users.userID': ':userID'}}, {userID: 42});
+      const del      = new Delete(from);
+
+      qryExec.delete.and.callFake(function(query, params, callback) {
+        expect(params).toEqual({userID: 42});
+        callback(null, {affectedRows: 1});
+      });
+
+      del
+        .execute()
+        .catch(() => expect(true).toBe(false))
+        .done();
     });
   });
 });

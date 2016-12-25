@@ -1,9 +1,10 @@
 'use strict';
 
 require('insulin').factory('ndm_Insert',
-  ['deferred', 'ndm_ModelTraverse', 'ndm_Query'], ndm_InsertProducer);
+  ['deferred', 'ndm_ModelTraverse', 'ndm_Query', 'ndm_ParameterList'],
+  ndm_InsertProducer);
 
-function ndm_InsertProducer(deferred, ModelTraverse, Query) {
+function ndm_InsertProducer(deferred, ModelTraverse, Query, ParameterList) {
   /**
    * A Query class that represents an INSERT query.  Instances of the class can
    * be used to insert models in a database.
@@ -29,7 +30,6 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query) {
     /**
      * Private helper to build a SQL representation of an INSERT query.
      * @private
-     * @param modelMeta A meta object with comes from a modelTraverse method.
      * @param {ModelTraverse~ModelMeta} meta - A meta object as created by the
      * modelTraverse class.
      * @return {string} A string representation of the INSERT query.
@@ -38,7 +38,7 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query) {
       const table     = this.database.getTableByMapping(meta.tableMapping);
       const tableName = this.escaper.escapeProperty(table.name);
       const cols      = [];
-      const vals      = [];
+      const params    = [];
 
       for (let colMapping in meta.model) {
         // If the property is not a table mapping it is ignored.  (The model
@@ -46,17 +46,12 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query) {
         if (table.isColumnMapping(colMapping)) {
           // Mappings are used in the model, but the column name is needed for
           // an insert statement.
-          const col     = table.getColumnByMapping(colMapping);
-          const colName = this.escaper.escapeProperty(col.name);
-          let   colVal  = meta.model[colMapping];
-
-          // Transform the column if needed (e.g. from a boolean to a bit).
-          if (col.converter.onSave)
-            colVal = col.converter.onSave(colVal);
-          colVal = this.escaper.escapeLiteral(colVal);
+          const col      = table.getColumnByMapping(colMapping);
+          const colName  = this.escaper.escapeProperty(col.name);
+          const paramKey = `:${colMapping}`; 
 
           cols.push(colName);
-          vals.push(colVal);
+          params.push(paramKey);
         }
       }
 
@@ -65,7 +60,36 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query) {
         return '';
 
       return `INSERT INTO ${tableName} (${cols.join(', ')})\n` +
-             `VALUES (${vals.join(', ')})`;
+             `VALUES (${params.join(', ')})`;
+    }
+
+    /**
+     * Private helper to build a ParameterList for a model.
+     * @private
+     * @param {ModelTraverse~ModelMeta} meta - A meta object as created by the
+     * modelTraverse class.
+     * @return {ParameterList} A ParameterList instance.
+     */
+    _buildParams(meta) {
+      const table     = this.database.getTableByMapping(meta.tableMapping);
+      const paramList = new ParameterList();
+
+      for (let colMapping in meta.model) {
+        // If the property is not a table mapping it is ignored.  (The model
+        // can have extra user-defined data.)
+        if (table.isColumnMapping(colMapping)) {
+          const col    = table.getColumnByMapping(colMapping);
+          let   colVal = meta.model[colMapping];
+
+          // Transform the column if needed (e.g. from a boolean to a bit).
+          if (col.converter.onSave)
+            colVal = col.converter.onSave(colVal);
+
+          paramList.addParameter(colMapping, colVal);
+        }
+      }
+
+      return paramList;
     }
 
     /**
@@ -84,7 +108,7 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query) {
 
     /**
      * Execute the query.
-     * @return {Promise<object>} A promise that shall be resolved with the
+     * @return {Promise<Object>} A promise that shall be resolved with the
      * model.  If the underlying queryExecuter returns the insertId of the
      * model, the model will be updated with the ID.  If an error occurs during
      * execution, the promise shall be rejected with the error (unmodified).
@@ -101,7 +125,8 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query) {
       function queueQueryData(modelMeta) {
         queryData.push({
           modelMeta: modelMeta,
-          query:     self._buildQuery(modelMeta)
+          query:     self._buildQuery(modelMeta),
+          params:    self._buildParams(modelMeta).params
         });
       }
 
@@ -124,7 +149,7 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query) {
         }
 
         queryDatum = queryData.shift();
-        self.queryExecuter.insert(queryDatum.query, function(err, result) {
+        self.queryExecuter.insert(queryDatum.query, queryDatum.params, function(err, result) {
           if (err) {
             defer.reject(err);
             return;

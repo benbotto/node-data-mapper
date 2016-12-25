@@ -16,6 +16,25 @@ describe('ParameterList()', function() {
   });
 
   /**
+   * Create parameter name.
+   */
+  describe('.createParameterName()', function() {
+    let paramList;
+
+    beforeEach(() => paramList = new ParameterList());
+
+    it('replaces non-word characters with underscores.', function() {
+      expect(paramList.createParameterName('here"is a.name')).toBe('here_is_a_name_0');
+    });
+
+    it('adds an ID at the end of each parameter.', function() {
+      expect(paramList.createParameterName('name')).toBe('name_0');
+      expect(paramList.createParameterName('name')).toBe('name_1');
+      expect(paramList.createParameterName('name')).toBe('name_2');
+    });
+  });
+
+  /**
    * Add parameter.
    */
   describe('.addParameter()', function() {
@@ -56,7 +75,7 @@ describe('ParameterList()', function() {
 
       expect(function() {
         paramList.addParameter('0test', 'asdf');
-      }).toThrowError('Parameter keys must match "/^[A-Za-z][w-]*$/".');
+      }).toThrowError('Parameter keys must match "/^[A-Za-z][\\w\\-]*$/".');
     });
   });
 

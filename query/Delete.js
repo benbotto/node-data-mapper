@@ -52,7 +52,8 @@ function ndm_DeleteProducer(deferred, Query, assert) {
     execute() {
       const defer = deferred();
 
-      this.queryExecuter.delete(this.toString(), function(err, result){
+      this.queryExecuter.delete(this.toString(),
+        this._from.paramList.params, function(err, result){
         if (err)
           defer.reject(err);
         else

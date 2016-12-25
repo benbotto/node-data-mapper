@@ -33,7 +33,7 @@ describe('Insert()', function() {
 
       expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', 'Perkins')");
+        "VALUES (:first, :last)");
     });
 
     it('returns an empty string if there are no columns to insert.', function() {
@@ -49,38 +49,7 @@ describe('Insert()', function() {
 
       expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', 'Perkins')");
-    });
-
-    it('converts table mappings to names.', function() {
-      const query = new Insert(db, escaper, qryExec, {
-        phoneNumbers: {userID: 12, phoneNumber: '444-555-6666', type: 'mobile'}
-      });
-
-      expect(query.toString()).toBe(
-        'INSERT INTO `phone_numbers` (`userID`, `phoneNumber`, `type`)\n' +
-        "VALUES (12, '444-555-6666', 'mobile')"
-      );
-    });
-
-    it('escapes reserverd characters.', function() {
-      const query = new Insert(db, escaper, qryExec, {
-        users: {first: 'Sandy', last: "O'Hare"}
-      });
-
-      expect(query.toString()).toEqual(
-        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', 'O\\'Hare')");
-    });
-
-    it('sets columns to NULL when a model property is null. ', function() {
-      const query = new Insert(db, escaper, qryExec, {
-        users: {first: 'Sandy', last: null}
-      });
-
-      expect(query.toString()).toEqual(
-        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', NULL)");
+        "VALUES (:first, :last)");
     });
 
     it('generates a query for each model in an array.', function() {
@@ -93,27 +62,9 @@ describe('Insert()', function() {
 
       expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', 'Perkins');\n\n" +
+        "VALUES (:first, :last);\n\n" +
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES ('Sandy', 'O\\'Hare')");
-    });
-
-    it('uses converters when present in the Database instance.', function() {
-      const query = new Insert(db, escaper, qryExec, {
-        products: [
-          {description: 'Innova Valkyrie', isActive: true},
-          {description: 'Innova Valkyrie', isActive: false},
-          {description: 'Innova Valkyrie', isActive: null}
-        ]
-      });
-
-      expect(query.toString()).toEqual(
-        'INSERT INTO `products` (`description`, `isActive`)\n' +
-        "VALUES ('Innova Valkyrie', 1);\n\n" +
-        'INSERT INTO `products` (`description`, `isActive`)\n' +
-        "VALUES ('Innova Valkyrie', 0);\n\n" +
-        'INSERT INTO `products` (`description`, `isActive`)\n' +
-        "VALUES ('Innova Valkyrie', NULL)");
+        "VALUES (:first, :last)");
     });
   });
 
@@ -130,7 +81,7 @@ describe('Insert()', function() {
       // When the QueryExecuter.insert method is called return
       // immediately with an insertId.  The insertId starts at
       // 1 and is incremented on each query.
-      qryExec.insert.and.callFake((query, callback) => 
+      qryExec.insert.and.callFake((query, params, callback) => 
         callback(undefined, {insertId: ++insertId}));
     });
 
@@ -179,7 +130,7 @@ describe('Insert()', function() {
     });
 
     it('does not modify the model if no insertId is returned.', function() {
-      qryExec.insert.and.callFake(function(query, callback) {
+      qryExec.insert.and.callFake(function(query, params, callback) {
         callback(undefined, {});
       });
 
@@ -198,12 +149,44 @@ describe('Insert()', function() {
         users: {first: 'Sandy', last: 'Perkins'}
       });
 
-      qryExec.insert.and.callFake((query, callback) => callback(err));
+      qryExec.insert.and.callFake((query, params, callback) => callback(err));
 
       query
         .execute()
         .then(() => expect(true).toBe(false))
         .catch(e => expect(e).toBe(err))
+        .done();
+    });
+
+    it('passes parameters to the queryExecuter.insert() method.', function() {
+      qryExec.insert.and.callFake((query, params, callback) => {
+        expect(params).toEqual({first: 'Sandy', last: 'Perkins'});
+        callback(undefined, {});
+      });
+
+      const query = new Insert(db, escaper, qryExec, {
+        users: {first: 'Sandy', last: 'Perkins'}
+      });
+
+      query
+        .execute()
+        .catch(() => expect(true).toBe(false))
+        .done();
+    });
+
+    it('uses converters when present in the Database instance.', function() {
+      const query = new Insert(db, escaper, qryExec, {
+        products: {isActive: true}
+      });
+
+      qryExec.insert.and.callFake((query, params, callback) => {
+        expect(params).toEqual({isActive: 1});
+        callback(undefined, {});
+      });
+
+      query
+        .execute()
+        .catch(() => expect(true).toBe(false))
         .done();
     });
   });

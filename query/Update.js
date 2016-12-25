@@ -1,7 +1,8 @@
 'use strict';
 
 require('insulin').factory('ndm_Update',
-  ['deferred', 'ndm_Query', 'ndm_assert'], ndm_UpdateProducer);
+  ['deferred', 'ndm_Query', 'ndm_assert'],
+  ndm_UpdateProducer);
 
 function ndm_UpdateProducer(deferred, Query, assert) {
   /**
@@ -21,13 +22,41 @@ function ndm_UpdateProducer(deferred, Query, assert) {
     constructor(from, model) {
       super(from.database, from.escaper, from.queryExecuter);
 
-      this._from  = from;
-      this._model = model;
+      this._from        = from;
+      this._model       = model;
+      this._paramLookup = {};
 
       // Make sure each key in the model maps to a FQ column name.
-      for (let col in this._model) {
-        assert(this._from._tableMetaList.isColumnAvailable(col),
-          `Column "${col}" is not available for updating.`);
+      for (let fqColName in this._model) {
+        assert(this._from._tableMetaList.isColumnAvailable(fqColName),
+          `Column "${fqColName}" is not available for updating.`);
+      }
+
+      this.buildQueryParameters();
+    }
+
+    /**
+     * Build the array of query parameters.
+     * @protected.
+     */
+    buildQueryParameters() {
+      // Add each key in the model as a query parameter.
+      for (let fqColName in this._model) {
+        const col       = this._from._tableMetaList.availableCols.get(fqColName).column;
+        const paramName = this._from.paramList.createParameterName(fqColName);
+        let   paramVal  = this._model[fqColName];
+
+        // The column may need to be transformed (e.g. from a boolean to a bit).
+        if (col.converter.onSave)
+          paramVal = col.converter.onSave(paramVal);
+
+        // The params for the entire query are stored in the From instance's
+        // ParameterList instance.  However, the update parameters are needed
+        // independently so that the update string can be built (calling
+        // ParameterList.createParameterName() bumps the parameter ID).  Hence
+        // the param lookup.
+        this._paramLookup[fqColName] = paramName;
+        this._from.paramList.addParameter(paramName, paramVal);
       }
     }
 
@@ -39,16 +68,10 @@ function ndm_UpdateProducer(deferred, Query, assert) {
       const sets = [];
 
       for (let fqColName in this._model) {
-        const col     = this._from._tableMetaList.availableCols.get(fqColName).column;
-        const colName = this.escaper.escapeFullyQualifiedColumn(fqColName);
-        let   colVal  = this._model[fqColName];
+        const colName  = this.escaper.escapeFullyQualifiedColumn(fqColName);
+        const paramKey = this._paramLookup[fqColName];
 
-        // The column may need to be transformed (e.g. from a boolean to a bit).
-        if (col.converter.onSave)
-          colVal = col.converter.onSave(colVal);
-        colVal = this.escaper.escapeLiteral(colVal);
-
-        sets.push(`${colName} = ${colVal}`);
+        sets.push(`${colName} = :${paramKey}`);
       }
 
       if (sets.length ===0)
@@ -91,7 +114,7 @@ function ndm_UpdateProducer(deferred, Query, assert) {
       if (!sql)
         defer.resolve({affectedRows: 0});
       else {
-        this.queryExecuter.update(sql, function(err, result) {
+        this.queryExecuter.update(sql, this._from.paramList.params, function(err, result) {
           if (err)
             defer.reject(err);
           else

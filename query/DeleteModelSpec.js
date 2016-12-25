@@ -20,7 +20,7 @@ describe('DeleteModel()', function() {
       expect(del.toString()).toBe(
         'DELETE  `users`\n' +
         'FROM    `users` AS `users`\n' +
-        'WHERE   (`users`.`userID` = 1)'
+        'WHERE   (`users`.`userID` = :users_userID_0)'
       );
     });
 
@@ -31,11 +31,11 @@ describe('DeleteModel()', function() {
       expect(del.toString()).toBe(
         'DELETE  `users`\n' +
         'FROM    `users` AS `users`\n' +
-        'WHERE   (`users`.`userID` = 1);\n\n' +
+        'WHERE   (`users`.`userID` = :users_userID_0);\n\n' +
 
         'DELETE  `users`\n' +
         'FROM    `users` AS `users`\n' +
-        'WHERE   (`users`.`userID` = 3)'
+        'WHERE   (`users`.`userID` = :users_userID_0)'
       );
     });
   });
@@ -45,9 +45,8 @@ describe('DeleteModel()', function() {
    */
   describe('.execute()', function() {
     it('can delete a single model using QueryExecuter.delete().', function() {
-      qryExec.delete.and.callFake(function(query, callback) {
-        callback(null, {affectedRows: 1});
-      });
+      qryExec.delete.and.callFake((query, params, callback) =>
+        callback(null, {affectedRows: 1}));
 
       new DeleteModel(db, escaper, qryExec, {users: {ID: 14}})
         .execute()
@@ -60,9 +59,8 @@ describe('DeleteModel()', function() {
 
     it('can delete multiple models, and reports the correct number of affected rows.',
       function() {
-      qryExec.delete.and.callFake(function(query, callback) {
-        callback(null, {affectedRows: 1});
-      });
+      qryExec.delete.and.callFake((query, params, callback) =>
+        callback(null, {affectedRows: 1}));
 
       new DeleteModel(db, escaper, qryExec, {users: [{ID: 14}, {ID: 33}]})
         .execute()
@@ -74,9 +72,7 @@ describe('DeleteModel()', function() {
     });
 
     it('propagates query execution errors.', function() {
-      qryExec.delete.and.callFake(function(query, callback) {
-        callback('FAILURE');
-      });
+      qryExec.delete.and.callFake((query, params, callback) => callback('FAILURE'));
 
       new DeleteModel(db, escaper, qryExec, {users: [{ID: 14}, {ID: 33}]})
         .execute()

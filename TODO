@@ -1,9 +1,6 @@
-Everything related to MySQL should be moved to a separate project.  Right now ndm depends on mysql, and it shouldn't if the user is using another DB.
-Removed the MySQL* files from query and datacontext.
-Removed the mysql dependency (package.json and bootstrap.js).
-May need a dev dependency of node-data-mapper-mysql because the MySQLQueryExecuter and escaper are used in tests, but that may cause a circular dependency (which is probably impossible in insulin).
 Queries need to be built for the driver.  There are subtle differences (for example, UPDATE with JOIN differs between MySQL and MSSQL).
-Some sort of parameter container is needed that stores all the parameters associated with a query and throws an exception on duplicate.
+
+Need transaction support, but it's tricky with a pool.  The user may need to run multiple queries in a transaction, and so the connection needs to somehow be tied to the request.
 
 Migrate condition builder to this project.
 

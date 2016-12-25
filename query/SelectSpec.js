@@ -188,6 +188,18 @@ describe('Select()', function() {
       expect(qryExec.select).toHaveBeenCalled();
     });
 
+    it('passes the pareters to the QueryExecuter\'s select() method.', function() {
+      const from = getFrom({table: 'users'})
+        .where({
+          $and: [
+            {$eq: {'users.userID': ':userID'}},
+            {$eq: {'users.firstName': ':firstName'}}
+          ]
+        }, {userID: 12, firstName: 'Joe'});
+      new Select(from, qryExec).execute();
+      expect(qryExec.select.calls.argsFor(0)[1]).toEqual({userID: 12, firstName: 'Joe'});
+    });
+
     /**
      * Schema building tests.
      */
@@ -346,7 +358,7 @@ describe('Select()', function() {
 
       it('maps the results to a normalized object using a DataMapper instance.', function() {
         // Dummy response from the query executer.
-        qryExec.select.and.callFake(function(query, callback) {
+        qryExec.select.and.callFake(function(query, params, callback) {
           const result = [
             {'u.userID': 1, 'u.lastName': 'smith', 'pn.phoneNumberID': 11, 'pn.phoneNumber': '111-111-1111'},
             {'u.userID': 1, 'u.lastName': 'smith', 'pn.phoneNumberID': 12, 'pn.phoneNumber': '222-222-3333'},
@@ -373,7 +385,7 @@ describe('Select()', function() {
       });
 
       it('serializes multiple top-level schemata.', function() {
-        qryExec.select.and.callFake(function(query, callback) {
+        qryExec.select.and.callFake(function(query, params, callback) {
           const result = [
             {'u.userID': 1, 'u.lastName': 'smith', 'pn.phoneNumberID': 11, 'pn.phoneNumber': '111-111-1111'},
             {'u.userID': 1, 'u.lastName': 'smith', 'pn.phoneNumberID': 12, 'pn.phoneNumber': '222-222-3333'},
@@ -396,7 +408,7 @@ describe('Select()', function() {
       });
 
       it('propagates errors that originate in the QueryExecuter.', function() {
-        qryExec.select.and.callFake(function(query, callback) {
+        qryExec.select.and.callFake(function(query, params, callback) {
           callback('ERROR OCCURRED');
         });
         new Select(getFrom({table: 'users'}), qryExec)
@@ -406,7 +418,7 @@ describe('Select()', function() {
       });
 
       it('checks that relationship type is respected.', function() {
-        qryExec.select.and.callFake(function(query, callback) {
+        qryExec.select.and.callFake(function(query, params, callback) {
           const result = [
             {'u.userID': 1, 'pn.phoneNumberID': 11, 'pn.userID': 1},
             {'u.userID': 1, 'pn.phoneNumberID': 12, 'pn.userID': 1},
@@ -440,7 +452,7 @@ describe('Select()', function() {
       });
 
       it('allows a table to be excluded if no columns are selected from that table.', function() {
-        qryExec.select.and.callFake(function(query, callback) {
+        qryExec.select.and.callFake(function(query, params, callback) {
           const result = [
             {'users.userID': 1, 'users.firstName': 'joe'},
             {'users.userID': 2, 'users.firstName': 'sue'},

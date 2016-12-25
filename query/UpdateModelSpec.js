@@ -32,9 +32,9 @@ describe('UpdateModel()', function() {
       expect(upd.toString()).toBe(
         'UPDATE  `users` AS `users`\n' +
         'SET\n' +
-        "`users`.`firstName` = 'Joe',\n" +
-        "`users`.`lastName` = 'Smith'\n" +
-        'WHERE   (`users`.`userID` = 1)'
+        '`users`.`firstName` = :users_firstName_1,\n' +
+        '`users`.`lastName` = :users_lastName_2\n' +
+        'WHERE   (`users`.`userID` = :users_userID_0)'
       );
     });
 
@@ -51,9 +51,9 @@ describe('UpdateModel()', function() {
       expect(upd.toString()).toBe(
         'UPDATE  `users` AS `users`\n' +
         'SET\n' +
-        "`users`.`firstName` = 'Joe',\n" +
-        "`users`.`lastName` = 'Smith'\n" +
-        'WHERE   (`users`.`userID` = 1)'
+        "`users`.`firstName` = :users_firstName_1,\n" +
+        "`users`.`lastName` = :users_lastName_2\n" +
+        'WHERE   (`users`.`userID` = :users_userID_0)'
       );
     });
   });
@@ -63,7 +63,7 @@ describe('UpdateModel()', function() {
    */
   describe('.execute()', function() {
     it('can update a single model using the queryExecuter.update() method.', function() {
-      qryExec.update.and.callFake((query, callback) =>
+      qryExec.update.and.callFake((query, params, callback) =>
         callback(null, {affectedRows: 1}));
 
       new UpdateModel(db, escaper, qryExec, {users: {ID: 14, first: 'Joe'}})
@@ -76,7 +76,7 @@ describe('UpdateModel()', function() {
     });
 
     it('can update multiple models.', function() {
-      qryExec.update.and.callFake((query, callback) =>
+      qryExec.update.and.callFake((query, params, callback) =>
         callback(null, {affectedRows: 1}));
 
       new UpdateModel(db, escaper, qryExec, {
@@ -95,7 +95,7 @@ describe('UpdateModel()', function() {
 
     it('propagates errors from the queryExecuter.update() method.', function() {
       const err = new Error();
-      qryExec.update.and.callFake((query, callback) => callback(err));
+      qryExec.update.and.callFake((query, params, callback) => callback(err));
 
       new UpdateModel(db, escaper, qryExec, {users: {ID: 14, first: 'Joe'}})
         .execute()

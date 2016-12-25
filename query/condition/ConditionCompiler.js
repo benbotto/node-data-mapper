@@ -20,8 +20,10 @@ function ndm_ConditionCompilerProducer(assert) {
      * Compile the parse tree.
      * @param {Object} parseTree - A parse tree object, as created by the
      * ConditionParser.parse() method.
-     * @param {Object} params - An object containing key-value pairs that are used to
-     * replace parameters in the query.
+     * @param {Object} params - An object containing key-value pairs that are
+     * used to replace parameters in the query.  The compiler verifies that
+     * there is a replacement for every parameter, but does not perform the
+     * actual replacement.
      * @return {string} The compiled condition as a SQL string.
      */
     compile(parseTree, params) {
@@ -58,13 +60,14 @@ function ndm_ConditionCompilerProducer(assert) {
             return escaper.escapeFullyQualifiedColumn(token.value);
           else if (token.type === 'parameter') {
             // Find the value in the params list (the leading colon is removed).
-            const value = params[token.value.substring(1)];
+            const paramKey = token.value.substring(1);
+            const value    = params[paramKey];
+
             assert(value !== undefined,
-              `Replacement value for parameter ${token.value} not present.`);
-            return escaper.escapeLiteral(value);
+              `Replacement value for parameter "${paramKey}" not present.`);
           }
-          else
-            return token.value;
+
+          return token.value;
         }
 
         switch (tree.token.type) {

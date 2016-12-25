@@ -104,7 +104,7 @@ describe('FromAdapter()', function() {
         expect(upd.toString()).toBe(
           'UPDATE  `users` AS `u`\n' +
           'SET\n' +
-          "`u`.`firstName` = 'Joe'\n" +
+          '`u`.`firstName` = :u_firstName_0\n' +
           'WHERE   `u`.`userID` = 1');
       });
     });

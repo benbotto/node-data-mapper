@@ -286,7 +286,8 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
       });
 
       // Execute the query.
-      this.queryExecuter.select(this.toString(), function(err, result) {
+      this.queryExecuter.select(this.toString(),
+        this._from.paramList.params, function(err, result) {
         if (err)
           defer.reject(err);
         else {

@@ -2,11 +2,12 @@
 
 require('insulin').factory('ndm_From',
   ['ndm_assert', 'ndm_ConditionLexer', 'ndm_ConditionParser',
-  'ndm_ConditionCompiler', 'ndm_Query', 'ndm_TableMetaList', 'ndm_Column'],
+  'ndm_ConditionCompiler', 'ndm_Query', 'ndm_TableMetaList', 'ndm_Column',
+  'ndm_ParameterList'],
   ndm_FromProducer);
 
 function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
-  ConditionCompiler, Query, TableMetaList, Column) {
+  ConditionCompiler, Query, TableMetaList, Column, ParameterList) {
 
   /**
    * A From can be used to create a SELECT, DELETE, or UPDATE query.
@@ -25,6 +26,14 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      */
     constructor(database, escaper, queryExecuter, meta) {
       super(database, escaper, queryExecuter);
+
+      /**
+       * A ParameterList instance that holds all of the query parameters.
+       * @type {ParameterList}
+       * @name From#paramList
+       * @public
+       */
+      this.paramList = new ParameterList();
 
       // These are for building conditions (WHERE and ON conditions).
       this._condLexer    = new ConditionLexer();
@@ -179,6 +188,9 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
 
       assert(fromMeta.cond === null,
         'where already performed on query.');
+      
+      // Store the parameters in the list.
+      this.paramList.addParameters(params);
 
       // Lex and parse the condition.
       tokens  = this._condLexer.parse(cond);
@@ -191,7 +203,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
           `The column "${columns[i]}" is not available for a where condition.`);
       }
 
-      fromMeta.cond = this._condCompiler.compile(tree, params);
+      fromMeta.cond = this._condCompiler.compile(tree, this.paramList.params);
       return this;
     }
 
@@ -211,6 +223,9 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
 
       // The joinType is required.
       assert(meta.joinType, 'joinType is required.');
+
+      // Store the parameters in the list.
+      this.paramList.addParameters(params);
 
       if (on) {
         // Lex, parse, and compile the condition.
