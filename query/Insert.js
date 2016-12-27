@@ -28,68 +28,63 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query, ParameterList) {
     }
 
     /**
-     * Private helper to build a SQL representation of an INSERT query.
-     * @private
-     * @param {ModelTraverse~ModelMeta} meta - A meta object as created by the
-     * modelTraverse class.
-     * @return {string} A string representation of the INSERT query.
+     * Build the query.
+     * @return {Query~QueryMeta} The string-representation of the query to
+     * execute along, with query parameters, and a meta object as returned
+     * from the ModelTraverse.modelOnly() method.
      */
-    _buildQuery(meta) {
-      const table     = this.database.getTableByMapping(meta.tableMapping);
-      const tableName = this.escaper.escapeProperty(table.name);
-      const cols      = [];
-      const params    = [];
+    buildQuery() {
+      const self     = this;
+      const queries  = [];
+      const traverse = new ModelTraverse();
 
-      for (let colMapping in meta.model) {
-        // If the property is not a table mapping it is ignored.  (The model
-        // can have extra user-defined data.)
-        if (table.isColumnMapping(colMapping)) {
-          // Mappings are used in the model, but the column name is needed for
-          // an insert statement.
-          const col      = table.getColumnByMapping(colMapping);
-          const colName  = this.escaper.escapeProperty(col.name);
-          const paramKey = `:${colMapping}`; 
+      // Traverse the model and build a QueryMeta object for each model.
+      traverse.modelOnly(this._model, buildSingle, this.database);
 
-          cols.push(colName);
-          params.push(paramKey);
+      function buildSingle(meta) {
+        const table     = self.database.getTableByMapping(meta.tableMapping);
+        const tableName = self.escaper.escapeProperty(table.name);
+        const cols      = [];
+        const paramKeys = [];
+        const paramList = new ParameterList();
+        const queryMeta = {};
+
+        for (let colMapping in meta.model) {
+          // If the property is not a table mapping it is ignored.  (The model
+          // can have extra user-defined data.)
+          if (table.isColumnMapping(colMapping)) {
+            // Mappings are used in the model, but the column name is needed for
+            // an insert statement.
+            const col      = table.getColumnByMapping(colMapping);
+            const colName  = self.escaper.escapeProperty(col.name);
+            const paramKey = `:${colMapping}`; 
+            let   colVal = meta.model[colMapping];
+
+            // Transform the column if needed (e.g. from a boolean to a bit).
+            if (col.converter.onSave)
+              colVal = col.converter.onSave(colVal);
+
+            cols.push(colName);
+            paramKeys.push(paramKey);
+            paramList.addParameter(colMapping, colVal);
+          }
         }
+
+        // If there are no columns/values to insert, just exit.
+        if (!cols.length)
+          return;
+
+        // Build the meta object and add it to the list.
+        queryMeta.modelMeta = meta;
+        queryMeta.sql =
+          `INSERT INTO ${tableName} (${cols.join(', ')})\n` +
+          `VALUES (${paramKeys.join(', ')})`;
+        queryMeta.params = paramList.params;
+
+        queries.push(queryMeta);
       }
 
-      // If there are no columns/values to insert, return an empty string.
-      if (!cols.length)
-        return '';
-
-      return `INSERT INTO ${tableName} (${cols.join(', ')})\n` +
-             `VALUES (${params.join(', ')})`;
-    }
-
-    /**
-     * Private helper to build a ParameterList for a model.
-     * @private
-     * @param {ModelTraverse~ModelMeta} meta - A meta object as created by the
-     * modelTraverse class.
-     * @return {ParameterList} A ParameterList instance.
-     */
-    _buildParams(meta) {
-      const table     = this.database.getTableByMapping(meta.tableMapping);
-      const paramList = new ParameterList();
-
-      for (let colMapping in meta.model) {
-        // If the property is not a table mapping it is ignored.  (The model
-        // can have extra user-defined data.)
-        if (table.isColumnMapping(colMapping)) {
-          const col    = table.getColumnByMapping(colMapping);
-          let   colVal = meta.model[colMapping];
-
-          // Transform the column if needed (e.g. from a boolean to a bit).
-          if (col.converter.onSave)
-            colVal = col.converter.onSave(colVal);
-
-          paramList.addParameter(colMapping, colVal);
-        }
-      }
-
-      return paramList;
+      return queries;
     }
 
     /**
@@ -97,13 +92,11 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query, ParameterList) {
      * @return {string} A SQL representation of the INSERT query, as a string.
      */
     toString() {
-      const queries  = [];
-      const traverse = new ModelTraverse();
+      const queries = this.buildQuery();
 
-      traverse.modelOnly(this._model, mm =>
-        queries.push(this._buildQuery(mm)), this.database);
-
-      return queries.join(';\n\n');
+      return queries
+        .map(q => q.sql)
+        .join(';\n\n');
     }
 
     /**
@@ -116,19 +109,7 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query, ParameterList) {
     execute() {
       const self      = this;
       const defer     = deferred();
-      const queryData = [];
-      const traverse  = new ModelTraverse();
-
-      // Queue all the queries and model meta data.
-      traverse.modelOnly(this._model, queueQueryData, this.database);
-
-      function queueQueryData(modelMeta) {
-        queryData.push({
-          modelMeta: modelMeta,
-          query:     self._buildQuery(modelMeta),
-          params:    self._buildParams(modelMeta).params
-        });
-      }
+      const queryData = this.buildQuery();
 
       // The queryData are executed in order.  processQuery() grabs the first query
       // out of the queryData queue, executes it, and removes it from the array.

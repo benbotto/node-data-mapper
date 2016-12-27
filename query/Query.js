@@ -24,6 +24,24 @@ function ndm_QueryProducer() {
       this.escaper       = escaper;
       this.queryExecuter = queryExecuter;
     }
+
+    /**
+     * @typedef Query~QueryMeta
+     * @type {Object|Object[]}
+     * @property {string} sql - The string representation of the query.
+     * @property {Object} params - An object containing query parameters.
+     * @property {Object=} modelMeta - An optional meta object containing extra
+     * information about the model.
+     */
+
+    /**
+     * Build the query.
+     * @return {Query~QueryMeta} The string-representation of the query to
+     * execute along with any query parameters.
+     */
+    buildQuery() {
+      throw new Error('Query.buildQuery() not implemented.');
+    }
   }
 
   return Query;

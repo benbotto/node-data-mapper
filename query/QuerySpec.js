@@ -20,5 +20,21 @@ describe('Query()', function()
       expect(q.queryExecuter).toBe(executer);
     });
   });
+
+  /**
+   * Build query.
+   */
+  describe('buildQuery()', function() {
+    it('is not implemented.', function() {
+      const db       = {};
+      const escaper  = {};
+      const executer = {};
+      const q        = new Query(db, escaper, executer);
+
+      expect(function() {
+        q.buildQuery();
+      }).toThrowError('Query.buildQuery() not implemented.');
+    });
+  });
 });
 
