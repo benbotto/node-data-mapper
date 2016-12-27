@@ -37,7 +37,7 @@ function ndm_UpdateProducer(deferred, Query, assert) {
 
     /**
      * Build the array of query parameters.
-     * @protected.
+     * @protected
      */
     buildQueryParameters() {
       // Add each key in the model as a query parameter.
