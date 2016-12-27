@@ -130,7 +130,7 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query, ParameterList) {
         }
 
         queryDatum = queryData.shift();
-        self.queryExecuter.insert(queryDatum.query, queryDatum.params, function(err, result) {
+        self.queryExecuter.insert(queryDatum.sql, queryDatum.params, function(err, result) {
           if (err) {
             defer.reject(err);
             return;

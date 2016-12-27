@@ -33,7 +33,7 @@ describe('Insert()', function() {
 
       expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES (:first, :last)");
+        'VALUES (:first, :last)');
     });
 
     it('returns an empty string if there are no columns to insert.', function() {
@@ -49,7 +49,7 @@ describe('Insert()', function() {
 
       expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES (:first, :last)");
+        'VALUES (:first, :last)');
     });
 
     it('generates a query for each model in an array.', function() {
@@ -62,9 +62,9 @@ describe('Insert()', function() {
 
       expect(query.toString()).toEqual(
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES (:first, :last);\n\n" +
+        'VALUES (:first, :last);\n\n' +
         'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        "VALUES (:first, :last)");
+        'VALUES (:first, :last)');
     });
   });
 
@@ -155,6 +155,24 @@ describe('Insert()', function() {
         .execute()
         .then(() => expect(true).toBe(false))
         .catch(e => expect(e).toBe(err))
+        .done();
+    });
+
+    it('passes the SQL to the queryExecuter.insert() method.', function() {
+      qryExec.insert.and.callFake((query, params, callback) => {
+        expect(query).toBe(
+          'INSERT INTO `users` (`firstName`, `lastName`)\n' +
+          'VALUES (:first, :last)');
+        callback(undefined, {});
+      });
+
+      const query = new Insert(db, escaper, qryExec, {
+        users: {first: 'Sandy', last: 'Perkins'}
+      });
+
+      query
+        .execute()
+        .catch(() => expect(true).toBe(false))
         .done();
     });
 
