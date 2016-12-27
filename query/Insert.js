@@ -130,7 +130,11 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query, ParameterList) {
         }
 
         queryDatum = queryData.shift();
-        self.queryExecuter.insert(queryDatum.sql, queryDatum.params, function(err, result) {
+        self.queryExecuter.insert(queryDatum.sql, queryDatum.params, processQueryResult);
+
+        // Handle the query execution result by adding the new resource ID, if
+        // present.
+        function processQueryResult(err, result) {
           if (err) {
             defer.reject(err);
             return;
@@ -145,7 +149,7 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query, ParameterList) {
           }
 
           processQuery();
-        });
+        }
       }
 
       // A promise is returned.  It will be resolved with the updated models.
