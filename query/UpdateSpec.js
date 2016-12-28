@@ -37,44 +37,13 @@ describe('Update()', function() {
   });
 
   /**
-   * Set string.
-   */
-  describe('.getSetString()', function() {
-    it('returns a blank string if there are no columns to update.', function() {
-      const upd = new Update(getFrom('users u'), {});
-
-      expect(upd.getSetString()).toBe('');
-    });
-
-    it('returns a single SET column if there is only one column to update.', function() {
-      const upd = new Update(getFrom('users u'), {'u.lastName':"O'Hare"});
-
-      expect(upd.getSetString()).toBe(
-        'SET\n'+
-        '`u`.`lastName` = :u_lastName_0');
-    });
-
-    it('returns multiple SET columns if there are multiple columns to update.', function() {
-      const upd = new Update(getFrom('users u'), {
-        'u.lastName':  "O'Hare",
-        'u.firstName': 'Joe'
-      });
-
-      expect(upd.getSetString()).toBe(
-        'SET\n'+
-        "`u`.`lastName` = :u_lastName_0,\n" +
-        "`u`.`firstName` = :u_firstName_1");
-    });
-  });
-
-  /**
    * To string.
    */
   describe('.toString()', function() {
     it('returns an empty string if there are no columns to update.', function() {
       const upd = new Update(getFrom('users u'), {});
 
-      expect(upd.getSetString()).toBe('');
+      expect(upd.toString()).toBe('');
     });
 
     it('returns a valid SQL string if there is only one column to update.', function() {

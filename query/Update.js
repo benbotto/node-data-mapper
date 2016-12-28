@@ -1,10 +1,10 @@
 'use strict';
 
 require('insulin').factory('ndm_Update',
-  ['deferred', 'ndm_Query', 'ndm_assert'],
+  ['deferred', 'ndm_Query', 'ndm_assert', 'ndm_ParameterList'],
   ndm_UpdateProducer);
 
-function ndm_UpdateProducer(deferred, Query, assert) {
+function ndm_UpdateProducer(deferred, Query, assert, ParameterList) {
   /**
    * A Query that represents an UPDATE.
    * @extends Query
@@ -31,53 +31,54 @@ function ndm_UpdateProducer(deferred, Query, assert) {
         assert(this._from._tableMetaList.isColumnAvailable(fqColName),
           `Column "${fqColName}" is not available for updating.`);
       }
-
-      this.buildQueryParameters();
     }
 
     /**
-     * Build the array of query parameters.
-     * @protected
+     * Build the query.
+     * @return {Query~QueryMeta} The string-representation of the query to
+     * execute along with query parameters.
      */
-    buildQueryParameters() {
+    buildQuery() {
+      const update    = this._from.getFromString().replace(/^FROM  /, 'UPDATE');
+      const joins     = this._from.getJoinString();
+      const where     = this._from.getWhereString();
+      const sets      = [];
+      const paramList = new ParameterList(this._from.paramList);
+      const queryMeta = {};
+      let   set;
+
       // Add each key in the model as a query parameter.
       for (let fqColName in this._model) {
         const col       = this._from._tableMetaList.availableCols.get(fqColName).column;
-        const paramName = this._from.paramList.createParameterName(fqColName);
+        const colName   = this.escaper.escapeFullyQualifiedColumn(fqColName);
+        const paramName = paramList.createParameterName(fqColName);
         let   paramVal  = this._model[fqColName];
 
         // The column may need to be transformed (e.g. from a boolean to a bit).
         if (col.converter.onSave)
           paramVal = col.converter.onSave(paramVal);
 
-        // The params for the entire query are stored in the From instance's
-        // ParameterList instance.  However, the update parameters are needed
-        // independently so that the update string can be built (calling
-        // ParameterList.createParameterName() bumps the parameter ID).  Hence
-        // the param lookup.
-        this._paramLookup[fqColName] = paramName;
-        this._from.paramList.addParameter(paramName, paramVal);
-      }
-    }
+        paramList.addParameter(paramName, paramVal);
 
-    /**
-     * Get the SET part of the query.
-     * @return {string} The SET portion of the query, as a string.
-     */
-    getSetString() {
-      const sets = [];
-
-      for (let fqColName in this._model) {
-        const colName  = this.escaper.escapeFullyQualifiedColumn(fqColName);
-        const paramKey = this._paramLookup[fqColName];
-
-        sets.push(`${colName} = :${paramKey}`);
+        // Add the set string for the column.
+        sets.push(`${colName} = :${paramName}`);
       }
 
-      if (sets.length ===0)
-        return '';
+      // Add the parameters.
+      queryMeta.params = paramList.params;
 
-      return 'SET\n' + sets.join(',\n');
+      // No columns to update.
+      if (sets.length === 0)
+        return null;
+
+      set = 'SET\n' + sets.join(',\n');
+
+      // Build the SQL.
+      queryMeta.sql = [update, joins, set, where]
+        .filter(part => part !== '')
+        .join('\n');
+
+      return queryMeta;
     }
 
     /**
@@ -85,18 +86,8 @@ function ndm_UpdateProducer(deferred, Query, assert) {
      * @return {string} The UPDATE statement, as a SQL string.
      */
     toString() {
-      const update = this._from.getFromString().replace(/^FROM  /, 'UPDATE');
-      const joins  = this._from.getJoinString();
-      const set    = this.getSetString();
-      const where  = this._from.getWhereString();
-
-      // No columns to update.
-      if (set === '')
-        return '';
-
-      return [update, joins, set, where]
-        .filter(part => part !== '')
-        .join('\n');
+      const queryMeta = this.buildQuery();
+      return queryMeta ? queryMeta.sql : '';
     }
 
     /**
@@ -107,14 +98,14 @@ function ndm_UpdateProducer(deferred, Query, assert) {
      * error (unmodified).
      */
     execute() {
-      const defer = deferred();
-      const sql   = this.toString();
+      const defer     = deferred();
+      const queryMeta = this.buildQuery();
 
       // If there is nothing to update, resolve the promise.
-      if (!sql)
+      if (!queryMeta)
         defer.resolve({affectedRows: 0});
       else {
-        this.queryExecuter.update(sql, this._from.paramList.params, function(err, result) {
+        this.queryExecuter.update(queryMeta.sql, queryMeta.params, function(err, result) {
           if (err)
             defer.reject(err);
           else
