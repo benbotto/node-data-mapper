@@ -189,12 +189,16 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
     }
 
     /**
-     * Get the SQL that represents the query.
-     * @return {string} The SQL representing the select statement.
+     * Build the query.
+     * @return {Query~QueryMeta} The string-representation of the query to
+     * execute along with query parameters.
      */
-    toString() {
-      let sql = 'SELECT  ';
-      let cols;
+    buildQuery() {
+      const queryMeta = {};
+      let   cols;
+
+      // Build the SQL.
+      queryMeta.sql = 'SELECT  ';
 
       // No columns specified.  Get all columns.
       if (this._selectCols.size === 0)
@@ -202,7 +206,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
 
       // Escape each selected column and add it to the query.
       cols = Array.from(this._selectCols.values());
-      sql += cols.map(function(col) {
+      queryMeta.sql += cols.map(function(col) {
         const colName  = this.escaper.escapeProperty(col.column.name);
         const colAlias = this.escaper.escapeProperty(col.fqColName);
         const tblAlias = this.escaper.escapeProperty(col.tableAlias);
@@ -211,17 +215,28 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
       }, this).join(',\n        ');
 
       // Add the FROM (which includes the JOINS and WHERE).
-      sql += '\n';
-      sql += this._from.toString();
+      queryMeta.sql += '\n';
+      queryMeta.sql += this._from.toString();
 
       // Add the order.
       if (this._orderBy.length !== 0) {
-        sql += '\n';
-        sql += 'ORDER BY ';
-        sql += this._orderBy.join(', ');
+        queryMeta.sql += '\n';
+        queryMeta.sql += 'ORDER BY ';
+        queryMeta.sql += this._orderBy.join(', ');
       }
 
-      return sql;
+      // Add the parameters.
+      queryMeta.params = this._from.paramList.params;
+
+      return queryMeta;
+    }
+
+    /**
+     * Get the SQL that represents the query.
+     * @return {string} The SQL representing the select statement.
+     */
+    toString() {
+      return this.buildQuery().sql;
     }
 
     /**
