@@ -13,6 +13,21 @@ describe('ParameterList()', function() {
 
       expect(Object.keys(paramList.params).length).toBe(0);
     });
+
+    it('can copy parameters from another list.', function() {
+      const paramList1 = new ParameterList();
+      paramList1.addParameter(paramList1.createParameterName('name'), 'Jack');
+      paramList1.addParameter(paramList1.createParameterName('age'), 30);
+
+      const paramList2 = new ParameterList(paramList1);
+      paramList2.addParameter(paramList2.createParameterName('occupation'), 'developer');
+
+      expect(paramList2.params).toEqual({
+        name_0:       'Jack',
+        age_1:        30,
+        occupation_2: 'developer'
+      });
+    });
   });
 
   /**

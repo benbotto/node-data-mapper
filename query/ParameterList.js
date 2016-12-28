@@ -7,8 +7,10 @@ function ndm_ParameterListProducer(assert) {
   class ParameterList {
     /**
      * Initialize the list of parameters.
+     * @param {ParameterList=} paramList - An option list of parameters to
+     * copy.
      */
-    constructor() {
+    constructor(paramList) {
       /**
        * An object containing key-value pairs, each of which is a query
        * parameter.
@@ -16,8 +18,14 @@ function ndm_ParameterListProducer(assert) {
        * @name ParameterList#params
        * @public
        */
-      this.params   = {};
-      this._paramID = 0;
+      this.params = {};
+
+      if (paramList) {
+        this.addParameters(paramList.params);
+        this._paramID = paramList._paramID;
+      }
+      else
+        this._paramID = 0;
     }
 
     /**
