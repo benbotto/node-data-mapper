@@ -1,3 +1,4 @@
+Implement buildQuery in Delete and use it in execute() and toString().  Then move buildQuery to the platform-specific modules.
 Queries need to be built for the driver.  There are subtle differences (for example, UPDATE with JOIN differs between MySQL and MSSQL).
 
 Need transaction support, but it's tricky with a pool.  The user may need to run multiple queries in a transaction, and so the connection needs to somehow be tied to the request.
