@@ -30,7 +30,7 @@ function ndm_InsertProducer(deferred, ModelTraverse, Query, ParameterList) {
     /**
      * Build the query.
      * @return {Query~QueryMeta} The string-representation of the query to
-     * execute along, with query parameters, and a meta object as returned
+     * execute along with query parameters, and a meta object as returned
      * from the ModelTraverse.modelOnly() method.
      */
     buildQuery() {
