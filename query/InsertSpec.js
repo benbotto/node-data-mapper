@@ -4,6 +4,7 @@ describe('Insert()', function() {
   const insulin      = require('insulin');
   const Insert       = insulin.get('ndm_Insert');
   const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
+  const MySQLInsert  = insulin.get('ndm_MySQLInsert');
   const db           = insulin.get('ndm_testDB');
   const escaper      = new MySQLEscaper();
   let qryExec;
@@ -26,50 +27,24 @@ describe('Insert()', function() {
    * To string.
    */
   describe('.toString()', function() {
-    it('generates SQL for a single model.', function() {
-      const query = new Insert(db, escaper, qryExec, {
-        users: {first: 'Sandy', last: 'Perkins'}
-      });
+    it('returns the sql from buildQuery().', function() {
+      const query = new Insert(db, escaper, qryExec, {});
 
-      expect(query.toString()).toEqual(
-        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        'VALUES (:first, :last)');
-    });
+      spyOn(query, 'buildQuery').and.returnValue([
+        {sql: 'INSERT FOO1'},
+        {sql: 'INSERT FOO2'}
+      ]);
 
-    it('returns an empty string if there are no columns to insert.', function() {
-      const query = new Insert(db, escaper, qryExec, {users: {}});
-
-      expect(query.toString()).toEqual('');
-    });
-
-    it('ignores nested model properties that don\'t map to columns.', function() {
-      const query = new Insert(db, escaper, qryExec, {
-        users: {first: 'Sandy', last: 'Perkins', occupation: 'Code Wrangler'}
-      });
-
-      expect(query.toString()).toEqual(
-        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        'VALUES (:first, :last)');
-    });
-
-    it('generates a query for each model in an array.', function() {
-      const query = new Insert(db, escaper, qryExec, {
-        users: [
-          {first: 'Sandy', last: 'Perkins'},
-          {first: 'Sandy', last: "O'Hare"}
-        ]
-      });
-
-      expect(query.toString()).toEqual(
-        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        'VALUES (:first, :last);\n\n' +
-        'INSERT INTO `users` (`firstName`, `lastName`)\n' +
-        'VALUES (:first, :last)');
+      expect(query.toString()).toBe(
+        'INSERT FOO1;\n\n' +
+        'INSERT FOO2'
+      );
     });
   });
 
   /**
-   * Execute.
+   * Execute.  Note that MySQLInsert is used for testing here, as it has a
+   * concrete implementation of buildQuery() that makes testing easier.
    */
   describe('.execute()', function() {
     let insertId;
@@ -86,7 +61,7 @@ describe('Insert()', function() {
     });
 
     it('uses the queryExecuter.insert() method to insert models.', function() {
-      const query = new Insert(db, escaper, qryExec, {
+      const query = new MySQLInsert(db, escaper, qryExec, {
         users: {first: 'Sandy', last: 'Perkins'}
       });
 
@@ -96,7 +71,7 @@ describe('Insert()', function() {
     });
 
     it('calls the queryExecuter.insert() method once for each model.', function() {
-      const query = new Insert(db, escaper, qryExec, {
+      const query = new MySQLInsert(db, escaper, qryExec, {
         users: [
           {first: 'Sandy',  last: 'Perkins'},
           {first: 'Cindy',  last: 'Perkins'},
@@ -110,7 +85,7 @@ describe('Insert()', function() {
     });
 
     it('updates the primary key on the model when the insertId is available.', function() {
-      const query = new Insert(db, escaper, qryExec, {
+      const query = new MySQLInsert(db, escaper, qryExec, {
         users: [
           {first: 'Sandy',  last: 'Perkins'},
           {first: 'Cindy',  last: 'Perkins'},
@@ -134,7 +109,7 @@ describe('Insert()', function() {
         callback(undefined, {});
       });
 
-      const query = new Insert(db, escaper, qryExec, {
+      const query = new MySQLInsert(db, escaper, qryExec, {
         users: {first: 'Sandy', last: 'Perkins'}
       });
 
@@ -145,7 +120,7 @@ describe('Insert()', function() {
 
     it('propagates errors from the queryExecuter.insert() method.', function() {
       const err   = new Error();
-      const query = new Insert(db, escaper, qryExec, {
+      const query = new MySQLInsert(db, escaper, qryExec, {
         users: {first: 'Sandy', last: 'Perkins'}
       });
 
@@ -166,7 +141,7 @@ describe('Insert()', function() {
         callback(undefined, {});
       });
 
-      const query = new Insert(db, escaper, qryExec, {
+      const query = new MySQLInsert(db, escaper, qryExec, {
         users: {first: 'Sandy', last: 'Perkins'}
       });
 
@@ -182,24 +157,8 @@ describe('Insert()', function() {
         callback(undefined, {});
       });
 
-      const query = new Insert(db, escaper, qryExec, {
+      const query = new MySQLInsert(db, escaper, qryExec, {
         users: {first: 'Sandy', last: 'Perkins'}
-      });
-
-      query
-        .execute()
-        .catch(() => expect(true).toBe(false))
-        .done();
-    });
-
-    it('uses converters when present in the Database instance.', function() {
-      const query = new Insert(db, escaper, qryExec, {
-        products: {isActive: true}
-      });
-
-      qryExec.insert.and.callFake((query, params, callback) => {
-        expect(params).toEqual({isActive: 1});
-        callback(undefined, {});
       });
 
       query
