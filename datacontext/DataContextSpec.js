@@ -9,6 +9,7 @@ describe('DataContext()', function() {
   const exec         = {};
 
   // Helper function to "clone" the db instance.
+  // TODO: Remove me when refactored.
   function cloneDB() {
     const Database = insulin.get('ndm_Database');
 
@@ -53,20 +54,10 @@ describe('DataContext()', function() {
    * Insert.
    */
   describe('.insert()', function() {
-    it('returns an Insert instance.', function() {
-      const dc     = new DataContext(db, escaper);
-      const insert = dc.insert({});
-      const Insert = insulin.get('ndm_Insert');
-
-      expect(insert instanceof Insert).toBe(true);
-    });
-
-    it('accepts an optional database argument, and passes it to the Insert ctor.', function() {
-      const dc     = new DataContext(db, escaper);
-      const db2    = cloneDB();
-      const insert = dc.insert({}, db2);
-
-      expect(insert.database).toBe(db2);
+    it('is not implemented.', function() {
+      expect(function() {
+        new DataContext(db, escaper).insert({});
+      }).toThrowError('insert not implemented.');
     });
   });
 

@@ -49,16 +49,16 @@ function ndm_DataContextProducer(FromAdapter, Insert, DeleteModel, UpdateModel) 
     }
 
     /**
-     * Create a new {@link Insert} instance.
+     * Create a new {@link Insert} instance.  Driver-specific DataContext
+     * implementations must implement this method.
      * @param {Object} model - See the {@link Insert} constructor.
      * @param {Database} [database] - An optional Database instance.  If
      * passed, this parameter is used instead of the Database that's provided
      * to the ctor.
      * @return {Insert} An Insert instance.
      */
-    insert(model, database) {
-      database = database || this.database;
-      return new Insert(database, this.escaper, this.queryExecuter, model);
+    insert(/*model, database*/) {
+      throw new Error('insert not implemented.');
     }
 
     /**
