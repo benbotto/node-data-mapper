@@ -17,17 +17,6 @@ describe('Escaper()', function() {
   });
 
   /**
-   * Escape literal.
-   */
-  describe('.escapeLiteral()', function() {
-    it('is required to be implemented.', function() {
-      expect(function() {
-        escaper.escapeLiteral();
-      }).toThrowError('Function escapeLiteral() is not implemented.');
-    });
-  });
-
-  /**
    * Escape fully-qualified column name.
    */
   describe('.escapeFullyQualifiedColumn()', function() {

@@ -15,16 +15,6 @@ function ndm_EscaperProducer() {
     }
 
     /**
-     * Escape a literal, such as a string or a number.
-     * @param {any} literal - The literal to escape, which is escaped based on
-     * its type.
-     * @return {string} The escaped literal, as a string.
-     */
-    escapeLiteral(/*literal*/) {
-      throw new Error('Function escapeLiteral() is not implemented.');
-    }
-
-    /**
      * Escape a fully-qualified column name, such as 'u.firstName' or
      * 'phone_numbers.phoneNumber'.
      * @param {string} fqc - The fully-qualified column.
