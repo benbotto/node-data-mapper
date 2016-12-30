@@ -32,14 +32,26 @@ function ndm_DeleteProducer(deferred, Query, assert) {
     }
 
     /**
+     * Build the query.
+     * @return {Query~QueryMeta} The string-representation of the query to
+     * execute along with query parameters.
+     */
+    buildQuery() {
+      const fromAlias = this.escaper.escapeProperty(this._delTableMeta.as);
+      const from      = this._from.toString();
+
+      return {
+        sql:    `DELETE  ${fromAlias}\n${from}`,
+        params: this._from.paramList.params
+      };
+    }
+
+    /**
      * Create the delete SQL.
      * @return {string} The SQL representation of the DELETE statement.
      */
     toString() {
-      const fromAlias = this.escaper.escapeProperty(this._delTableMeta.as);
-      const from      = this._from.toString();
-
-      return `DELETE  ${fromAlias}\n${from}`;
+      return this.buildQuery().sql;
     }
 
     /**
@@ -50,10 +62,10 @@ function ndm_DeleteProducer(deferred, Query, assert) {
      * that error.
      */
     execute() {
-      const defer = deferred();
+      const defer     = deferred();
+      const queryMeta = this.buildQuery();
 
-      this.queryExecuter.delete(this.toString(),
-        this._from.paramList.params, function(err, result){
+      this.queryExecuter.delete(queryMeta.sql, queryMeta.params, function(err, result) {
         if (err)
           defer.reject(err);
         else
