@@ -97,7 +97,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         // of a table was selected twice, there would not be a way to serialize
         // the primary key correctly.
         assert(!this._selectCols.has(fqColName),
-          `Column ${fqColName} already selected.`);
+          `Column "${fqColName}" already selected.`);
         
         // Column is unique - save it in the list of selected columns with a
         // lookup.
@@ -151,7 +151,7 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
      * Order by one or more columns.  This function is variadic.
      * @param {...string|...object} metas - A list of fully-qualified column names in the form
      * &lt;table-alias&gt;.&lt;column-name&gt;, or an array of objects with the
-     *        following properties.
+     * following properties.
      * @param {string} metas.column - The fully-qualified column name.
      * @param {string} metas.dir - The sort direction; either "ASC" or "DESC."
      * @return {this}
@@ -182,53 +182,10 @@ function ndm_SelectProducer(deferred, assert, DataMapper, Query, Schema,
         tblAlias = this.escaper.escapeProperty(col.tableAlias);
         colName  = this.escaper.escapeProperty(col.column.name);
 
-        this._orderBy.push(tblAlias + '.' + colName + ' ' + meta.dir);
+        this._orderBy.push(`${tblAlias}.${colName} ${meta.dir}`);
       }, this);
 
       return this;
-    }
-
-    /**
-     * Build the query.
-     * @return {Query~QueryMeta} The string-representation of the query to
-     * execute along with query parameters.
-     */
-    buildQuery() {
-      const queryMeta = {};
-      let   cols;
-
-      // Build the SQL.
-      queryMeta.sql = 'SELECT  ';
-
-      // No columns specified.  Get all columns.
-      if (this._selectCols.size === 0)
-        this.selectAll();
-
-      // Escape each selected column and add it to the query.
-      cols = Array.from(this._selectCols.values());
-      queryMeta.sql += cols.map(function(col) {
-        const colName  = this.escaper.escapeProperty(col.column.name);
-        const colAlias = this.escaper.escapeProperty(col.fqColName);
-        const tblAlias = this.escaper.escapeProperty(col.tableAlias);
-
-        return `${tblAlias}.${colName} AS ${colAlias}`;
-      }, this).join(',\n        ');
-
-      // Add the FROM (which includes the JOINS and WHERE).
-      queryMeta.sql += '\n';
-      queryMeta.sql += this._from.toString();
-
-      // Add the order.
-      if (this._orderBy.length !== 0) {
-        queryMeta.sql += '\n';
-        queryMeta.sql += 'ORDER BY ';
-        queryMeta.sql += this._orderBy.join(', ');
-      }
-
-      // Add the parameters.
-      queryMeta.params = this._from.paramList.params;
-
-      return queryMeta;
     }
 
     /**

@@ -28,12 +28,12 @@ describe('Select()', function() {
 
     it('can be initialized using a From instance and a QueryExecuter.', function() {
       expect(function() {
-        new Select(getFrom({table: 'users'}), qryExec);
+        new Select(getFrom('users'), qryExec);
       }).not.toThrow();
     });
 
     it('exposes the database, escaper, and queryExecuter as properties.', function() {
-      const sel = new Select(getFrom({table: 'users'}), qryExec);
+      const sel = new Select(getFrom('users'), qryExec);
 
       expect(sel.database).toBe(db);
       expect(sel.escaper).toBe(escaper);
@@ -47,35 +47,12 @@ describe('Select()', function() {
   describe('.toString()', function() {
     beforeEach(() => Select = insulin.get('ndm_Select'));
 
-    it('selects all columns if columns are not explicitly selected.', function() {
-      const query = new Select(getFrom('users'), qryExec);
+    it('returns the sql from buildQuery().', function() {
+      const query = new Select(db, escaper, qryExec, {});
 
-      expect(query.toString()).toBe(
-        'SELECT  `users`.`userID` AS `users.userID`,\n'       +
-        '        `users`.`firstName` AS `users.firstName`,\n' +
-        '        `users`.`lastName` AS `users.lastName`\n'    +
-        'FROM    `users` AS `users`');
-    });
+      spyOn(query, 'buildQuery').and.returnValue({sql: 'SELECT * FROM foo'});
 
-    it('allows tables to be aliased.', function() {
-      const query = new Select(getFrom({table: 'users', as: 'admins'}), qryExec);
-
-      expect(query.toString()).toBe(
-        'SELECT  `admins`.`userID` AS `admins.userID`,\n'       +
-        '        `admins`.`firstName` AS `admins.firstName`,\n' +
-        '        `admins`.`lastName` AS `admins.lastName`\n'    +
-        'FROM    `users` AS `admins`');
-    });
-      
-    it('lets columns be selected explicitly.', function() {
-      const query = new Select(getFrom({table: 'users'}), qryExec)
-        .select('users.userID', 'users.firstName', 'users.lastName');
-
-      expect(query.toString()).toBe(
-        'SELECT  `users`.`userID` AS `users.userID`,\n'       +
-        '        `users`.`firstName` AS `users.firstName`,\n' +
-        '        `users`.`lastName` AS `users.lastName`\n'    +
-        'FROM    `users` AS `users`');
+      expect(query.toString()).toBe('SELECT * FROM foo');
     });
   });
 
@@ -83,10 +60,17 @@ describe('Select()', function() {
    * Select.
    */
   describe('.select()', function() {
-    beforeEach(() => Select = insulin.get('ndm_Select'));
+    // MySQLSelect is used in some of these test as it has a concrete
+    // implementation of buildQuery(), which makes testing easier.
+    let MySQLSelect;
+
+    beforeEach(function() {
+      Select      = insulin.get('ndm_Select');
+      MySQLSelect = insulin.get('ndm_MySQLSelect');
+    });
 
     it('does not require any arguments.', function() {
-      const query = new Select(getFrom({table: 'users'}), qryExec).select();
+      const query = new MySQLSelect(getFrom('users'), qryExec).select();
 
       expect(query.toString()).toBe(
         'SELECT  `users`.`userID` AS `users.userID`,\n'       +
@@ -97,7 +81,7 @@ describe('Select()', function() {
 
     it('cannot be called twice on the same query.', function() {
       expect(function() {
-        new Select(getFrom({table: 'users'}), qryExec)
+        new Select(getFrom('users'), qryExec)
           .select('users.userID', 'users.firstName', 'users.lastName')
           .select('users.userID', 'users.firstName', 'users.lastName');
       }).toThrowError('select already performed on query.');
@@ -105,14 +89,14 @@ describe('Select()', function() {
 
     it('throws an error if one of the selected columns is invalid.', function() {
       expect(function() {
-        new Select(getFrom({table: 'users'}), qryExec).select('userID'); // Should be users.userID.
+        new Select(getFrom('users'), qryExec).select('userID'); // Should be users.userID.
       }).toThrowError('The column name userID is not available for selection.  ' +
         'Column names must be fully-qualified (<table-alias>.<column-name>).');
     });
 
     it('throws an error if the primary key of the from table is not selected.', function() {
       expect(function() {
-        new Select(getFrom({table: 'users'}), qryExec).select('users.firstName');
+        new Select(getFrom('users'), qryExec).select('users.firstName');
       }).toThrowError('If a column is selected from a table, then the primary key ' +
         'from that table must also be selected.  The primary key of table "users" ' +
         '(alias "users") is not present in the array of selected columns.');
@@ -120,7 +104,7 @@ describe('Select()', function() {
 
     it('always requires the primary key of the from table, even if joins are used.', function() {
       expect(function() {
-        const from = getFrom({table: 'users'})
+        const from = getFrom('users')
           .innerJoin({table: 'phone_numbers', parent: 'users'});
 
         new Select(from, qryExec)
@@ -130,7 +114,7 @@ describe('Select()', function() {
 
     it('throws an error if columns are selected from a joined table, but the primary key of that table is excluded.', function() {
       expect(function() {
-        const from = getFrom({table: 'users'})
+        const from = getFrom('users')
           .innerJoin({table: 'phone_numbers', parent: 'users'});
 
         new Select(from, qryExec)
@@ -142,7 +126,7 @@ describe('Select()', function() {
 
     it('requires the primary key from joined tables only if other columns are selected from that table.', function() {
       expect(function() {
-        const from = getFrom({table: 'users'})
+        const from = getFrom('users')
           .innerJoin({table: 'phone_numbers', parent: 'users'});
 
         new Select(from, qryExec)
@@ -151,7 +135,7 @@ describe('Select()', function() {
     });
 
     it('allows columns to be mapped to custom property names.', function() {
-      const query = new Select(getFrom({table: 'users'}), qryExec)
+      const query = new MySQLSelect(getFrom('users'), qryExec)
         .select('users.userID', {column: 'users.firstName', mapTo: 'name'});
 
       expect(query.toString()).toBe(
@@ -162,7 +146,7 @@ describe('Select()', function() {
 
     it('throws an error if the same column mapping is used twice.', function() {
       expect(function() {
-        new Select(getFrom({table: 'users'}), qryExec)
+        new Select(getFrom('users'), qryExec)
           .select(
             'users.userID',
             {column: 'users.firstName', mapTo: 'name'},
@@ -170,11 +154,13 @@ describe('Select()', function() {
       }).toThrowError('Column mapping "users.name" already selected.');
     });
 
-    it('throw an error if the same column is selected twice.', function() {
+    it('throws an error if the same column is selected twice.', function() {
       expect(function() {
-        new Select(getFrom({table: 'users'}), qryExec)
-          .select('users.userID', {column: 'users.firstName', mapTo: 'name'}, {column: 'users.firstName', mapTo: 'name2'});
-      }).toThrowError('Column users.firstName already selected.');
+        new Select(getFrom('users'), qryExec).select(
+          'users.userID',
+          {column: 'users.firstName', mapTo: 'name'},
+          {column: 'users.firstName', mapTo: 'name2'});
+      }).toThrowError('Column "users.firstName" already selected.');
     });
   });
 
@@ -182,21 +168,25 @@ describe('Select()', function() {
    * Execute.
    */
   describe('.execute()', function() {
+    let MySQLSelect;
+
+    beforeEach(() => MySQLSelect = insulin.get('ndm_MySQLSelect'));
+
     it('executes the query using the QueryExecuter\'s select() method.', function() {
-      const from = getFrom({table: 'users'});
-      new Select(from, qryExec).execute();
+      const from = getFrom('users');
+      new MySQLSelect(from, qryExec).execute();
       expect(qryExec.select).toHaveBeenCalled();
     });
 
     it('passes the pareters to the QueryExecuter\'s select() method.', function() {
-      const from = getFrom({table: 'users'})
+      const from = getFrom('users')
         .where({
           $and: [
             {$eq: {'users.userID': ':userID'}},
             {$eq: {'users.firstName': ':firstName'}}
           ]
         }, {userID: 12, firstName: 'Joe'});
-      new Select(from, qryExec).execute();
+      new MySQLSelect(from, qryExec).execute();
       expect(qryExec.select.calls.argsFor(0)[1]).toEqual({userID: 12, firstName: 'Joe'});
     });
 
@@ -207,6 +197,8 @@ describe('Select()', function() {
       let Schema;
 
       beforeEach(function() {
+        insulin.forget();
+
         // Spy on the Schema constructor.
         Schema = jasmine.createSpy('Schema');
         Schema.RELATIONSHIP_TYPE = {MANY: 'many', SINGLE: 'single'};
@@ -219,12 +211,12 @@ describe('Select()', function() {
         };
 
         insulin.factory('ndm_Schema', () => Schema);
-        Select = insulin.get('ndm_Select');
+        MySQLSelect = insulin.get('ndm_MySQLSelect');
       });
 
       it('creates a Schema with the primary key for the keyColumnName and the mapTo for the propertyName.', function() {
         // Single table, one schema.
-        new Select(getFrom({table: 'users'}), qryExec)
+        new MySQLSelect(getFrom('users'), qryExec)
           .execute();
 
         expect(Schema.calls.count()).toBe(1);
@@ -240,7 +232,7 @@ describe('Select()', function() {
             on:     {$eq: {'u.userID':'pn.userID'}}
           });
 
-        new Select(from, qryExec).execute();
+        new MySQLSelect(from, qryExec).execute();
 
         expect(Schema.calls.count()).toBe(2);
         expect(Schema.calls.argsFor(0)).toEqual(['u.userID', 'ID', undefined]);
@@ -258,7 +250,7 @@ describe('Select()', function() {
             on:     {$eq: {'u.userID':'pn.userID'}}
           });
           
-        new Select(from, qryExec).execute();
+        new MySQLSelect(from, qryExec).execute();
 
         expect(Schema.prototype.addProperty.calls.count()).toBe(5);
         expect(Schema.prototype.addProperty.calls.allArgs()).toEqual([
@@ -273,7 +265,7 @@ describe('Select()', function() {
       it('passes column converters to the Schema.', function() {
         const convert = {};
 
-        new Select(getFrom({table: 'users', as: 'u'}), qryExec)
+        new MySQLSelect(getFrom({table: 'users', as: 'u'}), qryExec)
           .select(
             {column: 'u.userID',    convert: convert},
             {column: 'u.firstName', convert: convert})
@@ -287,9 +279,12 @@ describe('Select()', function() {
       });
 
       it('uses converters from the database schema.', function() {
-        const bitConverter = insulin.get('ndm_bitConverter');
+        const bitConverter = db
+          .getTableByName('products')
+          .getColumnByName('isActive')
+          .converter;
 
-        new Select(getFrom({table: 'products'}), qryExec)
+        new MySQLSelect(getFrom({table: 'products'}), qryExec)
           .select('products.productID', 'products.isActive')
           .execute();
 
@@ -311,7 +306,7 @@ describe('Select()', function() {
             mapTo:  'phones',
             parent: 'u',
             on:     {$eq: {'u.userID':'pn2.userID'}}});
-        new Select(from, qryExec).execute();
+        new MySQLSelect(from, qryExec).execute();
 
         expect(Schema.prototype.addSchema.calls.count()).toBe(2);
         // mapTo from the schema.
@@ -321,9 +316,9 @@ describe('Select()', function() {
       });
 
       it('creates multiple top-level schema if a joined table has no parent.', function() {
-        const from = getFrom({table: 'users'})
+        const from = getFrom('users')
           .innerJoin({table: 'phone_numbers', as: 'phoneNumbers'});
-        new Select(from, qryExec).execute();
+        new MySQLSelect(from, qryExec).execute();
 
         expect(Schema.calls.count()).toBe(2);
         expect(Schema.prototype.addSchema.calls.count()).toBe(0);
@@ -337,7 +332,7 @@ describe('Select()', function() {
             parent:  'u',
             relType: 'single',
             on:      {$eq: {'u.userID':'pn.userID'}}});
-        new Select(from, qryExec).execute();
+        new MySQLSelect(from, qryExec).execute();
 
         expect(Schema.prototype.addSchema.calls.count()).toBe(1);
         expect(Schema.prototype.addSchema.calls.argsFor(0)[2]).toEqual('single');
@@ -374,7 +369,7 @@ describe('Select()', function() {
             as:     'pn',
             parent: 'u',
             on:     {$eq: {'u.userID':'pn.userID'}}});
-        new Select(from, qryExec)
+        new MySQLSelect(from, qryExec)
           .select('u.userID', 'u.lastName', 'pn.phoneNumberID', 'pn.phoneNumber')
           .execute()
           .then(function(result) {
@@ -397,7 +392,7 @@ describe('Select()', function() {
 
         const from = getFrom({table: 'users', as: 'u'})
           .innerJoin({table: 'phone_numbers', as: 'pn'});
-        new Select(from, qryExec)
+        new MySQLSelect(from, qryExec)
           .select('u.userID', 'u.lastName', 'pn.phoneNumberID', 'pn.phoneNumber')
           .execute()
           .then(function(result) {
@@ -411,7 +406,7 @@ describe('Select()', function() {
         qryExec.select.and.callFake(function(query, params, callback) {
           callback('ERROR OCCURRED');
         });
-        new Select(getFrom({table: 'users'}), qryExec)
+        new MySQLSelect(getFrom('users'), qryExec)
           .execute()
           .then(() => expect(true).toBe(false))
           .catch(err => expect(err).toBe('ERROR OCCURRED'));
@@ -438,7 +433,7 @@ describe('Select()', function() {
             relType: 'single'
           });
 
-        new Select(from, qryExec)
+        new MySQLSelect(from, qryExec)
           .select('pn.phoneNumberID', 'u.userID')
           .execute()
           .then(function(result) {
@@ -462,9 +457,9 @@ describe('Select()', function() {
           callback(null, result);
         });
 
-        const from = getFrom({table: 'users'})
+        const from = getFrom('users')
           .innerJoin({table: 'phone_numbers', parent: 'users'});
-        new Select(from, qryExec)
+        new MySQLSelect(from, qryExec)
           .select('users.userID', 'users.firstName')
           .execute()
           .then(function(result) {
@@ -484,9 +479,13 @@ describe('Select()', function() {
    * Order.
    */
   describe('.orderBy()', function() {
+    let MySQLSelect;
+
+    beforeEach(() => MySQLSelect = insulin.get('ndm_MySQLSelect'));
+
     it('cannot be called twice on the same query.', function() {
       expect(function() {
-        new Select(getFrom({table: 'users'}), qryExec)
+        new Select(getFrom('users'), qryExec)
           .select('users.userID', 'users.firstName', 'users.lastName')
           .orderBy('users.firstName')
           .orderBy('users.firstName');
@@ -495,7 +494,7 @@ describe('Select()', function() {
 
     it('throws an error if no column is provided.', function() {
       expect(function() {
-        new Select(getFrom({table: 'users'}), qryExec)
+        new Select(getFrom('users'), qryExec)
           .select('users.userID', 'users.firstName', 'users.lastName')
           .orderBy({});
       }).toThrowError('orderBy column is required.');
@@ -503,7 +502,7 @@ describe('Select()', function() {
 
     it('throws an error if dir is not ASC or DESC.', function() {
       expect(function() {
-        new Select(getFrom({table: 'users'}), qryExec)
+        new Select(getFrom('users'), qryExec)
           .select('users.userID', 'users.firstName', 'users.lastName')
           .orderBy({column: 'users.firstName', dir: 'FOO'});
       }).toThrowError('dir must be either "ASC" or "DESC."');
@@ -511,14 +510,14 @@ describe('Select()', function() {
 
     it('throws an error if the orderBy column is not available.', function() {
       expect(function() {
-        new Select(getFrom({table: 'users'}), qryExec)
+        new Select(getFrom('users'), qryExec)
           .select('users.userID', 'users.firstName', 'users.lastName')
           .orderBy('bad.column');
       }).toThrowError('"bad.column" is not available for orderBy.');
     });
 
     it('adds the ORDER BY clause for a single column.', function() {
-      const query = new Select(getFrom({table: 'users'}), qryExec)
+      const query = new MySQLSelect(getFrom('users'), qryExec)
         .select('users.userID', 'users.firstName', 'users.lastName')
         .orderBy('users.firstName');
 
@@ -531,7 +530,7 @@ describe('Select()', function() {
     });
 
     it('adds the ORDER BY clause for multiple columns.', function() {
-      const query = new Select(getFrom({table: 'users'}), qryExec)
+      const query = new MySQLSelect(getFrom('users'), qryExec)
         .select('users.userID', 'users.firstName', 'users.lastName')
         .orderBy('users.userID', 'users.firstName', 'users.lastName');
 
@@ -544,7 +543,7 @@ describe('Select()', function() {
     });
 
     it('can have multiple directions, ASC and DESC.', function() {
-      const query = new Select(getFrom({table: 'users'}), qryExec)
+      const query = new MySQLSelect(getFrom('users'), qryExec)
         .select('users.userID', 'users.firstName', 'users.lastName')
         .orderBy(
           {column: 'users.userID'},
