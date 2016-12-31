@@ -1,11 +1,13 @@
 describe('UpdateModel()', function() {
   'use strict';
 
-  const insulin      = require('insulin');
-  const UpdateModel  = insulin.get('ndm_UpdateModel');
-  const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
-  const db           = insulin.get('ndm_testDB');
-  const escaper      = new MySQLEscaper();
+  // MySQLUpdateModel is used for testing because it has a concrete
+  // implementation of buildQuery(), making testing easier.
+  const insulin          = require('insulin');
+  const MySQLUpdateModel = insulin.get('ndm_MySQLUpdateModel');
+  const MySQLEscaper     = insulin.get('ndm_MySQLEscaper');
+  const db               = insulin.get('ndm_testDB');
+  const escaper          = new MySQLEscaper();
   let qryExec;
 
   beforeEach(() => qryExec = jasmine.createSpyObj('qryExec', ['update']));
@@ -15,13 +17,13 @@ describe('UpdateModel()', function() {
    */
   describe('.toString()', function() {
     it('returns a blank string if there are no properties to update.', function() {
-      const upd = new UpdateModel(db, escaper, qryExec, {users: {ID: 1}});
+      const upd = new MySQLUpdateModel(db, escaper, qryExec, {users: {ID: 1}});
       expect(upd.toString()).toBe('');
     });
 
     it('returns the correct SQL for a single model, converting the table and ' +
       'column mappings appropriately.', function() {
-      const upd = new UpdateModel(db, escaper, qryExec, {
+      const upd = new MySQLUpdateModel(db, escaper, qryExec, {
         users: {
           ID:    1,
           first: 'Joe',
@@ -39,7 +41,7 @@ describe('UpdateModel()', function() {
     });
 
     it('ignores properties that do not correspond to column mappings.', function() {
-      const upd = new UpdateModel(db, escaper, qryExec, {
+      const upd = new MySQLUpdateModel(db, escaper, qryExec, {
         users: {
           ID:    1,
           first: 'Joe',
@@ -66,7 +68,7 @@ describe('UpdateModel()', function() {
       qryExec.update.and.callFake((query, params, callback) =>
         callback(null, {affectedRows: 1}));
 
-      new UpdateModel(db, escaper, qryExec, {users: {ID: 14, first: 'Joe'}})
+      new MySQLUpdateModel(db, escaper, qryExec, {users: {ID: 14, first: 'Joe'}})
         .execute()
         .then(result => expect(result.affectedRows).toBe(1))
         .catch(() => expect(true).toBe(false))
@@ -79,7 +81,7 @@ describe('UpdateModel()', function() {
       qryExec.update.and.callFake((query, params, callback) =>
         callback(null, {affectedRows: 1}));
 
-      new UpdateModel(db, escaper, qryExec, {
+      new MySQLUpdateModel(db, escaper, qryExec, {
           users: [
             {ID: 14, first: 'Joe'},
             {ID: 33, first: 'Sam'}
@@ -97,7 +99,7 @@ describe('UpdateModel()', function() {
       const err = new Error();
       qryExec.update.and.callFake((query, params, callback) => callback(err));
 
-      new UpdateModel(db, escaper, qryExec, {users: {ID: 14, first: 'Joe'}})
+      new MySQLUpdateModel(db, escaper, qryExec, {users: {ID: 14, first: 'Joe'}})
         .execute()
         .then(() => expect(true).toBe(false))
         .catch(e => expect(e).toBe(err))

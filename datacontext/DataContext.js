@@ -1,10 +1,10 @@
 'use strict';
 
 require('insulin').factory('ndm_DataContext',
-  ['ndm_DeleteModel', 'ndm_UpdateModel'],
+  ['ndm_DeleteModel'],
   ndm_DataContextProducer);
 
-function ndm_DataContextProducer(DeleteModel, UpdateModel) {
+function ndm_DataContextProducer(DeleteModel) {
   /** 
    * The main interface to the ORM, which provides access to CRUD operations.
    * This class is expected to be extended by the user, or created as a
@@ -32,6 +32,19 @@ function ndm_DataContextProducer(DeleteModel, UpdateModel) {
     }
 
     /**
+     * Create a new {@link Insert} instance.  Driver-specific DataContext
+     * implementations must implement this method.
+     * @param {Object} model - See the {@link Insert} constructor.
+     * @param {Database} [database] - An optional Database instance.  If
+     * passed, this parameter is used instead of the Database that's provided
+     * to the ctor.
+     * @return {Insert} An Insert instance.
+     */
+    insert(/*model, database*/) {
+      throw new Error('insert not implemented.');
+    }
+
+    /**
      * Create a new {@link FromAdapter} instance, which can then be used to
      * SELECT, DELETE, or UPDATE.
      * @see FromAdapter
@@ -48,16 +61,18 @@ function ndm_DataContextProducer(DeleteModel, UpdateModel) {
     }
 
     /**
-     * Create a new {@link Insert} instance.  Driver-specific DataContext
-     * implementations must implement this method.
-     * @param {Object} model - See the {@link Insert} constructor.
+     * Create a new UpdateModel instance that can be used to UPDATE a model by
+     * ID.  For complex UPDATE operations, use the {@link DataContext#from}
+     * method to obtain a {@link FromAdapter} instance, and then call {@link
+     * FromAdapter#update} on that instance.
+     * @param {Object} model - See the {@link UpdateModel} constructor.
      * @param {Database} [database] - An optional Database instance.  If
      * passed, this parameter is used instead of the Database that's provided
      * to the ctor.
-     * @return {Insert} An Insert instance.
+     * @return {UpdateModel} A UpdateModel instance.
      */
-    insert(/*model, database*/) {
-      throw new Error('insert not implemented.');
+    update(/*model, database*/) {
+      throw new Error('update not implemented.');
     }
 
     /**
@@ -74,22 +89,6 @@ function ndm_DataContextProducer(DeleteModel, UpdateModel) {
     delete(model, database) {
       database = database || this.database;
       return new DeleteModel(database, this.escaper, this.queryExecuter, model);
-    }
-
-    /**
-     * Create a new UpdateModel instance that can be used to UPDATE a model by
-     * ID.  For complex UPDATE operations, use the {@link DataContext#from}
-     * method to obtain a {@link FromAdapter} instance, and then call {@link
-     * FromAdapter#update} on that instance.
-     * @param {Object} model - See the {@link UpdateModel} constructor.
-     * @param {Database} [database] - An optional Database instance.  If
-     * passed, this parameter is used instead of the Database that's provided
-     * to the ctor.
-     * @return {UpdateModel} A UpdateModel instance.
-     */
-    update(model, database) {
-      database = database || this.database;
-      return new UpdateModel(database, this.escaper, this.queryExecuter, model);
     }
   }
 

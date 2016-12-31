@@ -52,6 +52,17 @@ describe('DataContext()', function() {
   });
 
   /**
+   * Update.
+   */
+  describe('.update()', function() {
+    it('is not implemented.', function() {
+      expect(function() {
+        new DataContext(db, escaper).update({});
+      }).toThrowError('update not implemented.');
+    });
+  });
+
+  /**
    * Delete.
    */
   describe('.delete()', function() {
@@ -67,27 +78,6 @@ describe('DataContext()', function() {
       const dc  = new DataContext(db, escaper);
       const db2 = cloneDB();
       const del = dc.delete({}, db2);
-
-      expect(del.database).toBe(db2);
-    });
-  });
-
-  /**
-   * Update.
-   */
-  describe('.update()', function() {
-    it('returns an UpdateModel instance.', function() {
-      const dc          = new DataContext(db, escaper);
-      const del         = dc.update({});
-      const UpdateModel = insulin.get('ndm_UpdateModel');
-
-      expect(del instanceof UpdateModel).toBe(true);
-    });
-
-    it('accepts an optional database argument, and passes it to the UpdateModel ctor.', function() {
-      const dc  = new DataContext(db, escaper);
-      const db2 = cloneDB();
-      const del = dc.update({}, db2);
 
       expect(del.database).toBe(db2);
     });
