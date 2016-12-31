@@ -1,3 +1,4 @@
+UpdateModel creates an Update instance... that needs to be a MySQLUpdate instance.  Figure out how to specialize that.
 CloneDB not needed in DataContext after refactor.
 Implement buildQuery in Delete and use it in execute() and toString().  Then move buildQuery to the platform-specific modules.
 Queries need to be built for the driver.  There are subtle differences (for example, UPDATE with JOIN differs between MySQL and MSSQL).
