@@ -18,12 +18,8 @@ function ndm_FromAdapterProducer(From, Select, Update, Delete) {
      * @param {...(object|string)=} cols - An optional set of columns to select.
      * @return {Select} A Select instance that can be executed.
      */
-    select(...cols) {
-      const sel = new Select(this, this._queryExecuter);
-
-      // This has to be applied because cols is optional.  If cols is not passed,
-      // calling sel.select(cols) would pass undefined to select().
-      return sel.select.apply(sel, cols);
+    select(/*...cols*/) {
+      throw new Error('select not implemented.');
     }
 
     /**
