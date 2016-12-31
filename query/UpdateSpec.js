@@ -40,66 +40,12 @@ describe('Update()', function() {
    * To string.
    */
   describe('.toString()', function() {
-    it('returns an empty string if there are no columns to update.', function() {
-      const upd = new Update(getFrom('users u'), {});
+    it('returns the sql from buildQuery().', function() {
+      const query = new Update(db, escaper, qryExec, {});
 
-      expect(upd.toString()).toBe('');
-    });
+      spyOn(query, 'buildQuery').and.returnValue({sql: 'UPDATE FOO'});
 
-    it('returns a valid SQL string if there is only one column to update.', function() {
-      const upd = new Update(getFrom('users u'), {
-        'u.firstName': 'Joe'
-      });
-
-      expect(upd.toString()).toBe(
-        'UPDATE  `users` AS `u`\n' +
-        'SET\n'+
-        '`u`.`firstName` = :u_firstName_0');
-    });
-
-    it('returns a valid SQL string if there are multiple columns.', function() {
-      const upd = new Update(getFrom('users u'), {
-        'u.lastName':  "O'Hare",
-        'u.firstName': 'Joe'
-      });
-
-      expect(upd.toString()).toBe(
-        'UPDATE  `users` AS `u`\n' +
-        'SET\n'+
-        '`u`.`lastName` = :u_lastName_0,\n' +
-        '`u`.`firstName` = :u_firstName_1');
-    });
-
-    it('returns a valid SQL string if a WHERE clause is provided.', function() {
-      const from = getFrom('users u')
-        .where({$eq: {'u.userID': ':userID'}}, {userID: 12});
-      const upd  = new Update(from, {
-        'u.firstName': 'Joe'
-      });
-
-      expect(upd.toString()).toBe(
-        'UPDATE  `users` AS `u`\n' +
-        'SET\n'+
-        '`u`.`firstName` = :u_firstName_0\n' +
-        'WHERE   `u`.`userID` = :userID');
-    });
-
-    it('returns a valid SQL string if a JOIN is provided.', function() {
-      const from = getFrom('users u')
-        .innerJoin('u.phone_numbers pn')
-        .where({$eq: {'u.userID': 12}});
-      const upd  = new Update(from, {
-        'u.firstName':    'Joe',
-        'pn.phoneNumber': '123-456-789'
-      });
-
-      expect(upd.toString()).toBe(
-        'UPDATE  `users` AS `u`\n' +
-        'INNER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`\n' +
-        'SET\n'+
-        '`u`.`firstName` = :u_firstName_0,\n' +
-        '`pn`.`phoneNumber` = :pn_phoneNumber_1\n' +
-        'WHERE   `u`.`userID` = 12');
+      expect(query.toString()).toBe('UPDATE FOO');
     });
   });
 
@@ -107,8 +53,12 @@ describe('Update()', function() {
    * Execute.
    */
   describe('.execute()', function() {
+    // MySQLUpdate is used for testing because it has a concrete implementation
+    // of buildQuery, making testing convenient.
+    const MySQLUpdate = insulin.get('ndm_MySQLUpdate');
+
     it('resolves with 0 affectedRows if there are no columns to update.', function() {
-      const upd = new Update(getFrom('users u'), {});
+      const upd = new MySQLUpdate(getFrom('users u'), {});
 
       upd
         .execute()
@@ -120,20 +70,15 @@ describe('Update()', function() {
     });
 
     it('uses the queryExecuter.update() method to execute the SQL.', function() {
-      const upd = new Update(getFrom('users u'), {'u.firstName':'joe'});
+      const upd = new MySQLUpdate(getFrom('users u'), {'u.firstName':'joe'});
 
-      upd
-        .execute()
-        .then(res => expect(res.affectedRows).toBe(0))
-        .catch(() => expect(true).toBe(false))
-        .done();
-
+      upd.execute();
       expect(qryExec.update).toHaveBeenCalled();
     });
 
     it('resolves with an object containing affectedRows, as reported by the '+
       'queryExecuter.update() method.', function() {
-      const upd = new Update(getFrom('users u'), {'u.firstName':'joe'});
+      const upd = new MySQLUpdate(getFrom('users u'), {'u.firstName':'joe'});
 
       qryExec.update.and.callFake((query, params, callback) =>
         callback(null, {affectedRows: 1}));
@@ -147,7 +92,7 @@ describe('Update()', function() {
 
     it('propagates errors from the queryExecuter.update() method.', function() {
       const err = new Error();
-      const upd = new Update(getFrom('users u'), {'u.firstName':'joe'});
+      const upd = new MySQLUpdate(getFrom('users u'), {'u.firstName':'joe'});
 
       qryExec.update.and.callFake((query, params, callback) => callback(err));
 
@@ -161,35 +106,15 @@ describe('Update()', function() {
     it('passes the query parameters to the queryExecuter.update() method.', function() {
       const from = getFrom('users u')
         .where({$eq: {'u.userID': ':userID'}}, {userID: 12});
-      const upd  = new Update(from, {
+      const upd  = new MySQLUpdate(from, {
         'u.firstName': 'Joe'
       });
 
-      qryExec.update.and.callFake((query, params, callback) => {
-        expect(params).toEqual({userID: 12, u_firstName_0: 'Joe'});
-        callback(null, {affectedRows: 1});
-      });
+      qryExec.update.and.callFake((query, params) =>
+        expect(params).toEqual({userID: 12, u_firstName_0: 'Joe'}));
 
-      upd
-        .execute()
-        .catch(() => expect(true).toBe(false))
-        .done();
-    });
-
-    it('uses onSave converters that are defined in the Database instance.', function() {
-      const upd = new Update(getFrom('products p'), {
-        'p.isActive': false
-      });
-
-      qryExec.update.and.callFake((query, params, callback) => {
-        expect(params).toEqual({p_isActive_0: 0});
-        callback(null, {affectedRows: 1});
-      });
-
-      upd
-        .execute()
-        .catch(() => expect(true).toBe(false))
-        .done();
+      upd.execute();
+      expect(qryExec.update).toHaveBeenCalled();
     });
   });
 });

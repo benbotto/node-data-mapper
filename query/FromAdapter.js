@@ -39,8 +39,8 @@ function ndm_FromAdapterProducer(From, Select, Update, Delete) {
      * @see Update
      * @return {Update} An Update instance that can be executed.
      */
-    update(model) {
-      return new Update(this, model);
+    update(/*model*/) {
+      throw new Error('update not implemented.');
     }
   }
 

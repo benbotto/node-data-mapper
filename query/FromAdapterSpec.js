@@ -66,25 +66,11 @@ describe('FromAdapter()', function() {
    * Update.
    */
   describe('.update()', function() {
-    it('extends Update.', function() {
-      const Update = insulin.get('ndm_Update');
-      const upd    = new FromAdapter(db, escaper, qryExec, 'users u')
-        .where({$eq: {'u.userID': 1}})
-        .update({'u.firstName': 'Joe'});
-
-      expect(upd instanceof Update).toBe(true);
-    });
-
-    it('passes the model to the Update constructor.', function() {
-      const upd = new FromAdapter(db, escaper, qryExec, 'users u')
-        .where({$eq: {'u.userID': 1}})
-        .update({'u.firstName': 'Joe'});
-
-      expect(upd.toString()).toBe(
-        'UPDATE  `users` AS `u`\n' +
-        'SET\n' +
-        '`u`.`firstName` = :u_firstName_0\n' +
-        'WHERE   `u`.`userID` = 1');
+    it('is not implemented.', function() {
+      expect(function() {
+        new FromAdapter(db, escaper, qryExec, {table: 'users'})
+          .update();
+      }).toThrowError('update not implemented.');
     });
   });
 });
