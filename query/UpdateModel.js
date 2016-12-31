@@ -10,22 +10,6 @@ function ndm_UpdateModelProducer(Update, MutateModel, Column) {
    */
   class UpdateModel extends MutateModel {
     /**
-     * Initialize the Query.
-     * @param {Database} database - The database to mutate from.
-     * @param {Escaper} escaper - An instance of an Escaper matching the
-     * database type (e.g. MySQLEscaper).
-     * @param {QueryExecuter} queryExecuter - A QueryExecuter instance that
-     * implements the update method.
-     * @param {Object} model - A model object to update.  Each key in the
-     * object should map to a table.  The value associated with the key should
-     * be an object or an array of objects wherein each key maps to a column.
-     * The primary key is required for each model.
-     */
-    constructor(database, escaper, queryExecuter, model) {
-      super(database, escaper, queryExecuter, model);
-    }
-
-    /**
      * Create an Update instance.
      * @param {ModelTraverse~ModelMeta} meta - A meta object as created by the
      * modelTraverse class.
