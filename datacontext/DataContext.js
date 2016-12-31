@@ -1,10 +1,10 @@
 'use strict';
 
 require('insulin').factory('ndm_DataContext',
-  ['ndm_FromAdapter', 'ndm_Insert', 'ndm_DeleteModel', 'ndm_UpdateModel'],
+  ['ndm_DeleteModel', 'ndm_UpdateModel'],
   ndm_DataContextProducer);
 
-function ndm_DataContextProducer(FromAdapter, Insert, DeleteModel, UpdateModel) {
+function ndm_DataContextProducer(DeleteModel, UpdateModel) {
   /** 
    * The main interface to the ORM, which provides access to CRUD operations.
    * This class is expected to be extended by the user, or created as a
@@ -43,9 +43,8 @@ function ndm_DataContextProducer(FromAdapter, Insert, DeleteModel, UpdateModel) 
      * to the ctor.
      * @return {FromAdapter} A FromAdapter instance.
      */
-    from(meta, database) {
-      database = database || this.database;
-      return new FromAdapter(database, this.escaper, this.queryExecuter, meta);
+    from(/*meta, database*/) {
+      throw new Error('from not implemented.');
     }
 
     /**

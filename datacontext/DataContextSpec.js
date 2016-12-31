@@ -33,20 +33,10 @@ describe('DataContext()', function() {
    * From.
    */
   describe('.from()', function() {
-    it('returns a FromAdapter instance.', function() {
-      const dc          = new DataContext(db, escaper);
-      const from        = dc.from({table: 'users'});
-      const FromAdapter = insulin.get('ndm_FromAdapter');
-
-      expect(from instanceof FromAdapter).toBe(true);
-    });
-
-    it('accepts an optional database argument, and passes it to the FromAdapter ctor.', function() {
-      const dc   = new DataContext(db, escaper);
-      const db2  = cloneDB();
-      const from = dc.from({table: 'users'}, db2);
-
-      expect(from.database).toBe(db2);
+    it('is not implemented.', function() {
+      expect(function() {
+        new DataContext(db, escaper).from({});
+      }).toThrowError('from not implemented.');
     });
   });
 
