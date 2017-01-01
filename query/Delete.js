@@ -4,7 +4,10 @@ require('insulin').factory('ndm_Delete',
   ['deferred', 'ndm_Query', 'ndm_assert'], ndm_DeleteProducer);
 
 function ndm_DeleteProducer(deferred, Query, assert) {
-  /** A representation of a DELETE query. */
+  /**
+   * A representation of a DELETE query.
+   * @extends Query
+   */
   class Delete extends Query {
     /**
      * Initialize the query.
@@ -29,21 +32,6 @@ function ndm_DeleteProducer(deferred, Query, assert) {
         // Use the FROM table.
         this._delTableMeta = this._from.getFromMeta();
       }
-    }
-
-    /**
-     * Build the query.
-     * @return {Query~QueryMeta} The string-representation of the query to
-     * execute along with query parameters.
-     */
-    buildQuery() {
-      const fromAlias = this.escaper.escapeProperty(this._delTableMeta.as);
-      const from      = this._from.toString();
-
-      return {
-        sql:    `DELETE  ${fromAlias}\n${from}`,
-        params: this._from.paramList.params
-      };
     }
 
     /**

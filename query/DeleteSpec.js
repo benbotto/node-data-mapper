@@ -9,9 +9,7 @@ describe('Delete()', function() {
   const escaper      = new MySQLEscaper();
   let qryExec;
 
-  beforeEach(function() {
-    qryExec = jasmine.createSpyObj('qryExec', ['delete']);
-  });
+  beforeEach(() => qryExec = jasmine.createSpyObj('qryExec', ['delete']));
 
   function getFrom(meta) {
     return new From(db, escaper, qryExec, meta);
@@ -55,53 +53,11 @@ describe('Delete()', function() {
    * To string.
    */
   describe('.toString()', function() {
-    it('can delete a single record by ID.', function() {
-      const from = getFrom('users')
-        .where({$eq: {'users.userID': 1}});
-      const del = new Delete(from);
+    it('returns the sql from buildQuery().', function() {
+      const query = new Delete(getFrom('users'));
 
-      expect(del.toString()).toBe(
-        'DELETE  `users`\n' +
-        'FROM    `users` AS `users`\n' +
-        'WHERE   `users`.`userID` = 1'
-      );
-    });
-
-    it('can have tables joined.', function() {
-      const from = getFrom('users')
-        .innerJoin({
-          table: 'phone_numbers',
-          parent: 'users',
-          on: {$eq: {'users.userID':'phone_numbers.userID'}}
-        })
-        .where({$eq: {'users.userID': 1}});
-      const del = new Delete(from);
-
-      expect(del.toString()).toBe(
-        'DELETE  `users`\n' +
-        'FROM    `users` AS `users`\n' +
-        'INNER JOIN `phone_numbers` AS `phone_numbers` ON `users`.`userID` = `phone_numbers`.`userID`\n' +
-        'WHERE   `users`.`userID` = 1'
-      );
-    });
-
-    it('can delete from a joined-in table.', function() {
-      const from = getFrom('users')
-        .innerJoin({
-          table:  'phone_numbers',
-          as:     'pn',
-          parent: 'users',
-          on:     {$eq: {'users.userID':'pn.userID'}}
-        })
-        .where({$eq: {'users.userID': 1}});
-      const del = new Delete(from, 'pn');
-
-      expect(del.toString()).toBe(
-        'DELETE  `pn`\n' +
-        'FROM    `users` AS `users`\n' +
-        'INNER JOIN `phone_numbers` AS `pn` ON `users`.`userID` = `pn`.`userID`\n' +
-        'WHERE   `users`.`userID` = 1'
-      );
+      spyOn(query, 'buildQuery').and.returnValue({sql: 'DELETE FOO1'});
+      expect(query.toString()).toBe('DELETE FOO1');
     });
   });
 
@@ -109,51 +65,48 @@ describe('Delete()', function() {
    * Execute.
    */
   describe('.execute()', function() {
-    it('uses the QueryExecuter instance to delete a single record.', function() {
-      const from = getFrom('users')
-        .where({$eq: {'users.userID': 1}});
-      const del      = new Delete(from);
+    // MySQLDelete is used for testing because it has a concrete implementation
+    // of buildQuery().
+    const MySQLDelete = insulin.get('ndm_MySQLDelete');
+
+    it('uses the QueryExecuter.delete() method to delete.', function() {
+      const from = getFrom('users u')
+        .where({$eq: {'u.userID': ':userID'}}, {userID: 1});
+      const del      = new MySQLDelete(from);
 
       del.execute();
       expect(qryExec.delete).toHaveBeenCalled();
+      expect(qryExec.delete.calls.argsFor(0)[0]).toBe(
+        'DELETE  `u`\n' +
+        'FROM    `users` AS `u`\n' +
+        'WHERE   `u`.`userID` = :userID'
+      );
+
+      expect(qryExec.delete.calls.argsFor(0)[1]).toEqual({userID: 1});
     });
 
     it('returns a promise that resolves with the result of QueryExecuter.delete().', function() {
-      const del = new Delete(getFrom('users'));
+      const del = new MySQLDelete(getFrom('users'));
 
       qryExec.delete.and.callFake((query, params, callback) =>
         callback(null, {affectedRows: 42}));
 
-      del.execute().then(function(result) {
-        expect(result.affectedRows).toBe(42);
-      });
+      del
+        .execute()
+        .then(result => expect(result.affectedRows).toBe(42))
+        .catch(() => expect(true).toBe(false))
+        .done();
     });
 
     it('propagates errors from the QueryExecuter.delete() method.', function() {
-      const del = new Delete(getFrom('users'));
+      const del = new MySQLDelete(getFrom('users'));
 
-      qryExec.delete.and.callFake(function(query, params, callback) {
-        callback('FAIL');
-      });
-
-      del.execute().catch(function(err) {
-        expect(err).toBe('FAIL');
-      });
-    });
-
-    it('passes the parameters to the QueryExecuter.delete() method.', function() {
-      const from = getFrom('users')
-        .where({$eq: {'users.userID': ':userID'}}, {userID: 42});
-      const del      = new Delete(from);
-
-      qryExec.delete.and.callFake(function(query, params, callback) {
-        expect(params).toEqual({userID: 42});
-        callback(null, {affectedRows: 1});
-      });
+      qryExec.delete.and.callFake((q, p, cb) => cb('FAIL'));
 
       del
         .execute()
-        .catch(() => expect(true).toBe(false))
+        .then(() => expect(true).toBe(false))
+        .catch(err => expect(err).toBe('FAIL'))
         .done();
     });
   });
