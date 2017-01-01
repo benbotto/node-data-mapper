@@ -1,10 +1,8 @@
 'use strict';
 
-require('insulin').factory('ndm_DataContext',
-  ['ndm_DeleteModel'],
-  ndm_DataContextProducer);
+require('insulin').factory('ndm_DataContext', [], ndm_DataContextProducer);
 
-function ndm_DataContextProducer(DeleteModel) {
+function ndm_DataContextProducer() {
   /** 
    * The main interface to the ORM, which provides access to CRUD operations.
    * This class is expected to be extended by the user, or created as a
@@ -86,9 +84,8 @@ function ndm_DataContextProducer(DeleteModel) {
      * to the ctor.
      * @return {DeleteModel} A DeleteModel instance.
      */
-    delete(model, database) {
-      database = database || this.database;
-      return new DeleteModel(database, this.escaper, this.queryExecuter, model);
+    delete(/*model, database*/) {
+      throw new Error('delete not implemented.');
     }
   }
 

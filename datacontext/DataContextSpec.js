@@ -8,14 +8,6 @@ describe('DataContext()', function() {
   const escaper      = new MySQLEscaper();
   const exec         = {};
 
-  // Helper function to "clone" the db instance.
-  // TODO: Remove me when refactored.
-  function cloneDB() {
-    const Database = insulin.get('ndm_Database');
-
-    return new Database(JSON.parse(JSON.stringify(db)));
-  }
-
   /**
    * Ctor.
    */
@@ -35,7 +27,7 @@ describe('DataContext()', function() {
   describe('.from()', function() {
     it('is not implemented.', function() {
       expect(function() {
-        new DataContext(db, escaper).from({});
+        new DataContext(db, escaper, exec).from({});
       }).toThrowError('from not implemented.');
     });
   });
@@ -46,7 +38,7 @@ describe('DataContext()', function() {
   describe('.insert()', function() {
     it('is not implemented.', function() {
       expect(function() {
-        new DataContext(db, escaper).insert({});
+        new DataContext(db, escaper, exec).insert({});
       }).toThrowError('insert not implemented.');
     });
   });
@@ -57,7 +49,7 @@ describe('DataContext()', function() {
   describe('.update()', function() {
     it('is not implemented.', function() {
       expect(function() {
-        new DataContext(db, escaper).update({});
+        new DataContext(db, escaper, exec).update({});
       }).toThrowError('update not implemented.');
     });
   });
@@ -66,20 +58,10 @@ describe('DataContext()', function() {
    * Delete.
    */
   describe('.delete()', function() {
-    it('returns a DeleteModel instance.', function() {
-      const dc          = new DataContext(db, escaper);
-      const del         = dc.delete({});
-      const DeleteModel = insulin.get('ndm_DeleteModel');
-
-      expect(del instanceof DeleteModel).toBe(true);
-    });
-
-    it('accepts an optional database argument, and passes it to the DeleteModel ctor.', function() {
-      const dc  = new DataContext(db, escaper);
-      const db2 = cloneDB();
-      const del = dc.delete({}, db2);
-
-      expect(del.database).toBe(db2);
+    it('is not implemented.', function() {
+      expect(function() {
+        new DataContext(db, escaper, exec).delete({});
+      }).toThrowError('delete not implemented.');
     });
   });
 });
