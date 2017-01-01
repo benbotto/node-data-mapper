@@ -1,10 +1,9 @@
 'use strict';
 
 require('insulin').factory('ndm_FromAdapter',
-  ['ndm_From', 'ndm_Select', 'ndm_Update', 'ndm_Delete'],
-  ndm_FromAdapterProducer);
+  ['ndm_From'], ndm_FromAdapterProducer);
 
-function ndm_FromAdapterProducer(From, Select, Update, Delete) {
+function ndm_FromAdapterProducer(From) {
   /**
    * This is an adapter for the From class that provides the user with a
    * convenient interface for selecting, deleting, and updating, all of which
@@ -15,7 +14,7 @@ function ndm_FromAdapterProducer(From, Select, Update, Delete) {
     /**
      * Select from the table.
      * @see Select#select
-     * @param {...(object|string)=} cols - An optional set of columns to select.
+     * @param {...(object|string)} [cols] - An optional set of columns to select.
      * @return {Select} A Select instance that can be executed.
      */
     select(/*...cols*/) {
@@ -24,13 +23,13 @@ function ndm_FromAdapterProducer(From, Select, Update, Delete) {
 
     /**
      * Delete from the table.
-     * @param {string} tableAlias - The unique alias of the table from which
+     * @param {string} [tableAlias] - The unique alias of the table from which
      * records will be deleted.  Optional, defaults to the alias of the from
      * table.
      * @return {Delete} A Delete instance that can be executed.
      */
-    delete(tableAlias) {
-      return new Delete(this, tableAlias);
+    delete(/*tableAlias*/) {
+      throw new Error('delete not implemented.');
     }
 
     /**

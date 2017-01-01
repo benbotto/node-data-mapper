@@ -41,24 +41,11 @@ describe('FromAdapter()', function() {
    * Delete.
    */
   describe('.delete()', function() {
-    it('returns a Delete instance.', function() {
-      const Delete = insulin.get('ndm_Delete');
-      const del    = new FromAdapter(db, escaper, qryExec, 'users')
-        .where({$eq: {'users.userID': 1}})
-        .delete();
-
-      expect(del instanceof Delete).toBe(true);
-    });
-
-    it('can be provided an optional table alias.', function() {
-      const del    = new FromAdapter(db, escaper, qryExec, 'users u')
-        .where({$eq: {'u.userID': 1}})
-        .delete();
-
-      expect(del.toString()).toBe(
-        'DELETE  `u`\n' +
-        'FROM    `users` AS `u`\n' +
-        'WHERE   `u`.`userID` = 1');
+    it('is not implemented.', function() {
+      expect(function() {
+        new FromAdapter(db, escaper, qryExec, {table: 'users'})
+          .delete();
+      }).toThrowError('delete not implemented.');
     });
   });
 
