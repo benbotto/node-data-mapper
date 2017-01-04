@@ -1,18 +1,13 @@
-UpdateModel creates an Update instance... that needs to be a MySQLUpdate instance.  Figure out how to specialize that.
-CloneDB not needed in DataContext after refactor.
-Implement buildQuery in Delete and use it in execute() and toString().  Then move buildQuery to the platform-specific modules.
-Queries need to be built for the driver.  There are subtle differences (for example, UPDATE with JOIN differs between MySQL and MSSQL).
+Not sure how to handle schemas in MSSQL (e.g. "dbo").  database.getTableByName() is at the core of the project, and it would need to include an optional schema.
 
 Need transaction support, but it's tricky with a pool.  The user may need to run multiple queries in a transaction, and so the connection needs to somehow be tied to the request.
 
 Migrate condition builder to this project.
 
-Provide a short-hand end() method on the DataContext and update all the examples/doc.
-
 Make the code work with node-mssql (probably need to fix parameters).
   1) The ConditionCompiler replaces parameters with values.  That can't happen.
   2) As is, the same parameter name can be used in multiple parts of the query with different values (e.g. :name could be used in a WHERE condition and an ON condition).  Moving parameterization responsibility to another class (e.g. a QueryExecuter) would break this.
-  3) Need to consider schema.  In MSSQL, schema can be important ([ddo].[mytable]).
+  3) Need to consider schema.  In MSSQL, schema can be important ([dbo].[mytable]).
 
 Views don't work.  There is no primary key.
 

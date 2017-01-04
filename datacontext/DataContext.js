@@ -87,6 +87,14 @@ function ndm_DataContextProducer() {
     delete(/*model, database*/) {
       throw new Error('delete not implemented.');
     }
+
+    /**
+     * End the connection.
+     * @return {void}
+     */
+    end() {
+      throw new Error('end not implemented.');
+    }
   }
 
   return DataContext;

@@ -64,5 +64,16 @@ describe('DataContext()', function() {
       }).toThrowError('delete not implemented.');
     });
   });
+
+  /**
+   * End.
+   */
+  describe('.end()', function() {
+    it('is not implemented.', function() {
+      expect(function() {
+        new DataContext(db, escaper, exec).end();
+      }).toThrowError('end not implemented.');
+    });
+  });
 });
 
