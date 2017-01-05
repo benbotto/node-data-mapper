@@ -2,17 +2,16 @@
 
 # node-data-mapper
 
-An object-relational mapper for node.js using the data-mapper pattern.  node-data-mapper is fast, and it has an intuitive interface that closely resembles SQL.  And because the data-mapper pattern is used instead of active record, data models are plain old JavaScript objects.
+An object-relational mapper for Node.js using the data-mapper pattern.  node-data-mapper is fast, it has an intuitive interface that closely resembles SQL, and data models are plain old JavaScript objects.
 
-[![Build Status](https://travis-ci.org/benbotto/node-data-mapper.svg?branch=master)](https://travis-ci.org/benbotto/node-data-mapper)
-[![Coverage Status](https://coveralls.io/repos/benbotto/node-data-mapper/badge.svg?branch=master&service=github)](https://coveralls.io/github/benbotto/node-data-mapper?branch=master)
+[![Build Status](https://travis-ci.org/benbotto/node-data-mapper.svg?branch=1.1.x)](https://travis-ci.org/benbotto/node-data-mapper)
+[![Coverage Status](https://coveralls.io/repos/benbotto/node-data-mapper/badge.svg?branch=1.1.x&service=github)](https://coveralls.io/github/benbotto/node-data-mapper?branch=1.1.x)
 
 ##### Table of Contents
 
 - [Getting Started](#getting-started)
     - [Install node-data-mapper](#install-node-data-mapper)
-    - [Install a Supported Driver](#install-a-supported-driver)
-    - [Define a Database Schema Object](#define-a-database-schema-object)
+    - [Connect](#connect)
     - [Create a DataContext Instance](#create-a-datacontext-instance)
 - [Examples](#examples)
   - [Selecting](#selecting)
@@ -43,140 +42,49 @@ An object-relational mapper for node.js using the data-mapper pattern.  node-dat
 
 ##### Install node-data-mapper
 
-```bash
-$ npm install node-data-mapper --save
-```
-
-##### Install a Supported Driver
-
-The following drivers are supported.
+node-data-mapper is a core project, and database-specific code is implemented in separate modules.  Use the package that supports your RDBMS.
 
 * mysql
 ```bash
-$ npm install mysql --save
+$ npm install node-data-mapper-mysql --save
 ```
-Support for other database drivers is underway, but at this time only mysql is supported.
-Extending node-data-mapper to support a new driver is trivial.  Refer the the [Extending](#extending) section.
 
-##### Define a Database Schema Object
+##### Connect
 
-Like most ORMs, node-data-mapper needs metadata about a database before it can be queried.  It needs a schema definition object describing all of the tables and columns.  Below is an annotated example for a fictitious bike shop database (instructions for creating this database locally are laid out in the [Examples](#examples) section below).  A database is made up of an array of tables, and each table is made up of an array of columns.  Each table **must** have a primary key column defined.  Tables and columns can be aliased; an alias defines how a table or column will be serialized (more on this later).
-
-Emphatically, manually creating a database schema object is **not** recommended, as it is cumbersome to maintain and error prone.  Instead, the database schema object should be auto-generated using the metadata that's present in the database.  This can be done using the separate [ndm-schema-generator](https://github.com/benbotto/ndm-schema-generator) module.
+Create a `Driver` instance, and `initialize()` node-data-mapper.  The following example use a `MySQLDriver`; if you're using a different RDBMS, substitute for `MySQL` accordingly.
 
 ```js
 'use strict';
 
-var ndm = require('node-data-mapper');
-
-var db =
-{
-  name: 'bike_shop',
-  tables:
-  [
-    {
-      // The name of the database table.
-      name: 'bike_shops',
-      // When a query is mapped to an object or array, by default the object
-      // will use the alias.  In this case, selecting from bike_shops will
-      // result in an array of bikeShops.
-      alias: 'bikeShops',
-      columns:
-      [
-        // Each table must have a primary key.  Support for composite keys is
-        // underway.
-        {name: 'bikeShopID', isPrimary: true},
-        {name: 'name'},
-        {name: 'address'}
-      ]
-    },
-    {
-      name: 'staff',
-      columns:
-      [
-        {name: 'staffID', isPrimary: true},
-        {name: 'firstName'},
-        {name: 'lastName'},
-        {name: 'age'},
-        // Columns can also be aliased.  Here, the column "sex" will be 
-        // serialized as "gender."
-        {name: 'sex', alias: 'gender'},
-        // Converter objects can be added to Column definitions.  A converter
-        // has an onRetrieve and an onSave function.  The former takes a value
-        // from the database and converts it for serialization.  The latter
-        // takes a serialized value and converts it such that it can be saved
-        // to the database.  In this case bit values from the database will
-        // be turned into booleans.
-        {name: 'hasStoreKeys', converter: ndm.bitConverter},
-        {name: 'hireDate'},
-        {name: 'bikeShopID'}
-      ]
-    },
-    {
-      name: 'bonuses',
-      columns:
-      [
-        {name: 'bonusID', isPrimary: true},
-        {name: 'reason'},
-        {name: 'amount'},
-        {name: 'dateGiven'},
-        {name: 'staffID'}
-      ]
-    },
-    {
-      name: 'bikes',
-      columns:
-      [
-        {name: 'bikeID', isPrimary: true},
-        {name: 'brand'},
-        {name: 'model'},
-        {name: 'msrp'}
-      ]
-    },
-    {
-      name: 'bike_shop_bikes',
-      alias: 'bikeShopBikes',
-      columns:
-      [
-        {name: 'bikeShopBikeID', isPrimary: true},
-        {name: 'bikeShopID'},
-        {name: 'bikeID'}
-      ]
-    }
-  ]
-};
-
-module.exports = db;
-```
-
-##### Create a DataContext Instance
-
-A DataContext instance is the interface through which queries are executed.  The DataContext constructor takes two parameters: a Database instance and a connection pool.  The example DataContext below uses the ```bikeShop.js``` Database definition, which is presented above and contained in the example/bikeShop.js file.
-
-```js
-'use strict';
-
-var ndm   = require('node-data-mapper');
-var mysql = require('mysql');
-
-// Create a database instance.  The easiest way is to define the database
-// in an object, but one can also add tables and columns manually.
-var db = new ndm.Database(require('./bikeShop'));
-
-// Create a connection pool.  In this case we're using a MySQL connection
-// pool with a 10-connection limit.  (Refer to the mysql documentation.)
-var pool = mysql.createPool
-({
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver({
   host:            'localhost',
   user:            'example',
   password:        'secret',
-  database:        db.getName(),
+  database:        'bike_shop',
+  timezone:        'utc',
   connectionLimit: 10
 });
 
-// Export an instance of a DataContext object.  This is what will be used
-// throughout your application for database access.
-module.exports = new ndm.MySQLDataContext(db, pool);
+// Initialize the driver, which returns a promise.  node-data-mapper uses
+// deferred (https://www.npmjs.com/package/deferred) for a promise library.
+driver
+  .initialize()
+  .then(onInit)
+  .catch(console.error)
+  .finally(endConnection);
+
+function onInit(dataContext) {
+  // dataContext is used to execute queries.  A reference to dataContext is
+  // also available on driver (driver.dataContext).
+  console.log('Ready to run queries.');
+}
+
+function endConnection() {
+  // end() is also exposed on dataContext.
+  driver.end();
+  console.log('Connection closed.');
+}
 ```
 
 ## Examples
