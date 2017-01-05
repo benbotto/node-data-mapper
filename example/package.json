@@ -1,6 +1,6 @@
 {
   "name": "node-data-mapper-examples",
-  "version": "1.0.0",
+  "version": "1.1.15",
   "description": "Example code for the node-data-mapper module.",
   "main": "example.js",
   "scripts": {
@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mysql": "^2.10.0",
-    "node-data-mapper": "^1.0.0"
+    "node-data-mapper-mysql": "^1.1.4"
   }
 }

@@ -1,0 +1,8 @@
+{
+  "host":            "localhost",
+  "user":            "example",
+  "password":        "secret",
+  "database":        "bike_shop",
+  "timezone":        "utc",
+  "connectionLimit": 10
+}
