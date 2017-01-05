@@ -12,7 +12,6 @@ An object-relational mapper for Node.js using the data-mapper pattern.  node-dat
 - [Getting Started](#getting-started)
     - [Install node-data-mapper](#install-node-data-mapper)
     - [Connect](#connect)
-    - [Create a DataContext Instance](#create-a-datacontext-instance)
 - [Examples](#examples)
   - [Selecting](#selecting)
       - [Select all from a Single Table](#select-all-from-a-single-table)
@@ -89,7 +88,7 @@ function endConnection() {
 
 ## Examples
 
-The following examples--all of which are contained in the "examples" directory--use the bike_shop database.  To import this database run the SQL in bike_shop.sql. To do so, log in to your MySQL server, then run:
+The following examples--all of which are contained in the "examples" directory--are for MySQL, and use a fictitious `bike_shop` database.  To import this database run the SQL in bike_shop.sql. To do so, log in to your MySQL server, then run:
 
 ```
 source bike_shop.sql
@@ -97,7 +96,7 @@ source bike_shop.sql
 
 The database contains a series of bike shops.  Each bike shop has staff, and staff can get bonuses.  Each bike shop sells bikes. When you source bike_shop.sql, two queries are run to show what data have been added.  The first shows all the bike shops, the staff for each, and each staff member's bonuses.  (Most staff members have not received any bonuses.)  The second query shows all the bike shops with all the bikes sold by each shop.  Note that some of the bikes are sold by multiple shops.
 
-The bike_shop.sql script creates a user "example" with a password of "secret." If you change the credentials then you will need to update the bikeShopDataContext.js file accordingly.
+The `bike_shop.sql` script creates a user `example` with a password of `secret`. If you change the credentials then you will need to update the `bikeShopConOpts.json` file accordingly.
 
 ### Selecting
 
@@ -108,54 +107,62 @@ The simplest query one can perform is selecting all data from a single table.
 ```js
 'use strict';
 
-var bikeShopDC = require('../bikeShopDataContext');
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
 
-// Select all columns from the bike_shops table.
-var query = bikeShopDC.from('bike_shops').select();
+// 1) Initialize node-data-mapper.
+// 2) Retrieve all the records from the bike_shops table.
+// 3) Print the results on the console.
+// 4) Close the DB connection.
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
 
-// This is the query that will be executed.
-console.log('Query:');
-console.log(query.toString(), '\n');
+function runQuery(dataContext) {
+  // Select all columns from the bike_shops table.
+  const query = dataContext
+    .from('bike_shops')
+    .select();
 
-// Executing a query returns a promise, as defined by the deferred API.
-// https://www.npmjs.com/package/deferred
-query.execute()
-  .then(function(result)
-  {
-    console.log('Result:');
-    console.log(result);
-  })
-  .catch(function(err)
-  {
-    console.log(err);
-  })
-  .finally(function()
-  {
-    // Close the connection.
-    bikeShopDC.getQueryExecuter().getConnectionPool().end();
-  });
+  // This is the query that will be executed.
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  // Executing a query returns a promise.
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
 ```
 
 Running this code (```$ node example/retrieve/allFromSingleTable.js```) yields the following output.
 
 ```js
 Query:
-SELECT  `bikeShops`.`bikeShopID` AS `bikeShops.bikeShopID`, `bikeShops`.`name` AS `bikeShops.name`, `bikeShops`.`address` AS `bikeShops.address`
-FROM    `bike_shops` AS `bikeShops` 
+SELECT  `bike_shops`.`address` AS `bike_shops.address`,
+        `bike_shops`.`bikeShopID` AS `bike_shops.bikeShopID`,
+        `bike_shops`.`name` AS `bike_shops.name`
+FROM    `bike_shops` AS `bike_shops` 
 
 Result:
-{ bikeShops: 
+{ bike_shops: 
    [ { bikeShopID: 1,
-       name: 'Bob\'s Bikes',
-       address: '9107 Sunrise Blvd' },
+       address: '9107 Sunrise Blvd',
+       name: 'Bob\'s Bikes' },
      { bikeShopID: 2,
-       name: 'Zephyr Cove Cruisers',
-       address: '18271 Highway 50' },
+       address: '18271 Highway 50',
+       name: 'Zephyr Cove Cruisers' },
      { bikeShopID: 3,
-       name: 'Cycle Works',
-       address: '3100 La Riviera Wy' } ] }
+       address: '3100 La Riviera Wy',
+       name: 'Cycle Works' } ] }
 ```
-Because the table "bike_shops" is aliased (refer to the [Define a Database](#define-a-database) section), the associated property in the serialized object is named "bikeShops."
 
 ##### Limiting Columns
 
