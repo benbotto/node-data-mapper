@@ -2,8 +2,8 @@
 
 An object-relational mapper for node.js using the data-mapper pattern.  node-data-mapper is fast, and it has an intuitive interface that closely resembles SQL.  And because the data-mapper pattern is used instead of active record, data models are plain old JavaScript objects.
 
-[![Build Status](https://travis-ci.org/benbotto/node-data-mapper.svg?branch=master)](https://travis-ci.org/benbotto/node-data-mapper)
-[![Coverage Status](https://coveralls.io/repos/benbotto/node-data-mapper/badge.svg?branch=master&service=github)](https://coveralls.io/github/benbotto/node-data-mapper?branch=master)
+[![Build Status](https://travis-ci.org/benbotto/node-data-mapper.svg?branch=1.0.x)](https://travis-ci.org/benbotto/node-data-mapper)
+[![Coverage Status](https://coveralls.io/repos/benbotto/node-data-mapper/badge.svg?branch=1.0.x&service=github)](https://coveralls.io/github/benbotto/node-data-mapper?branch=1.0.x)
 
 ##### Table of Contents
 
