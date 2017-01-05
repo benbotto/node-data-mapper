@@ -1,0 +1,7 @@
+dir: .
+
+packageJson: package.json
+
+branches:
+
+ 	- 1.1.x
