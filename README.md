@@ -16,7 +16,7 @@ An object-relational mapper for Node.js using the data-mapper pattern.  node-dat
   - [Selecting](#selecting)
       - [Select all from a Single Table](#select-all-from-a-single-table)
       - [Limiting Columns](#limiting-columns)
-      - [Ad-Hoc Aliasing](#ad-hoc-aliasing)
+      - [Ad-Hoc Mapping](#ad-hoc-mapping)
       - [Ordering](#ordering)
       - [Converters](#converters)
       - [Conditions](#conditions)
@@ -35,6 +35,7 @@ An object-relational mapper for Node.js using the data-mapper pattern.  node-dat
     - [Update a Single Model](#update-a-single-model)
     - [Update Multiple Models](#update-multiple-models)
     - [Update From](#update-from)
+- [Schema Generation](#schema-generation)
 - [Extending](#extending)
 
 ### Getting Started
@@ -178,44 +179,30 @@ dataContext
 
 It's important to point out that if any columns are selected from a table, then the primary key must also be selected.  If the primary key is not selected then an exception will be raised.
 
-##### Ad-Hoc Aliasing
+##### Ad-Hoc Mapping
 
-Tables and columns can be aliased in the Database definition, but often it's convenient to alias on the fly.  Both ```from``` and ```select``` can be given objects to describe the serialization.  The ```from``` method takes a meta object with the following properties:
-
-```js
-{
-  table:  string, // The name of the table to select from.
-  as:     string  // An alias for the table.  This is needed if, for example,
-                  // the same table is joined in multiple times.
-                  // This defaults to the table's alias.
-}
-```
-
-Likewise, the ```select``` method can be passed multiple column meta objects with the following properties:
+When selecting, both tables and columns can be mapped to alternate property name is the resulting normalized document.  `from`, `select`, and `join` can be given objects to describe how columns and tables should be mapped.  Building on the previous examples, the `bike_shops` table and columns can be aliased as follows:
 
 ```js
-{
-  column:   string, // The fully-qualified column name in the
-                    // form: <table-alias>.<column-name>
-  as:       string  // An alias for the column, used for serialization.
-                    // If not provided this defaults to the column's alias.
-}
+dataContext
+  // Map the "bike_shops" table to a property named "shops."
+  .from({table: 'bike_shops', as: 'bs', mapTo: 'shops'})
+
+  // "bikeShopID" will map to a property named "id," and "name" will map to
+  // "shopName."
+  .select(
+    {column: 'bs.bikeShopID', mapTo: 'id'},
+    {column: 'bs.name',       mapTo: 'shopName'}
+  );
 ```
 
-Building on the previous examples, the table and columns can be aliased as follows:
-
-```js
-var query = bikeShopDC
-  .from({table: 'bike_shops', as: 'shops'})
-  .select({column: 'shops.bikeShopID', as: 'id'}, {column: 'shops.name', as: 'shopName'});
-```
-
-Running this example (```example/retrieve/adHocAlias.js```) yields the following output:
+Running this example (```$ node example/retrieve/adHocMapping.js```) yields the following output:
 
 ```js
 Query:
-SELECT  `shops`.`bikeShopID` AS `shops.id`, `shops`.`name` AS `shops.shopName`
-FROM    `bike_shops` AS `shops` 
+SELECT  `bs`.`bikeShopID` AS `bs.bikeShopID`,
+        `bs`.`name` AS `bs.name`
+FROM    `bike_shops` AS `bs` 
 
 Result:
 { shops: 
@@ -223,6 +210,8 @@ Result:
      { id: 2, shopName: 'Zephyr Cove Cruisers' },
      { id: 3, shopName: 'Cycle Works' } ] }
 ```
+
+Tables and columns can also have default mappings set at initialization time.  For more information, check out the [Schema Generation](#schema-generation) section.
 
 ##### Ordering
 
@@ -1127,6 +1116,11 @@ Result:
 ```
 
 Conditions, joins, and other examples of using the ```from``` interface are available in the [Selecting](#selecting) section.
+
+## Schema Generation
+
+TODO
+
 ## Extending
 
 The node-data-mapper module is designed to be extendable.  Adding support for a new database dialect is simple, and involves extending and specializing the DataContext class.  The DataContext defines a standard interface for escaping and executing queries.  Refer to the MySQLDataContext implementation for an example.
