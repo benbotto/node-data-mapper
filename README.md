@@ -166,13 +166,16 @@ Result:
 
 ##### Limiting Columns
 
-The selected columns can be limited by using the ```select``` method.  The ```select``` method is variadic, and in its simplest form it can be passed an array of fully-qualified column names.  A fully-qualified column name takes the form ```<table-alias>.<column-name>```.  For example, the ```bike_shops``` table is aliased ```bikeShops```, so limiting the above query to ```bikeShopID``` and ```name```:
+The selected columns can be limited by using the ```select``` method.  The ```select``` method is variadic, and in its simplest form it can be passed an array of fully-qualified column names.  A fully-qualified column name takes the form ```<table-alias>.<column-name>```.  For example, the ```bike_shops``` table is aliased ```bs``` in the proceeding example, so limiting the above query to ```bikeShopID``` and ```name``` is done in the following manner:
 
 ```js
-var query = bikeShopDC
-  .from('bike_shops')
-  .select('bikeShops.bikeShopID', 'bikeShops.name');
+dataContext
+  // The table is aliased "bs" for convenience.
+  .from('bike_shops bs')
+  // Select only the ID and name of the shop.
+  .select('bs.bikeShopID', 'bs.name');
 ```
+
 It's important to point out that if any columns are selected from a table, then the primary key must also be selected.  If the primary key is not selected then an exception will be raised.
 
 ##### Ad-Hoc Aliasing
