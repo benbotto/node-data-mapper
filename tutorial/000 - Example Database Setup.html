@@ -1,0 +1,29 @@
+<div class="ndm-tutorial">
+  <p>
+    The examples provided in these tutorials use a fictitious <i
+    class="name">bike_shop</i> database.  If you would like to run the example
+    code, which is contained in the <i class="name">example</i> directory,
+    then you'll need to create the <i class="name">bike_shop</i> database in a
+    local MySQL database.  The <i class="name">example/bike_shop.sql</i>
+    script can be used to create this database by logging in to your MySQL
+    server and running:
+  </p>
+
+  <pre class="prettyprint source">source example/bike_shop.sql</pre>
+
+  <p>
+    The database contains a series of bike shops.  Each bike shop has staff,
+    and staff can get bonuses.  Each bike shop sells bikes.  When you source <i
+    class="name">bike_shop.sql</i>, two queries are run to show what data have
+    been added.  The first shows all the bike shops, the staff for each, and
+    each staff member's bonuses.  (Most staff members have not received any
+    bonuses.)  The second query shows all the bike shops with all the bikes
+    sold by each shop.  Note that some of the bikes are sold by multiple shops.
+  </p>
+
+  <p>
+    The <i class="name">bike_shop.sql</i> script creates a user "example" with
+    a password of "secret."  If you change the credentials then you will need
+    to update the <i class="name">bikeShopConOpts.json</i> file accordingly.
+  </p>
+</div>

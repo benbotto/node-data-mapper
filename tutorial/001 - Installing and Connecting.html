@@ -1,19 +1,28 @@
-### Getting Started
+<div class="ndm-tutorial">
+  <h3 id="#install-node-data-mapper">Install node-data-mapper</h3>
 
-##### Install node-data-mapper
+  <p>
+    node-data-mapper is a core project, and database-specific code is implemented
+    in separate modules.  Use the package that supports your RDBMS.
+  </p>
 
-node-data-mapper is a core project, and database-specific code is implemented in separate modules.  Use the package that supports your RDBMS.
+  <ul>
+    <li>
+      mysql
+      <pre class="prettyprint source">$ npm install node-data-mapper-mysql --save</pre>
+    </li>
+  </ul>
 
-* mysql
-```bash
-$ npm install node-data-mapper-mysql --save
-```
+  <h3 link="#connect">Connect</h3>
 
-##### Connect
+  <p>
+    Create a <i class="name">Driver</i> instance, and <i
+    class="name">initialize()</i> node-data-mapper.  The following example use
+    a <i class="name">MySQLDriver</i>; if you're using a different RDBMS,
+    substitute for <i class="name">MySQL</i> accordingly.
+  </p>
 
-Create a `Driver` instance, and `initialize()` node-data-mapper.  The following example use a `MySQLDriver`; if you're using a different RDBMS, substitute for `MySQL` accordingly.
-
-```js
+  <pre class="prettyprint source linenums">
 'use strict';
 
 const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
@@ -45,4 +54,5 @@ function endConnection() {
   driver.end();
   console.log('Connection closed.');
 }
-```
+  </pre>
+
