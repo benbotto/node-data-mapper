@@ -1,0 +1,274 @@
+<div class="ndm-tutorial">
+  <p>
+    In the last tutorial we examined a query that retrieved a list of staff
+    members under the age of 22.  One of the main benefits of having a formal
+    <span class="name">Condition</span> specification is that developers can
+    create reusable queries that are dynamically filterable.  Let's refactor
+    the previous example a bit by creating a <span
+    class="name">retrieveStaffQuery</span> method that returns a <span
+    class="name">From</span> instance.
+  </p>
+
+  <pre class="prettyprint source linenums">
+function retrieveStaffQuery(dataContext) {
+  return dataContext
+    .from('staff s')
+    .leftOuterJoin('s.bonuses b')
+    .innerJoin('s.bike_shops bs');
+}
+  </pre>
+
+  <p>
+    After making this small change, the query is more reusable.  The filter and
+    order are no longer hard coded, so developers can filter and order the
+    staff list on the fly.
+  </p>
+
+  <p>
+    In the previous tutorial we mentioned that the <span
+    class="name">Conditions</span> adhere to a formally-defined language.
+    Let's take a look at the language grammar.
+  </p>
+
+  <pre class="prettyprint source linenums">
+&lt;condition&gt;                ::= "{" &lt;comparison&gt; | &lt;null-comparison&gt; | &lt;in-comparison&gt; | &lt;logical-condition&gt; "}"
+&lt;comparison&gt;               ::= &lt;comparison-operator&gt; ":" "{" &lt;column&gt; ":" &lt;value&gt; "}"
+&lt;null-comparison&gt;          ::= &lt;null-comparison-operator&gt; ":" "{" &lt;column&gt; ":" &lt;nullable&gt; "}"
+&lt;in-comparison&gt;            ::= &lt;in-comparison-operator&gt; ":" "{" &lt;column&gt; ":" "[" &lt;value&gt; {"," &lt;value&gt;} "]" "}"
+&lt;logical-condition&gt;        ::= &lt;boolean-operator&gt; ":" "[" &lt;condition&gt; {"," &lt;condition&gt;} "]"
+&lt;comparison-operator&gt;      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte" | "$like" | "$notlike"
+&lt;in-comparison-operator&gt;   ::= "$in"
+&lt;null-comparison-operator&gt; ::= "$is" | "$isnt"
+&lt;boolean-operator&gt;         ::= "$and" | "$or"
+&lt;nullable&gt;                 ::= null | &lt;parameter&gt;
+&lt;value&gt;                    ::= &lt;parameter&gt; | &lt;column&gt; | &lt;number&gt; | null
+&lt;column&gt;                   ::= &lt;string&gt;
+&lt;parameter&gt;                ::= :&lt;string&gt;
+  </pre>
+
+  <p>
+    That's a bit hard to follow, so let's move forward by way of example and
+    create a complex <span class="name">Condition</span> object.  Let's say we
+    want to find all staff members that are either:
+  </p>
+
+  <ul>
+    <li>Male and over the age of 25, or</li>
+    <li>female and over the age of 23.</li>
+  </ul>
+
+  <p>
+    This <span class="name">Condition</span> requires two <span
+    class="name">AND</span>s and an <span class="name">OR</span>.  Working from
+    the inside out, create two <span class="name">comparisons</span>:
+  </p>
+
+  <pre class="prettyprint source">{$eq: {'staff.sex': ':maleSex'}}</pre>
+
+  <pre class="prettyprint source">{$gt: {'staff.age': ':maleAge'}}</pre>
+
+  <p>
+    Now, use a <span class="name">logical-condition</span> to <span
+    class="name">AND</span> the two <span class="name">comparisons</span>
+    together.
+  </p>
+
+  <pre class="prettyprint source linenums">
+{
+  // Male and over the age of 25.
+  $and: [
+    {$eq: {'staff.sex': ':maleSex'}},
+    {$gt: {'staff.age': ':maleAge'}}
+  ]
+}
+  </pre>
+
+  <p>
+    Next create a similar <span class="name">logical-condition</span> for
+    females over the age of 23.
+  </p>
+
+  <pre class="prettyprint source linenums">
+{
+  // Female and over the age of 23.
+  $and: [
+    {$eq: {'staff.sex': ':femaleSex'}},
+    {$gt: {'staff.age': ':femaleAge'}}
+  ]
+}
+  </pre>
+
+  <p>
+    And lastly, use one final <span class="name">logical-condition</span>
+    to <span class="name">OR</span> the conditions together.  Take a look at the following example, which illustrates this complex <span class="name">Condition</span>.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+const util        = require('util');
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+/**
+ * Get a {@link From} instance which is a combination of staff, staff bonuses,
+ * and place of employment.
+ */
+function retrieveStaffQuery(dataContext) {
+  return dataContext
+    .from('staff')
+    .leftOuterJoin('staff.bonuses')
+    .innerJoin('staff.bike_shops');
+}
+
+function runQuery(dataContext) {
+  // Condition object to find all staff that are either:
+  // 1) male and over the age of 25, or
+  // 2) female and over the age of 23.
+  const cond = {
+    $or: [
+      {
+        // Male and over the age of 25.
+        $and: [
+          {$eq: {'staff.sex': ':maleSex'}},
+          {$gt: {'staff.age': ':maleAge'}}
+        ]
+      },
+      {
+        // Female and over the age of 23.
+        $and: [
+          {$eq: {'staff.sex': ':femaleSex'}},
+          {$gt: {'staff.age': ':femaleAge'}}
+        ]
+      }
+    ]
+  };
+
+  const params = {
+    maleSex:   'male',
+    maleAge:   25,
+    femaleSex: 'female',
+    femaleAge: 23
+  };
+
+  const query = retrieveStaffQuery(dataContext)
+    .where(cond, params)
+    .select()
+    .orderBy('staff.sex', 'staff.age');
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(util.inspect(result, {depth: null}));
+}
+  </pre>
+
+  <p>
+    And here is the output from the previous example (<span class="name">$ node
+    example/retrieve/advancedWhere.js</span>):
+  </p>
+
+  <pre class="prettyprint source linenums">
+Query:
+SELECT  `staff`.`age` AS `staff.age`,
+        `staff`.`bikeShopID` AS `staff.bikeShopID`,
+        `staff`.`firstName` AS `staff.firstName`,
+        `staff`.`hasStoreKeys` AS `staff.hasStoreKeys`,
+        `staff`.`hireDate` AS `staff.hireDate`,
+        `staff`.`lastName` AS `staff.lastName`,
+        `staff`.`sex` AS `staff.sex`,
+        `staff`.`staffID` AS `staff.staffID`,
+        `bonuses`.`amount` AS `bonuses.amount`,
+        `bonuses`.`bonusID` AS `bonuses.bonusID`,
+        `bonuses`.`dateGiven` AS `bonuses.dateGiven`,
+        `bonuses`.`reason` AS `bonuses.reason`,
+        `bonuses`.`staffID` AS `bonuses.staffID`,
+        `bike_shops`.`address` AS `bike_shops.address`,
+        `bike_shops`.`bikeShopID` AS `bike_shops.bikeShopID`,
+        `bike_shops`.`name` AS `bike_shops.name`
+FROM    `staff` AS `staff`
+LEFT OUTER JOIN `bonuses` AS `bonuses` ON `staff`.`staffID` = `bonuses`.`staffID`
+INNER JOIN `bike_shops` AS `bike_shops` ON `staff`.`bikeShopID` = `bike_shops`.`bikeShopID`
+WHERE   ((`staff`.`sex` = :maleSex AND `staff`.`age` > :maleAge) OR (`staff`.`sex` = :femaleSex AND `staff`.`age` > :femaleAge))
+ORDER BY `staff`.`sex` ASC, `staff`.`age` ASC 
+
+Result:
+{ staff: 
+   [ { staffID: 6,
+       age: 29,
+       bikeShopID: 3,
+       firstName: 'Valerie',
+       hasStoreKeys: <Buffer 01>,
+       hireDate: 2007-11-12T00:00:00.000Z,
+       lastName: 'Stocking',
+       sex: 'female',
+       bonuses: 
+        [ { bonusID: 2,
+            amount: 600,
+            dateGiven: 2009-07-07T00:00:00.000Z,
+            reason: 'Most supportive team member.',
+            staffID: 6 } ],
+       bike_shops: 
+        { bikeShopID: 3,
+          address: '3100 La Riviera Wy',
+          name: 'Cycle Works' } },
+     { staffID: 5,
+       age: 42,
+       bikeShopID: 3,
+       firstName: 'Sal',
+       hasStoreKeys: <Buffer 01>,
+       hireDate: 2004-01-30T00:00:00.000Z,
+       lastName: 'Green',
+       sex: 'male',
+       bonuses: [],
+       bike_shops: 
+        { bikeShopID: 3,
+          address: '3100 La Riviera Wy',
+          name: 'Cycle Works' } },
+     { staffID: 2,
+       age: 54,
+       bikeShopID: 1,
+       firstName: 'John',
+       hasStoreKeys: <Buffer 01>,
+       hireDate: 1999-08-14T00:00:00.000Z,
+       lastName: 'Stovall',
+       sex: 'male',
+       bonuses: [],
+       bike_shops: 
+        { bikeShopID: 1,
+          address: '9107 Sunrise Blvd',
+          name: 'Bob\'s Bikes' } },
+     { staffID: 4,
+       age: 67,
+       bikeShopID: 2,
+       firstName: 'Abe',
+       hasStoreKeys: <Buffer 01>,
+       hireDate: 2015-09-19T00:00:00.000Z,
+       lastName: 'Django',
+       sex: 'male',
+       bonuses: [],
+       bike_shops: 
+        { bikeShopID: 2,
+          address: '18271 Highway 50',
+          name: 'Zephyr Cove Cruisers' } } ] }
+  </pre>
+
+  <p>
+    Note that the <span class="name">WHERE</span> clause is parenthesized
+    correctly.
+  </p>
+</div>
+
