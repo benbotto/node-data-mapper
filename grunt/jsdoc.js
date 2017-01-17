@@ -3,8 +3,12 @@
 module.exports = function(grunt, scripts) {
   const jsdoc = {
     dist: {
-      src:  scripts.app,
-      dest: 'doc'
+      src:     scripts.app,
+      options: {
+        destination: 'doc',
+        recurse:     true,
+        tutorials:   './tutorial'
+      }
     }
   };
 

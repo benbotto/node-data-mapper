@@ -2,7 +2,6 @@
 
 const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
 const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
-const util        = require('util');
 
 driver
   .initialize()
@@ -12,24 +11,10 @@ driver
   .finally(() => driver.end());
 
 function runQuery(dataContext) {
-  // Find all staff under the age of 22.
-  const cond = {
-    $lt: {
-      'staff.age': ':age'
-    }
-  };
-
-  const params = {
-    age: 22
-  };
-
   const query = dataContext
-    .from('staff')
-    .leftOuterJoin('staff.bonuses')
-    .innerJoin('staff.bike_shops')
-    .where(cond, params)
-    .select()
-    .orderBy('staff.age');
+    .from('staff s')
+    .select('s.staffID', 's.hasStoreKeys', 's.firstName')
+    .orderBy({column: 's.hasStoreKeys', dir: 'DESC'}, 's.firstName');
 
   console.log('Query:');
   console.log(query.toString(), '\n');
@@ -40,6 +25,6 @@ function runQuery(dataContext) {
 
 function printResult(result) {
   console.log('Result:');
-  console.log(util.inspect(result, {depth: null}));
+  console.log(result);
 }
 

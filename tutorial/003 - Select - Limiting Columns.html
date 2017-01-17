@@ -1,0 +1,72 @@
+<div class="ndm-tutorial">
+  <p>
+    The selected columns can be limited by using the {@link FromAdapter#select}
+    method.  It's variadic, and in its simplest form it can be passed an array
+    of fully-qualified column names.  A fully-qualified column name takes the
+    form <i class="name">&lt;table-alias&gt;.&lt;column-name&gt;</i>.  For
+    example, the <i class="name">bike_shops</i> table is aliased <i
+    class="name">bs</i> in the proceeding example, so limiting the above query
+    to <i class="name">bikeShopID</i> and <i class="name">name</i> is done in
+    the following manner:
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  const query = dataContext
+    // The table is aliased "bs" for convenience.
+    .from('bike_shops bs')
+    // Select only the ID and name of the shop.
+    .select('bs.bikeShopID', 'bs.name');
+
+  // This is the query that will be executed.
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  // Executing a query returns a promise.
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    It's worth mentioning that when limiting columns, the primary key is
+    required to be one of the selected columns.  If columns are selected from a
+    table and the primary key is not one of the columns, then an exception will
+    be raised.
+  </p>
+
+  <p>
+    This example prints the following output (<span class="name">$ node
+    example/retrieve/limitColumns.js</span>):
+  </p>
+
+  <pre class="prettyprint source">
+Query:
+SELECT  `bs`.`bikeShopID` AS `bs.bikeShopID`,
+        `bs`.`name` AS `bs.name`
+FROM    `bike_shops` AS `bs` 
+
+Result:
+{ bike_shops: 
+   [ { bikeShopID: 1, name: 'Bob\'s Bikes' },
+     { bikeShopID: 2, name: 'Zephyr Cove Cruisers' },
+     { bikeShopID: 3, name: 'Cycle Works' } ] }
+  </pre>
+</div>

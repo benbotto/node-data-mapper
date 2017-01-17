@@ -1,3 +1,5 @@
+In tutorial 8 there is an issue with the formatting of the BNF.
+
 Not sure how to handle schemas in MSSQL (e.g. "dbo").  database.getTableByName() is at the core of the project, and it would need to include an optional schema.
 
 Need transaction support, but it's tricky with a pool.  The user may need to run multiple queries in a transaction, and so the connection needs to somehow be tied to the request.

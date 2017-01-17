@@ -1,0 +1,153 @@
+<div class="ndm-tutorial">
+  <p>
+    node-data-mapper has a formal domain-specific language defined for WHERE
+    and ON conditions.  The language is similar to MongoDB, and <span
+    class="name">Condtions</span> are lexed, parsed, and compiled.
+    Formally-defined <span class="name">Conditions</span> allow for securely
+    filtering queries without worrying about SQL injection.  They also let
+    developers create reusable queries that can be filtered dynamically,
+    reducing query redundancy in code.
+  </p>
+
+  <p>
+    Let's take a look at a quick example, and then look at the <span
+    class="name">Condition</span> specification more closely.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+const util        = require('util');
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  // Find all staff under the age of 22.
+  const cond = {
+    $lt: {
+      'staff.age': ':age'
+    }
+  };
+
+  const params = {
+    age: 22
+  };
+
+  const query = dataContext
+    .from('staff')
+    .leftOuterJoin('staff.bonuses')
+    .innerJoin('staff.bike_shops')
+    .where(cond, params)
+    .select()
+    .orderBy('staff.age');
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(util.inspect(result, {depth: null}));
+}
+
+  </pre>
+
+  <p>
+    Note that <span class="name">JOIN</span>ing has not yet been covered in
+    these tutorials--that topic will be covered shortly.  At any rate, the
+    above code snippet finds staff members that are younger than 22, and includes
+    any bonuses that the staff member may have received, along with the bike
+    shop that they work for.  Running this example (<span class="name">$ node
+    example/retrieve/basicWhere.js</span>) logs the following output to the
+    console.
+  </p>
+
+  <pre class="prettyprint source linenums">
+Query:
+SELECT  `staff`.`age` AS `staff.age`,
+        `staff`.`bikeShopID` AS `staff.bikeShopID`,
+        `staff`.`firstName` AS `staff.firstName`,
+        `staff`.`hasStoreKeys` AS `staff.hasStoreKeys`,
+        `staff`.`hireDate` AS `staff.hireDate`,
+        `staff`.`lastName` AS `staff.lastName`,
+        `staff`.`sex` AS `staff.sex`,
+        `staff`.`staffID` AS `staff.staffID`,
+        `bonuses`.`amount` AS `bonuses.amount`,
+        `bonuses`.`bonusID` AS `bonuses.bonusID`,
+        `bonuses`.`dateGiven` AS `bonuses.dateGiven`,
+        `bonuses`.`reason` AS `bonuses.reason`,
+        `bonuses`.`staffID` AS `bonuses.staffID`,
+        `bike_shops`.`address` AS `bike_shops.address`,
+        `bike_shops`.`bikeShopID` AS `bike_shops.bikeShopID`,
+        `bike_shops`.`name` AS `bike_shops.name`
+FROM    `staff` AS `staff`
+LEFT OUTER JOIN `bonuses` AS `bonuses` ON `staff`.`staffID` = `bonuses`.`staffID`
+INNER JOIN `bike_shops` AS `bike_shops` ON `staff`.`bikeShopID` = `bike_shops`.`bikeShopID`
+WHERE   `staff`.`age` < :age
+ORDER BY `staff`.`age` ASC 
+
+Result:
+{ staff: 
+   [ { staffID: 3,
+       age: 16,
+       bikeShopID: 1,
+       firstName: 'Tina',
+       hasStoreKeys: <Buffer 00>,
+       hireDate: 2006-04-30T00:00:00.000Z,
+       lastName: 'Beckenworth',
+       sex: 'female',
+       bonuses: [],
+       bike_shops: 
+        { bikeShopID: 1,
+          address: '9107 Sunrise Blvd',
+          name: 'Bob\'s Bikes' } },
+     { staffID: 7,
+       age: 18,
+       bikeShopID: 3,
+       firstName: 'Kimberly',
+       hasStoreKeys: <Buffer 00>,
+       hireDate: 2006-03-25T00:00:00.000Z,
+       lastName: 'Fenters',
+       sex: 'female',
+       bonuses: [],
+       bike_shops: 
+        { bikeShopID: 3,
+          address: '3100 La Riviera Wy',
+          name: 'Cycle Works' } },
+     { staffID: 1,
+       age: 21,
+       bikeShopID: 1,
+       firstName: 'Randy',
+       hasStoreKeys: <Buffer 00>,
+       hireDate: 2012-01-03T00:00:00.000Z,
+       lastName: 'Alamedo',
+       sex: 'male',
+       bonuses: 
+        [ { bonusID: 1,
+            amount: 250,
+            dateGiven: 2013-06-01T00:00:00.000Z,
+            reason: 'Salesperson of the month.',
+            staffID: 1 } ],
+       bike_shops: 
+        { bikeShopID: 1,
+          address: '9107 Sunrise Blvd',
+          name: 'Bob\'s Bikes' } } ] }
+  </pre>
+
+  <p>
+    The <span class="name">WHERE</span> condition is compiled and parameterized
+    as expected.  Next up, we'll look at how to make the query in the previous
+    code dynamically filterable and orderable, and therefore reusable.
+  </p>
+</div>
+
