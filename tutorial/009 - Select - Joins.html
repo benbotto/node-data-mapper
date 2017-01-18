@@ -1,0 +1,191 @@
+<div class="ndm-tutorial">
+  <p>
+    In the last example we examined a query that involved some <span
+    class="name">JOIN</span>s using the {@link From#join} method.  This method
+    will accept either a string argument or an object.  When a string is
+    passed, an "implicit" join is performed when possible.  An implicit join is
+    one such that node-data-mapper attempts to automatically derive the <span
+    class="name">JOIN</span> predicate and relationship type.  This is only
+    possible when there is <u>exactly one</u> relationship between the joined
+    tables.
+  </p>
+
+  <p>
+    Let's examine one of the joins from the previous example more closely, and
+    then look at explicit joins.
+  </p>
+
+  <pre class="prettyprint source linenums">
+dataContext
+  .from('staff s')
+  .leftOuterJoin('s.bonuses b');
+  </pre>
+
+  <p>
+    First, we select from the <span class="name">staff</span> table, giving it
+    an alias of <span class="name">s</span>.  Then, a {@link
+    From#leftOuterJoin} is performed on the <span class="name">bonuses</span>
+    table.  When a string is supplied as an argument (e.g. "<span
+    class="name">s.bonuses b</span>") it must follow the format specified by
+    the {@link From#parseJoinString} method, which is shown here for
+    convenience.
+  </p>
+
+  <pre class="prettyprint source">[&lt;parent-table-alias&gt;.]&lt;table-name&gt;[ [as ]&lt;table-alias&gt;]</pre>
+
+  <p>
+    As mentioned above, however, implicit joins are not always possible (nor
+    desirable).  It's therefore possible to pass the {@link From#join} method a
+    {@link TableMetaList~TableMeta} object instead of a string.  In the code
+    snippet above, the string passed to the {@link From#parseJoinString} method
+    (i.e. "<span class="name">s.bonuses b</span>") will be parsed and converted
+    to a {@link TableMetaList~TableMeta} object.  The above "implicit" join is
+    equivalent to this "explicit" one.
+  </p>
+
+  <pre class="prettyprint source linenums">
+dataContext
+  .from('staff s')
+  .leftOuterJoin({
+    parent:  's',
+    table:   'bonuses',
+    as:      'b',
+    relType: 'many',
+    on:      {$eq: {'s.staffID': 'b.staffID'}}
+  });
+  </pre>
+
+  <p>
+    Let's take a closer look at each property.
+  </p>
+
+  <ol>
+    <li>
+      The <span class="name">parent</span> of the <span
+      class="name">bonuses</span> table is set to <span class="name">s</span>,
+      which is the alias for the <span class="name">staff</span> table.  When
+      the query result is serialized to a normalized JavaScript object, an
+      array of <span class="name">bonuses</span> will be nested under each
+      staff member (<span class="name">bonuses</span> is a child of <span
+      class="name">staff</span>).
+    </li>
+
+    <li>
+      The joined-in <span class="name">table</span> is <span
+      class="name">bonuses</span>, with an alias of <span
+      class="name">b</span>.
+    </li>
+
+    <li>
+      <span class="name">relType</span>--which is an abbreviation for
+      relationship type--is set to "<span class="name">many</span>", because
+      each staff member can have many bonuses.
+    </li>
+
+    <li>
+      The tables are joined together using the <span
+      class="name">staffID</span> column.
+    </li>
+  </ol>
+
+  <p>
+    It's worth pointing out that the <span class="name">relType</span> property
+    can be set to "<span class="name">many</span>" or "<span
+    class="name">single</span>."  As can be seen in the example below, when
+    joining from <span class="name">bonuses</span> to <span
+    class="name">staff</span>, the <span class="name">relType</span> property
+    should be set to "<span class="name">single</span>."  This is because each
+    <span class="name">bonus</span> record is tied to exactly one <span
+    class="name">staff</span> record, so it's preferable to have <span
+    class="name">bonuses</span> serialized to an object rather than an array.
+  </p>
+
+  <p>
+    Also worth mentioning: The <span class="name">on</span> property takes a
+    <span class="name">Condition</span> object, and any valid <span
+    class="name">Condition</span> object can be provided as a join predicate.
+  </p>
+
+  <p>
+    Here is a more complex join example, using an explicit join from bonuses to
+    staff.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+const util        = require('util');
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  // Get all the bonuses in the system, with the single staff member for each
+  // bonus, but only for staff members over the age of 21.
+  const query = dataContext
+    .from('bonuses b')
+    .innerJoin(
+      {
+        parent:  'b',
+        table:   'staff',
+        as:      's',
+        relType: 'single',
+        on: {
+          $and: [
+            {$eq:  {'s.staffID': 'b.staffID'}},
+            {$gte: {'s.age': ':minAge'}}
+          ]
+        }
+      },
+      {minAge: 22}
+    )
+    .select(
+      's.staffID', 's.lastName', 's.age',
+      'b.bonusID', 'b.amount'
+    );
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(util.inspect(result, {depth: null}));
+}
+  </pre>
+
+  <p>
+    The output of this example is printed below (<span class="name">$ node
+    example/retrieve/explicitJoin.js</span>):
+  </p>
+
+  <pre class="prettyprint source linenums">
+Query:
+SELECT  `s`.`staffID` AS `s.staffID`,
+        `s`.`lastName` AS `s.lastName`,
+        `s`.`age` AS `s.age`,
+        `b`.`bonusID` AS `b.bonusID`,
+        `b`.`amount` AS `b.amount`
+FROM    `bonuses` AS `b`
+INNER JOIN `staff` AS `s` ON (`s`.`staffID` = `b`.`staffID` AND `s`.`age` >= :minAge) 
+
+Result:
+{ bonuses: 
+   [ { bonusID: 2,
+       amount: 600,
+       staff: { staffID: 6, lastName: 'Stocking', age: 29 } },
+     { bonusID: 3,
+       amount: 320,
+       staff: { staffID: 8, lastName: 'Xavier', age: 22 } } ] }
+  </pre>
+</div>
+
