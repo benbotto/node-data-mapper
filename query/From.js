@@ -22,7 +22,7 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
      * @param {QueryExecuter} queryExecuter - A QueryExecuter instance.
      * @param {TableMetaList~TableMeta|string} meta - Either a TableMeta
      * instance containing information about the table to query from, or a
-     * string that can be parsed using the parseFromString method.
+     * string that can be parsed using the {@link From#parseFromString} method.
      */
     constructor(database, escaper, queryExecuter, meta) {
       super(database, escaper, queryExecuter);
@@ -209,7 +209,9 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
 
     /**
      * Join a table.
-     * @param {TableMetaList~TableMeta} meta - The table metadata.
+     * @param {TableMetaList~TableMeta|string} meta - Either a TableMeta
+     * instance containing information about the table to join, or a
+     * string that can be parsed using the {@link From#parseJoinString} method.
      * @param {Object} params - An object of key-value pairs that are used to
      * replace parameters in the query.
      * @return {this}
@@ -252,9 +254,8 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
     /**
      * Private helper method for joins.
      * @private
-     * @param {TableMetaList~TableMeta} meta - The table metadata.
-     * @param {Object} params - An object of key-value pairs that are used to
-     * replace parameters in the query.
+     * @param {TableMetaList~TableMeta|string} meta - See {@link From#join}
+     * @param {Object} params - See {@link From#join}
      * @param {From.JOIN_TYPE} joinType - The type of join.
      * @return {this}
      */
@@ -267,9 +268,8 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
 
     /**
      * Inner join a table.
-     * @param {TableMetaList~TableMeta} meta - The table metadata.
-     * @param {Object} params - An object of key-value pairs that are used to
-     * replace parameters in the query.
+     * @param {TableMetaList~TableMeta|string} meta - See {@link From#join}
+     * @param {Object} params - See {@link From#join}
      * @return {this}
      */
     innerJoin(meta, params) {
@@ -278,9 +278,8 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
 
     /**
      * Left outer join a table.
-     * @param {TableMetaList~TableMeta} meta - The table metadata.
-     * @param {Object} params - An object of key-value pairs that are used to
-     * replace parameters in the query.
+     * @param {TableMetaList~TableMeta|string} meta - See {@link From#join}
+     * @param {Object} params - See {@link From#join}
      * @return {this}
      */
     leftOuterJoin(meta, params) {
@@ -289,9 +288,8 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
 
     /**
      * Right outer join a table.
-     * @param {TableMetaList~TableMeta} meta - The table metadata.
-     * @param {Object} params - An object of key-value pairs that are used to
-     * replace parameters in the query.
+     * @param {TableMetaList~TableMeta|string} meta - See {@link From#join}
+     * @param {Object} params - See {@link From#join}
      * @return {this}
      */
     rightOuterJoin(meta, params) {
