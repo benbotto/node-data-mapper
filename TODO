@@ -1,3 +1,7 @@
+On line 128 of From.js there needs to be a check that the parent table is a valid alias.  Right now an invalid alias causes a crash.
+Skipping a parent in a select heirarchy causes a crash.
+
+e.g. from companies->products->categories, just select companies and categories, but skip products in the selection.  Categories has no parent schema.
 In tutorial 8 there is an issue with the formatting of the BNF.
 
 Not sure how to handle schemas in MSSQL (e.g. "dbo").  database.getTableByName() is at the core of the project, and it would need to include an optional schema.
