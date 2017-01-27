@@ -1,0 +1,62 @@
+<div class="ndm-tutorial">
+  <p>
+    Models are inserted into the database using the {@link DataContext#insert}
+    method, which takes a single object as a parameter.  Each key in the object
+    should correspond to a table mapping, and the value should be one or more
+    models.  Here's a quick example, which inserts a single <span
+    class="name">bike_shop</span> record.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  const query = dataContext
+    .insert({
+      bike_shops: {
+        name:    "Phil Billy's Bikes",
+        address: '432 Red Rider Rd.'
+      }
+    });
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    The above example logs the following output (<span class="name">$ node
+    example/create/insertSingleModel.js</span>):
+  </p>
+
+  <pre class="prettyprint source linenums">
+Query:
+INSERT INTO `bike_shops` (`name`, `address`)
+VALUES (:name, :address) 
+
+Result:
+{ bike_shops: 
+   { name: 'Phil Billy\'s Bikes',
+     address: '432 Red Rider Rd.',
+     bikeShopID: 4 } }
+  </pre>
+</div>
+

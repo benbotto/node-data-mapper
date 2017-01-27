@@ -1,36 +1,33 @@
 'use strict';
 
-var bikeShopDC = require('../bikeShopDataContext');
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
 
-// Create a new bike shop.
-var query = bikeShopDC.insert
-({
-  // This is the alias of the table, not the table name.
-  bikeShops:
-  {
-    name:    "Phil Billy's Bikes",
-    address: '432 Red Rider Rd.'
-  }
-});
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
 
-console.log('Query:');
-console.log(query.toString(), '\n');
+function runQuery(dataContext) {
+  const query = dataContext
+    .insert({
+      bike_shops: {
+        name:    "Phil Billy's Bikes",
+        address: '432 Red Rider Rd.'
+      }
+    });
 
-// Just like the selections, insertions return a promise.  The inserted model
-// is returned.
-query.execute()
-  .then(function(result)
-  {
-    // Notice that the new identifier is populated if the table has an
-    // auto-incrementing primary key.
-    console.log('Result:');
-    console.log(result);
-  })
-  .catch(function(err)
-  {
-    console.log(err);
-  })
-  .finally(function()
-  {
-    bikeShopDC.getQueryExecuter().getConnectionPool().end();
-  });
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+
