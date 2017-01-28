@@ -1,0 +1,92 @@
+<div class="ndm-tutorial">
+  <p>
+    Multiple models can be inserted as a batch.  As described in the previous
+    example, the {@link DataContext#insert} method accepts an object as a
+    parameter.  Each property in that object should map to a table, and the
+    value associated with each property should be one or more models.
+  </p>
+
+  <p>
+    In the following example, two <span class="name">bike_shops</span> records
+    and one <span class="name">bikes</span> record are inserted in a batch.  As
+    with the previous example, note that the primary key of each model is
+    automatically added after the insert is completed.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  const query = dataContext
+    .insert({
+      bike_shops: [
+        {
+          name:    'Cycle City',
+          address: '82 Bloom St.'
+        },
+        {
+          name:    'Cadence and Clip',
+          address: '7712 Ackworth Barn Dr.'
+        }
+      ],
+      bikes: {
+        brand: 'Gary Fisher',
+        model: 'Remedy',
+        msrp:  5499.99
+      }
+    });
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    Run this example (<span class="name">$ node
+    example/create/insertMultiple.js</span>) and the following output will be
+    displayed.
+  </p>
+
+  <pre class="prettyprint source linenums">
+Query:
+INSERT INTO `bike_shops` (`name`, `address`)
+VALUES (:name, :address);
+
+INSERT INTO `bike_shops` (`name`, `address`)
+VALUES (:name, :address);
+
+INSERT INTO `bikes` (`brand`, `model`, `msrp`)
+VALUES (:brand, :model, :msrp) 
+
+Result:
+{ bike_shops: 
+   [ { name: 'Cycle City', address: '82 Bloom St.', bikeShopID: 4 },
+     { name: 'Cadence and Clip',
+       address: '7712 Ackworth Barn Dr.',
+       bikeShopID: 5 } ],
+  bikes: 
+   { brand: 'Gary Fisher',
+     model: 'Remedy',
+     msrp: 5499.99,
+     bikeID: 11 } }
+  </pre>
+</div>
+

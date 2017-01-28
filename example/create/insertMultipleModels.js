@@ -1,43 +1,44 @@
 'use strict';
 
-var bikeShopDC = require('../bikeShopDataContext');
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
 
-// Create two new bike shops and a new bike.
-var query = bikeShopDC.insert
-({
-  bikeShops:
-  [
-    {
-      name:    'Cycle City',
-      address: '82 Bloom St.'
-    },
-    {
-      name:    'Cadence and Clip',
-      address: '7712 Ackworth Barn Dr.'
-    }
-  ],
-  bikes:
-  {
-    brand: 'Gary Fisher',
-    model: 'Remedy',
-    msrp:  5499.99
-  }
-});
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
 
-console.log('Query:');
-console.log(query.toString(), '\n');
+function runQuery(dataContext) {
+  const query = dataContext
+    .insert({
+      bike_shops: [
+        {
+          name:    'Cycle City',
+          address: '82 Bloom St.'
+        },
+        {
+          name:    'Cadence and Clip',
+          address: '7712 Ackworth Barn Dr.'
+        }
+      ],
+      bikes: {
+        brand: 'Gary Fisher',
+        model: 'Remedy',
+        msrp:  5499.99
+      }
+    });
 
-query.execute()
-  .then(function(result)
-  {
-    console.log('Result:');
-    console.log(result);
-  })
-  .catch(function(err)
-  {
-    console.log(err);
-  })
-  .finally(function()
-  {
-    bikeShopDC.getQueryExecuter().getConnectionPool().end();
-  });
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+
