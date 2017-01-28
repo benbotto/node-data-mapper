@@ -4,7 +4,7 @@
     method, which takes a single object as a parameter.  Each key in the object
     should correspond to a table mapping, and the value should be one or more
     models.  Here's a quick example, which inserts a single <span
-    class="name">bike_shop</span> record.
+    class="name">bike_shops</span> record.
   </p>
 
   <pre class="prettyprint source linenums">
@@ -61,8 +61,11 @@ Result:
 
   <p>
     After a model is inserted, node-data-mapper automatically adds the primary
-    key to the table when possible.  In the output above, note that the
-    <span class="name">bikeShopID</span> has been added to the model.
+    key to the model when it can.  This is possible when the underlying
+    database driver returns the inserted identifier from insert queries, which
+    generally means that the primary key will be added to models if the primary
+    key is an auto-incremented value.  In the output above, note that the <span
+    class="name">bikeShopID</span> has been added to the model.
   </p>
 </div>
 
