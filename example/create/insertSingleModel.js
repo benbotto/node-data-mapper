@@ -28,6 +28,7 @@ function runQuery(dataContext) {
 }
 
 function printResult(result) {
+  // Note that the ID is set on the model (e.g. result.bike_shops.bikeShopID).
   console.log('Result:');
   console.log(result);
 }
