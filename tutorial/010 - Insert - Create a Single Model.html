@@ -21,6 +21,7 @@ driver
   .finally(() => driver.end());
 
 function runQuery(dataContext) {
+  // Insert a single bike_shops record.
   const query = dataContext
     .insert({
       bike_shops: {
@@ -37,9 +38,11 @@ function runQuery(dataContext) {
 }
 
 function printResult(result) {
+  // Note that the ID is set on the model (e.g. result.bike_shops.bikeShopID).
   console.log('Result:');
   console.log(result);
 }
+
   </pre>
 
   <p>
