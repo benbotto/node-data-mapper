@@ -11,6 +11,7 @@ driver
   .finally(() => driver.end());
 
 function runQuery(dataContext) {
+  // Insert a single bike_shops record.
   const query = dataContext
     .insert({
       bike_shops: {

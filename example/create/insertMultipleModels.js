@@ -11,6 +11,7 @@ driver
   .finally(() => driver.end());
 
 function runQuery(dataContext) {
+  // Insert two bike_shops records and a single bikes record in a batch.
   const query = dataContext
     .insert({
       bike_shops: [
