@@ -1,0 +1,81 @@
+<div class="ndm-tutorial">
+  <p>
+    Building on the last example, the {@link DataContext#update} method can
+    also be used to update multiple models in a batch.  Here's how.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  // Update two bonuses records and one staff record by ID.
+  const query = dataContext
+    .update({
+      bonuses: [
+        {
+          bonusID: 1,
+          amount:  300,
+          reason:  'Best salesperson ever.'
+        },
+        {
+          bonusID: 2,
+          amount:  400
+        }
+      ],
+      staff: {
+        staffID:   1,
+        firstName: 'Rand'
+      }
+    });
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    Here's the output, which correctly reports three affected (updated) rows
+    (<span class="name">$ node example/update/updateMultipleModels.js</span>):
+  </p>
+
+  <pre class="prettyprint source linenums">
+Query:
+UPDATE  `bonuses` AS `bonuses`
+SET
+`bonuses`.`amount` = :bonuses_amount_1,
+`bonuses`.`reason` = :bonuses_reason_2
+WHERE   (`bonuses`.`bonusID` = :bonuses_bonusID_0);
+
+UPDATE  `bonuses` AS `bonuses`
+SET
+`bonuses`.`amount` = :bonuses_amount_1
+WHERE   (`bonuses`.`bonusID` = :bonuses_bonusID_0);
+
+UPDATE  `staff` AS `staff`
+SET
+`staff`.`firstName` = :staff_firstName_1
+WHERE   (`staff`.`staffID` = :staff_staffID_0) 
+
+Result:
+{ affectedRows: 3 }  
+  </pre>
+</div>
+
