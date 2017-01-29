@@ -1,3 +1,18 @@
+<div class="ndm-tutorial">
+  <p>
+    A model is updated using the {@link DataContext#update} method, which takes
+    a single object as a parameter.  Each propperty of the model should map to
+    a table, and the associated value should be one or more models--an object
+    or an array--containing at least the model's primary key.
+  </p>
+
+  <p>
+    Below is an example (<span class="name">$ node
+    example/update/updateSingleModel.js</span>) that updates a single <span
+    class="name">bonuses</span> record by ID.  The example's output follows.
+  </p>
+
+  <pre class="prettyprint source linenums">
 'use strict';
 
 const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
@@ -35,4 +50,18 @@ function printResult(result) {
   console.log('Result:');
   console.log(result);
 }
+  </pre>
+
+  <pre class="prettyprint source linenums">
+Query:
+UPDATE  `bonuses` AS `bonuses`
+SET
+`bonuses`.`amount` = :bonuses_amount_1,
+`bonuses`.`reason` = :bonuses_reason_2
+WHERE   (`bonuses`.`bonusID` = :bonuses_bonusID_0) 
+
+Result:
+{ affectedRows: 1 }
+  </pre>
+</div>
 
