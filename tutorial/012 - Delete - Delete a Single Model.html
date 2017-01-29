@@ -1,0 +1,67 @@
+<div class="ndm-tutorial">
+  <p>
+    Models can be deleted using the {@link DataContext#delete} method, which
+    deletes a model by ID.  Thus, when using this method the primary key is
+    required to be set on each model.  As with insert, the {@link
+    DataContext#delete} method takes an object as a parameter, and each of the
+    object's properties should map to a table.  The value associated with each
+    property should be one or more model objects (i.e. an object or an array).
+  </p>
+
+  <p>
+    The following example deletes a single <span class="name">bonuses</span>
+    record by ID.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  // Delete a single model by ID.
+  const query = dataContext
+    .delete({
+      bonuses: {
+        bonusID: 1
+      }
+    });
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    After execution, the <span class="name">result</span> variable will contain
+    the number of affected rows.  Here's the output (<span class="name">$ node
+    example/delete/deleteSingleModel.js</span>):
+  </p>
+
+  <pre class="prettyprint source linenums">
+Query:
+DELETE  `bonuses`
+FROM    `bonuses` AS `bonuses`
+WHERE   (`bonuses`.`bonusID` = :bonuses_bonusID_0) 
+
+Result:
+{ affectedRows: 1 }
+  </pre>
+</div>
+

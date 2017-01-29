@@ -1,34 +1,33 @@
 'use strict';
 
-var bikeShopDC = require('../bikeShopDataContext');
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
 
-// Delete a single model by ID.
-var query = bikeShopDC.delete
-({
-  // The key is a table alias, and the value can be
-  // an object or an array.
-  bonuses:
-  {
-    // The primary key is required when deleting a model.
-    bonusID: 1
-  }
-});
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
 
-console.log('Query:');
-console.log(query.toString(), '\n');
+function runQuery(dataContext) {
+  // Delete a single model by ID.
+  const query = dataContext
+    .delete({
+      bonuses: {
+        bonusID: 1
+      }
+    });
 
-// A promise is returned, and the result has an 'affectedRows' property.
-query.execute()
-  .then(function(result)
-  {
-    console.log('Result:');
-    console.log(result);
-  })
-  .catch(function(err)
-  {
-    console.log(err);
-  })
-  .finally(function()
-  {
-    bikeShopDC.getQueryExecuter().getConnectionPool().end();
-  });
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+
