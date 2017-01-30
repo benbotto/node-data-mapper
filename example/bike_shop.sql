@@ -28,7 +28,7 @@ CREATE TABLE staff
   lastName VARCHAR(255) NOT NULL,
   age INT,
   sex VARCHAR(20),
-  hasStoreKeys BIT NOT NULL DEFAULT 0,
+  hasStoreKeys BOOLEAN NOT NULL DEFAULT 0,
   hireDate DATE NOT NULL,
   bikeShopID INT NOT NULL,
   CONSTRAINT fk_staff_bikeShopID
