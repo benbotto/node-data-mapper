@@ -1,0 +1,69 @@
+<div class="ndm-tutorial">
+  <p>
+    The last two examples illustrate the common case of updating models by ID,
+    but at times updates are needed that involve a <span
+    class="name">WHERE</span> clause or <span class="name">JOIN</span>s.  Using
+    the {@link DataContext#from}, one can build a complex query, and then call
+    the {@link FromAdapter#update} method.  The {@link FromAdapter#update}
+    method takes an object as a paramter: Each key should be a fully-qualified
+    column name (&lt;table-alias&gt;.&lt;column-name&gt;).  Here's an example
+    that updates all staff members over the age of 21 that have received at
+    least one bonus.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  // Give keys to anyone over 21 that has received a bonus.
+  const query = dataContext
+    .from('staff s')
+    .innerJoin('s.bonuses b')
+    .where(
+      {$gt: {'s.age': ':minAge'}},
+      {minAge: 21}
+    )
+    .update({'s.hasStoreKeys': true});
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    And here's the output (<span class="name">$ node
+    example/update/updateFrom.js</span>):
+  </p>
+
+  <pre class="prettyprint source linenums">
+Query:
+UPDATE  `staff` AS `s`
+INNER JOIN `bonuses` AS `b` ON `s`.`staffID` = `b`.`staffID`
+SET
+`s`.`hasStoreKeys` = :s_hasStoreKeys_0
+WHERE   `s`.`age` > :minAge 
+
+Result:
+{ affectedRows: 2 }
+  </pre>
+</div>
+
+

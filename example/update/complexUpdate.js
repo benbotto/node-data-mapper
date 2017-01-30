@@ -1,27 +1,35 @@
 'use strict';
 
-var bikeShopDC = require('../bikeShopDataContext');
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
 
-// Give store keys to all employees that are over 21.
-var query = bikeShopDC
-  .from('staff')
-  .where({$gt: {'staff.age':21}})
-  .update({staff: {hasStoreKeys: true}});
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
 
-console.log('Query:');
-console.log(query.toString(), '\n');
+function runQuery(dataContext) {
+  // Give keys to anyone over 21 that has received a bonus.
+  const query = dataContext
+    .from('staff s')
+    .innerJoin('s.bonuses b')
+    .where(
+      {$gt: {'s.age': ':minAge'}},
+      {minAge: 21}
+    )
+    .update({'s.hasStoreKeys': true});
 
-query.execute()
-  .then(function(result)
-  {
-    console.log('Result:');
-    console.log(result);
-  })
-  .catch(function(err)
-  {
-    console.log(err);
-  })
-  .finally(function()
-  {
-    bikeShopDC.getQueryExecuter().getConnectionPool().end();
-  });
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+
