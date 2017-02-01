@@ -1,0 +1,137 @@
+<div class="ndm-tutorial">
+  <p>
+    One of the key features of node-data-mapper is that models do not need to
+    be explicitly defined.  Most ORMs--Sequelize, Mongoose, TypeORM,
+    etc.--require the user to first define models.  (By no means is this
+    intended as a bash of these excellent pieces of software.) node-data-mapper
+    takes a different approach, however, and uses the database itself to
+    determine what can be retrieved and persisted from and to the database.
+    This has some advantages.
+  </p>
+
+  <ul>
+    <li>
+      Easy startup.  Developers don't need to invest time defining models prior
+      to using node-data-mapper.
+    </li>
+
+    <li>
+      Database-first design.  Most ORMs require the user to create models, and
+      then the database schema is created based on those models.  Model-first
+      design doesn't always play well with existing databases.
+    </li>
+
+    <li>
+      Control.  With node-data-mapper the developer creates the database how he
+      or she sees fit, and then the ORM reads and utilizes the existing
+      database schema.  This gives full control of the database to the
+      developer.
+    </li>
+
+    <li>
+      Terse.  node-data-mapper can be dropped into existing projects with an
+      existing database, and doesn't require (or even promote) abandoning
+      existing data access.  It can be used in new code, while existing code
+      utilizes raw SQL, or even alongside another ORM.
+    </li>
+  </ul>
+
+  <p>
+    If you've been following the tutorials, you have probably noticed that each
+    example begins by initializing a database driver.  The initialization
+    process queries the database's metadata (generally using the <span
+    class="name">INFORMATION_SCHEMA</span> database) and generates a schema
+    object.  This schema object is then used to construct a {@link Database}
+    instance, which is composed of a series of {@link Table} and {@link Column}
+    instances.  Let's take a look at what a schema object looks like, and then
+    discuss customizations.
+  </p>
+
+  <p>
+    The following example simply initializes node-data-mapper, and then dumps
+    the resulting {@link Database} instance (a.k.a. "schema object").
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(dumpSchema)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function dumpSchema(dataContext) {
+  console.log('Schema:');
+  console.log(JSON.stringify(dataContext.database, null, 2));
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    The example can be run by issuing this command: <span class="name">node
+    example/schema/generation.js</span>.  The output below is trimmed for
+    brevity, and annotated.
+  </p>
+
+  <pre class="prettyprint source linenums">
+{
+  // The database name.
+  "name": "bike_shop",
+
+  // A Database instance has an array of tables.
+  "tables": [
+    {
+      // The "bikes" table.
+      "name": "bikes",
+
+      // When retrieving, table names can be mapped to different properties.
+      // This is useful if your table naming convention differs from your
+      // JavaScript naming convention.  More on this in the next tutorial.
+      "mapTo": "bikes",
+
+      // Each Table instance has an array of Columns, and each Column instance
+      // holds metadata.
+      "columns": [
+        {
+          "name": "bikeID",
+
+          // See the note above about mappings.
+          "mapTo": "bikeID",
+          "dataType": "int",
+          "columnType": "int(11)",
+          "isNullable": false,
+          "maxLength": null,
+          "isPrimary": true,
+          "defaultValue": null,
+
+          // A Column can have a Converter object attached, which allows data to
+          // be converted when it is retrieved or persisted.  For example, a
+          // developer could strip special characters from phone numbers when
+          // saved, and then format phone numbers when retrieved.
+          "converter": {}
+        },
+
+        // Snip...
+      ]
+    },
+
+    // Snip...
+  ]
+}
+  </pre>
+
+  <p>
+    It may be worth inspecting the schema object further, as it contains other
+    metadata like foreign key information.  In the next examples, however,
+    we'll focus on customizing tables and columns.
+  </p>
+</div>
+
