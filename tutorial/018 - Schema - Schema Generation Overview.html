@@ -29,7 +29,7 @@
     </li>
 
     <li>
-      Terse.  node-data-mapper can be dropped into existing projects with an
+      Terse.  node-data-mapper can be dropped into an existing project with an
       existing database, and doesn't require (or even promote) abandoning
       existing data access.  It can be used in new code, while existing code
       utilizes raw SQL, or even alongside another ORM.
@@ -67,11 +67,6 @@ driver
 function dumpSchema(dataContext) {
   console.log('Schema:');
   console.log(JSON.stringify(dataContext.database, null, 2));
-}
-
-function printResult(result) {
-  console.log('Result:');
-  console.log(result);
 }
   </pre>
 

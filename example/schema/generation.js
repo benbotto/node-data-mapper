@@ -14,8 +14,3 @@ function dumpSchema(dataContext) {
   console.log(JSON.stringify(dataContext.database, null, 2));
 }
 
-function printResult(result) {
-  console.log('Result:');
-  console.log(result);
-}
-
