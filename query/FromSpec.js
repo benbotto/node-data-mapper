@@ -159,6 +159,13 @@ describe('From()', function() {
       }).toThrowError('Automatic joins can only be performed if there is ' +
         'exactly one relationship between the parent and child tables.');
     });
+
+    it('throws an error if the parent alias is invalid.', function() {
+      expect(function() {
+        const from = new From(db, escaper, qryExec, {table: 'users', as: 'u'});
+        from.parseJoinString('uuu.phone_numbers pn');
+      }).toThrowError('The parent of table "phone_numbers" ("uuu") is invalid.');
+    });
   });
 
   /**

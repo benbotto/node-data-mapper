@@ -124,6 +124,9 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
       // If there is a parent alias provided, figoure out how to join the two
       // tables.
       if (parent) {
+        assert(this._tableMetaList.tableMetas.has(parent),
+          `The parent of table "${meta.table}" ("${parent}") is invalid.`);
+
         const parTblMeta = this._tableMetaList.tableMetas.get(parent);
         const parTblName = parTblMeta.table.name;
         const fks        = this.database.relStore.getRelationships(
