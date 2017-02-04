@@ -2,26 +2,26 @@
   <p>
     In the last example you may have noticed that the <span
     class="name">hasStoreKeys</span> property, which is defined as a <span
-    class="name">bit</span> in the database, is serialized as a <span
+    class="name">BIT</span> in the database, is serialized as a <span
     class="name">Buffer</span>.  Usually, however, it's nice to convert <span
-    class="name">bit</span> fields to <span class="name">booleans</span>.
+    class="name">BIT</span> fields to <span class="name">booleans</span>.
     node-data-mapper allows developers to attach converters to selected columns
     on the fly.  (Note that there's also a way to attach converters at
-    initialization time.  This allows developers to, for example, convert all
-    bit-type columns to booleans.)  
+    initialization time, which allows developers to, for example, convert all
+    bit-type columns to booleans.  This is convered in the Schema tutorials.)
   </p>
 
   <p>
     node-data-mapper has some built-in converters in the <span
     class="name">converter</span> directory.  Let's take a look at the
-    pre-defined <span class="name">bitConverter</span> object:
+    pre-defined {@link BooleanConverter} object:
   </p>
 
   <pre class="prettyprint source linenums">
 'use strict';
 
 /** A converter that converts buffers and numbers to booleans and back. */
-class BitConverter {
+class BooleanConverter {
   /**
    * Convert the "bit" to a boolean.
    * @param {number|Buffer} bit - Either an instance of a Buffer containing a 1
@@ -57,24 +57,24 @@ class BitConverter {
     class="name">onRetrieve</span> and <span class="name">onSave</span>. Each
     function takes in a value and transforms it.  The former transforms for
     serialization, and the latter transforms for saving (INSERT or UPDATE).  In
-    the above code, the <span class="name">bitConverter.onRetrieve</span>
-    method takes a <span class="name">Buffer</span> instance and converts it to
-    a boolean (or null).
+    the above code, the {@link BooleanConverter#onRetrieve} method takes a
+    <span class="name">Buffer</span> or <span class="name">Number</span>
+    instance and converts it to a boolean (or null).
   </p>
 
   <p>
-    The following code snippet gives an example of using the <span
-    class="name">bitConverter.onRetrieve</span> converter on the fly.  It also
-    uses a simple in-line converter to convert <span
-    class="name">firstName</span> to uppercase.
+    The following code snippet gives an example of using the {@link
+    BooleanConverter#onRetrieve} converter on the fly.  It also uses a simple
+    in-line converter to convert <span class="name">firstName</span> to
+    uppercase.
   </p>
 
   <pre class="prettyprint source linenums">
 'use strict';
 
-const bitConverter = require('node-data-mapper').bitConverter;
-const MySQLDriver  = require('node-data-mapper-mysql').MySQLDriver;
-const driver       = new MySQLDriver(require('../bikeShopConOpts.json'));
+const booleanConverter = require('node-data-mapper').booleanConverter;
+const MySQLDriver      = require('node-data-mapper-mysql').MySQLDriver;
+const driver           = new MySQLDriver(require('../bikeShopConOpts.json'));
 
 driver
   .initialize()
@@ -89,7 +89,7 @@ function runQuery(dataContext) {
     .select(
       's.staffID',
       // Convert "hasStoreKeys" to boolean.
-      {column: 's.hasStoreKeys', convert: bitConverter.onRetrieve},
+      {column: 's.hasStoreKeys', convert: booleanConverter.onRetrieve},
       // Convert "firstName" to upper case.
       {column: 's.firstName',    convert: fName => fName.toUpperCase()}
     );

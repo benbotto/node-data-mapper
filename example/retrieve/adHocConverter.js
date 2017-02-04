@@ -1,8 +1,8 @@
 'use strict';
 
-const bitConverter = require('node-data-mapper').bitConverter;
-const MySQLDriver  = require('node-data-mapper-mysql').MySQLDriver;
-const driver       = new MySQLDriver(require('../bikeShopConOpts.json'));
+const booleanConverter = require('node-data-mapper').booleanConverter;
+const MySQLDriver      = require('node-data-mapper-mysql').MySQLDriver;
+const driver           = new MySQLDriver(require('../bikeShopConOpts.json'));
 
 driver
   .initialize()
@@ -17,7 +17,7 @@ function runQuery(dataContext) {
     .select(
       's.staffID',
       // Convert "hasStoreKeys" to boolean.
-      {column: 's.hasStoreKeys', convert: bitConverter.onRetrieve},
+      {column: 's.hasStoreKeys', convert: booleanConverter.onRetrieve},
       // Convert "firstName" to upper case.
       {column: 's.firstName',    convert: fName => fName.toUpperCase()}
     );
