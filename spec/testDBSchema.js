@@ -1,9 +1,9 @@
 'use strict';
 
-require('insulin').factory('ndm_testDBSchema', ['ndm_bitConverter'],
+require('insulin').factory('ndm_testDBSchema', ['ndm_booleanConverter'],
   ndm_testDBSchemaProducer);
 
-function ndm_testDBSchemaProducer(bitConverter) {
+function ndm_testDBSchemaProducer(booleanConverter) {
   return {
     name: 'testDB',
     tables: [
@@ -67,7 +67,7 @@ function ndm_testDBSchemaProducer(bitConverter) {
           },
           {
             name: 'isActive',
-            converter: bitConverter
+            converter: booleanConverter
           },
           {
             name: 'primaryPhotoID'

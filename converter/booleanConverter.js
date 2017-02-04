@@ -1,10 +1,10 @@
 'use strict';
 
-require('insulin').factory('ndm_bitConverter', ndm_bitConverterProducer);
+require('insulin').factory('ndm_booleanConverter', ndm_booleanConverterProducer);
 
-function ndm_bitConverterProducer() {
+function ndm_booleanConverterProducer() {
   /** A converter that converts buffers and numbers to booleans and back. */
-  class BitConverter {
+  class BooleanConverter {
     /**
      * Convert the "bit" to a boolean.
      * @param {number|Buffer} bit - Either an instance of a Buffer containing a 1
@@ -35,6 +35,6 @@ function ndm_bitConverterProducer() {
   }
 
   // Singleton.
-  return new BitConverter();
+  return new BooleanConverter();
 }
 

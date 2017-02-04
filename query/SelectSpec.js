@@ -279,7 +279,7 @@ describe('Select()', function() {
       });
 
       it('uses converters from the database schema.', function() {
-        const bitConverter = db
+        const booleanConverter = db
           .getTableByName('products')
           .getColumnByName('isActive')
           .converter;
@@ -290,7 +290,7 @@ describe('Select()', function() {
 
         expect(Schema.prototype.addProperty.calls.count()).toBe(1);
         expect(Schema.prototype.addProperty.calls.argsFor(0))
-          .toEqual(['products.isActive', 'isActive', bitConverter.onRetrieve]);
+          .toEqual(['products.isActive', 'isActive', booleanConverter.onRetrieve]);
       });
 
       it('creates sub-schemata with the correct parent.', function() {
