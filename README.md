@@ -112,5 +112,5 @@ to a normalized document like this:
   - [Updating Using a From Instance](https://benbotto.github.io/doc/node-data-mapper/1.1.x/tutorial-017 - Update - Updating Using a From Instance.html)
 - Schema Objects (Global Property Names and Conversions)
   - [Schema Generation Overview](https://benbotto.github.io/doc/node-data-mapper/1.1.x/tutorial-018 - Schema - Schema Generation Overview.html)
-  - [Customizing Names (Mapping)](https://benbotto.github.io/doc/node-data-mapper/1.1.x/tutorial-019 - Schema - Customizing Names (Mapping).html)
+  - [Customizing Names (Mapping)](https://benbotto.github.io/doc/node-data-mapper/1.1.x/tutorial-019 - Schema - Customizing Names .html)
   - [Converters](https://benbotto.github.io/doc/node-data-mapper/1.1.x/tutorial-020 - Schema - Converters.html)
