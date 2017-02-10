@@ -3,7 +3,7 @@
 
 # node-data-mapper
 
-node-data-mapper in object-relational mapper for Node.js.  It uses the using the data-mapper pattern.
+node-data-mapper in object-relational mapper for Node.js.  It uses the data-mapper pattern.
 
 ##### What does it do?
 
