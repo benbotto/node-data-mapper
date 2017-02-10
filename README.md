@@ -65,7 +65,7 @@ to a normalized document like this:
     staff: [ { staffID: 4, firstName: 'Abe', lastName: 'Django' } ] } ]
 ```
 
-##### Why should you use it?
+##### Why should I use it?
 
 * It's fast.
 * The code is well documented and thoroughly tested.
