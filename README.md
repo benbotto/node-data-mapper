@@ -75,7 +75,7 @@ to a normalized document like this:
 * Unlike other ORMs, there's no need to define models.
 * Queries use plain ol' JavaScript objects and arrays.
 * Security concerns like SQL injection are covered.
-* CRUD operations can be reused.  Create a select query, and use the same query for updates.
+* CRUD operations can be reused.  Create a select query, and use the same query for updates and deletes.
 * It lets you easily create queries that can be filtered and ordered dynamically.
 * There are hooks for global conversions and transformations, like normalizing dates and formatting phone numbers.
 * Database modifications show up immediately.  If you add a column to the database, you don't have to change any code.
