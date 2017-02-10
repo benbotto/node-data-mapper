@@ -1,0 +1,89 @@
+<div class="ndm-tutorial">
+  <p>
+    The previous examples covered deleting models by ID, which reflects a
+    common use case.  But sometimes a more complex delete is needed, for
+    example using a <span class="name">WHERE</span> clause or <span
+    class="name">JOIN</span>s.  Recall that back in the 
+    <a href="tutorial-002 - Select - Select all from a Single Table.html">
+    Select all from a Single Table</a> tutorial it was mentioned that the
+    {@link DataContext#from} method returns a {@link FromAdapter} instance, and
+    that a {@link FromAdapter} can be used for deleting and updating as well as
+    selecting.  Let's revisit this and see how to perform complex deletes.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  const query = dataContext
+    .from('staff s')
+    .leftOuterJoin('s.bonuses b')
+    .where(
+      // Staff members that have never received a bonus and are over the age
+      // of 65 are getting fired today.
+      {
+        $and: [
+          {$is: {'b.bonusID': null}},
+          {$gt: {'s.age': ':overTheHill'}}
+        ]
+      },
+      {overTheHill: 65}
+    )
+    .delete();
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    In the above example, <span class="name">staff</span> and <span
+    class="name">bonuses</span> are joined together.  Then the query is
+    filtered such that only staff members that have never received a bonus and
+    are over the age of 65 are included.  These staff members are deleted.
+  </p>
+
+  <p>
+    It's worth pointing out that the {@link FromAdapter#delete} method takes an
+    optional <span class="name">tableAlias</span> parameter.  If not supplied,
+    then the root table's alias is deleted from (<span class="name">s</span>,
+    the alias of <span class="name">staff</span>, in this case).  But, like raw
+    SQL, one can join in a table and then delete from it (e.g. <span
+    class="name">delete('b')</span> would instead delete bonus records).
+  </p>
+
+  <p>
+    The example shown above prints the following output when run (<span
+    class="name">$ node example/delete/complexDelete.js</span>):
+  </p>
+
+  <pre class="prettyprint source linenums">
+Query:
+DELETE  `s`
+FROM    `staff` AS `s`
+LEFT OUTER JOIN `bonuses` AS `b` ON `s`.`staffID` = `b`.`staffID`
+WHERE   (`b`.`bonusID` IS NULL AND `s`.`age` > :overTheHill) 
+
+Result:
+{ affectedRows: 1 }
+  </pre>
+</div>
+

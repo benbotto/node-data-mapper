@@ -1,71 +1,66 @@
-describe('MutateModel test suite.', function()
-{
+describe('MutateModel()', function() {
   'use strict';
 
   // Note: This is a base class.  The execute method is tested in subclasses
   // (DeleteModel and UpdateModel).
 
-  var MutateModel  = require('./MutateModel');
-  var Database     = require('../database/Database');
-  var MySQLEscaper = require('./MySQLEscaper');
-  var db           = new Database(require('../spec/testDB'));
-  var escaper      = new MySQLEscaper();
-  var qryExec      = {};
+  const insulin      = require('insulin');
+  const MutateModel  = insulin.get('ndm_MutateModel');
+  const Database     = insulin.get('ndm_Database');
+  const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
+  const db           = insulin.get('ndm_testDB');
+  const escaper      = new MySQLEscaper();
+  const qryExec      = {};
 
-  describe('MutateModel constructor test suite.', function()
-  {
-    // Checks that the constructor functions.
-    it('checks that the constructor functions.', function()
-    {
-      expect(function()
-      {
-        new MutateModel(db, escaper, qryExec, {users: {ID: 2}});
+  /**
+   * Ctor.
+   */
+  describe('.constructor()', function() {
+    it('extends Query.', function() {
+      expect(function() {
+        const Query = insulin.get('ndm_Query');
+        const mm    = new MutateModel(db, escaper, qryExec, {users: {ID: 2}});
+
+        expect(mm instanceof Query).toBe(true);
       }).not.toThrow();
     });
 
-    // Checks that the number of queries is correct.
-    it('checks that the number of queries is correct.', function()
-    {
-      var mm = new MutateModel(db, escaper, qryExec, {users: {ID: 2}});
-      expect(mm.getQueries().length).toBe(1);
+    it('creates a query for each model.', function() {
+      let mm = new MutateModel(db, escaper, qryExec, {users: {ID: 2}});
+      expect(mm.queries.length).toBe(1);
 
-      mm = new MutateModel(db, escaper, qryExec,
-      {
+      mm = new MutateModel(db, escaper, qryExec, {
         users: {ID: 2},
         phoneNumbers: {ID: 4}}
       );
-      expect(mm.getQueries().length).toBe(2);
+      expect(mm.queries.length).toBe(2);
     });
   });
 
-  describe('MutateModel createQueryInstance test suite.', function()
-  {
-    // Note: createQueryInstance is called from the constuctor.
+  /**
+   * Create query.
+   */
+  describe('.createQuery()', function() {
+    // Note: createQuery is called from the constuctor.
     
-    // Checks that the primary key is required.
-    it('checks that the primary key is required.', function()
-    {
-      expect(function()
-      {
+    it('throws an error if the primary key is not provided.', function() {
+      expect(function() {
         new MutateModel(db, escaper, qryExec, {users: {first: 'Joe'}});
-      }).toThrowError('Primary key not provided on model users.');
+      }).toThrowError('Primary key not provided on model "users."');
     });
   });
 
-  describe('MutateModel toString test suite.', function()
-  {
-    // Checks a single model with a string for a primary key.
-    it('checks a single model with a string for a primary key.', function()
-    {
-      var db2 = new Database
-      ({
+  /**
+   * To string.
+   */
+  describe('.toString()', function() {
+    it('returns the SQL for a single model.', function() {
+      const db2 = new Database({
         name: 'testDB',
-        tables:
-        [
+        tables: [
           {
             name: 'example',
-            columns:
-            [
+            columns: [
               {
                 name: 'ex',
                 isPrimary: true
@@ -74,28 +69,22 @@ describe('MutateModel test suite.', function()
           }
         ]
       });
-      var model = {example: {ex: "Joe's Shop"}};
-      var mm    = new MutateModel(db2, escaper, qryExec, model);
+      const model = {example: {ex: "Joe's Shop"}};
+      const mm    = new MutateModel(db2, escaper, qryExec, model);
 
-      expect(mm.toString()).toBe
-      (
+      expect(mm.toString()).toBe(
         'FROM    `example` AS `example`\n' +
-        "WHERE   (`example`.`ex` = 'Joe\\'s Shop')"
+        "WHERE   (`example`.`ex` = :example_ex_0)"
       );
     });
 
-    // Checks a single model with a composite key.
-    it('checks a single model with a composite key.', function()
-    {
-      var db2 = new Database
-      ({
+    it('generates the correct where clause for composite keys.', function() {
+      const db2 = new Database({
         name: 'testDB',
-        tables:
-        [
+        tables: [
           {
             name: 'example',
-            columns:
-            [
+            columns: [
               {
                 name: 'ex1',
                 isPrimary: true
@@ -108,48 +97,41 @@ describe('MutateModel test suite.', function()
           }
         ]
       });
-      var model = {example: {ex1: 13, ex2: 44}};
-      var mm    = new MutateModel(db2, escaper, qryExec, model);
+      const model = {example: {ex1: 13, ex2: 44}};
+      const mm    = new MutateModel(db2, escaper, qryExec, model);
 
-      expect(mm.toString()).toBe
-      (
+      expect(mm.toString()).toBe(
         'FROM    `example` AS `example`\n' +
-        'WHERE   (`example`.`ex1` = 13 AND `example`.`ex2` = 44)'
+        'WHERE   (`example`.`ex1` = :example_ex1_0 AND `example`.`ex2` = :example_ex2_1)'
       );
     });
 
-    // Checks multiple models.
-    it('checks multiple models.', function()
-    {
-      var model =
-      {
-        users:
-        [
+    it('generates the correct multi-model SQL.', function() {
+      const model = {
+        users: [
           {ID: 12},
           {ID: 44},
         ],
-        phoneNumbers:
-        [
+        phoneNumbers: [
           {ID: 1},
           {ID: 8}
         ]
       };
       
-      var mm = new MutateModel(db, escaper, qryExec, model);
+      const mm = new MutateModel(db, escaper, qryExec, model);
 
-      expect(mm.toString()).toBe
-      (
+      expect(mm.toString()).toBe(
         'FROM    `users` AS `users`\n' +
-        'WHERE   (`users`.`userID` = 12);\n\n' +
+        'WHERE   (`users`.`userID` = :users_userID_0);\n\n' +
 
         'FROM    `users` AS `users`\n' +
-        'WHERE   (`users`.`userID` = 44);\n\n' +
+        'WHERE   (`users`.`userID` = :users_userID_0);\n\n' +
 
-        'FROM    `phone_numbers` AS `phoneNumbers`\n' +
-        'WHERE   (`phoneNumbers`.`phoneNumberID` = 1);\n\n' +
+        'FROM    `phone_numbers` AS `phone_numbers`\n' +
+        'WHERE   (`phone_numbers`.`phoneNumberID` = :phone_numbers_phoneNumberID_0);\n\n' +
 
-        'FROM    `phone_numbers` AS `phoneNumbers`\n' +
-        'WHERE   (`phoneNumbers`.`phoneNumberID` = 8)'
+        'FROM    `phone_numbers` AS `phone_numbers`\n' +
+        'WHERE   (`phone_numbers`.`phoneNumberID` = :phone_numbers_phoneNumberID_0)'
       );
     });
   });

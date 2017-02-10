@@ -1,133 +1,50 @@
 'use strict';
 
-var assert = require('../util/assert');
+require('insulin').factory('ndm_Column', ['ndm_assert'], ColumnProducer);
 
-/**
- * Represents a database column.
- * @param column An object representing the column with the following properties.
- * {
- *   name:       string,   // Required.  The name of the column.
- *   alias:      string,   // Optional.  The column alias, used for serializing.
- *                         // Defaults to name.
- *   isPrimary:  bool,     // Optional.  Whether or not this column is a primary key.
- *                         // Defaults to false.
- *   dataType:   string,   // The data type of the column as a string.  Defaults to null.
- *   maxLength:  int,      // The maximum length of the column.  Defaults to null.
- *   isNullable: bool,     // Whether or not null is acceptable for the column.
- *                         // Defaults to true.
- *   defaultValue: string, // The default value for the column (only for meta purposes).
- *                         // Defaults to null
- *   converter:    object  // An optional converter object containing onRetrieve
- *                         // and/or onSave methods.  These methods will be called
- *                         // when a column is serialized after a select, or before
- *                         // the column is saved to the database.
- * }
- */
-function Column(column)
-{
-  assert(column.name, 'Column name is required.');
+function ColumnProducer(assert) {
+  /** Represents a database column. */
+  class Column {
+    /**
+     * Initialize the column.
+     * @param {Object} column - An object representing the database column.  Any
+     * custom properties on the object shall be preserved.
+     * @param {string} column.name - The name of the column.
+     * @param {string} [column.mapTo=column.name] - When the column is
+     * serialized, the resulting object will use this property name.
+     * @param {boolean} [column.isPrimary=false] Whether or not this column is a
+     * primary key.
+     * @param {Object} [column.converter={}] An optional converter object
+     * containing onRetrieve and/or onSave methods.  These methods will be called
+     * when a column is serialized after a select, and before the column is saved
+     * to the database, respectively.
+     */
+    constructor(column) {
+      assert(column.name, 'Column name is required.');
 
-  this._name         = column.name;
-  this._alias        = column.alias        || this._name;
-  this._dataType     = column.dataType     || null;
-  this._maxLength    = column.maxLength    || null;
-  this._defaultValue = column.defaultValue || null;
-  this._converter    = column.converter    || {};
-  this._isPrimary    = !!column.isPrimary;
-  this._isNullable   = (column.isNullable === undefined) ? true : !!column.isNullable;
+      // Copy all the properties from column.  Anything that the user adds to the
+      // column will be preserved.  Commonly, the user needs more information
+      // about a column than is strictly required by ndm (e.g. dataType,
+      // isNullable, maxLength, defaultValue, etc.).
+      Object.assign(this, column);
+
+      this.mapTo     = this.mapTo || this.name;
+      this.isPrimary = !!this.isPrimary;
+      this.converter = this.converter || {};
+    }
+
+    /**
+     * Create a fully-qualified column name in the form
+     * &lt;table-alias&gt;.&lt;column-name&gt;.
+     * @param {string} tableAlias - The alias for the table.
+     * @param {string} colName - The column name.
+     * @return {string} The fully-qualified column name, unescaped.
+     */
+    static createFQColName(tableAlias, colName) {
+      return `${tableAlias}.${colName}`;
+    }
+  }
+
+  return Column;
 }
-
-/**
- * Get the name of the column.
- */
-Column.prototype.getName = function()
-{
-  return this._name;
-};
-
-/**
- * Get the column's alias.
- */
-Column.prototype.getAlias = function()
-{
-  return this._alias;
-};
-
-/**
- * Get the column's data type.
- */
-Column.prototype.getDataType = function()
-{
-  return this._dataType;
-};
-
-/**
- * Get the column's max length.
- */
-Column.prototype.getMaxLength = function()
-{
-  return this._maxLength;
-};
-
-/**
- * Get the column's default value (only used for meta purposes).
- */
-Column.prototype.getDefaultValue = function()
-{
-  return this._defaultValue;
-};
-
-/**
- * Check if the column is a nullable key.
- */
-Column.prototype.isNullable = function()
-{
-  return this._isNullable;
-};
-
-/**
- * Check if the column is a primary key.
- */
-Column.prototype.isPrimary = function()
-{
-  return this._isPrimary;
-};
-
-/**
- * Get the column converter object, if any.
- */
-Column.prototype.getConverter = function()
-{
-  return this._converter;
-};
-
-/**
- * Convert the Column instance to an object.
- */
-Column.prototype.toObject = function()
-{
-  var obj =
-  {
-    name:         this._name,
-    alias:        this._alias,
-    isPrimary:    this._isPrimary,
-    converter:    this._converter,
-    dataType:     this._dataType,
-    maxLength:    this._maxLength,
-    defaultValue: this._defaultValue,
-    isNullable:   this._isNullable
-  };
-
-  return obj;
-};
-
-/**
- * Clone this column.
- */
-Column.prototype.clone = function()
-{
-  return new Column(this.toObject());
-};
-
-module.exports = Column;
 

@@ -1,32 +1,21 @@
 'use strict';
 
-/**
- * This module just exports all the other modules.
- */
-module.exports =
-{
-  assert:             require('./util/assert.js'),
-  Database:           require('./database/Database.js'),
-  Table:              require('./database/Table.js'),
-  Column:             require('./database/Column.js'),
-  bitConverter:       require('./converter/bitConverter.js'),
-  utcConverter:       require('./converter/utcConverter.js'),
-  MySQLDataContext:   require('./datacontext/MySQLDataContext.js'),
-  DataContext:        require('./datacontext/DataContext.js'),
-  Escaper:            require('./query/Escaper.js'),
-  MySQLEscaper:       require('./query/MySQLEscaper.js'),
-  ConditionCompiler:  require('./query/ConditionCompiler.js'),
-  ConditionLexer:     require('./query/ConditionLexer.js'),
-  ConditionParser:    require('./query/ConditionParser.js'),
-  From:               require('./query/From.js'),
-  Insert:             require('./query/Insert.js'),
-  Delete:             require('./query/Delete.js'),
-  Select:             require('./query/Select.js'),
-  MetaBuilder:        require('./query/MetaBuilder.js'),
-  modelTraverse:      require('./query/modelTraverse.js'),
-  QueryExecuter:      require('./query/QueryExecuter.js'),
-  MySQLQueryExecuter: require('./query/MySQLQueryExecuter.js'),
-  Schema:             require('./datamapper/Schema.js'),
-  DataMapper:         require('./datamapper/DataMapper.js')
-};
+const insulin = require('insulin');
+
+// The bootstrap file lets everything register itself with the DiC, insulin,
+// and returns a list if files.  This script goes through the collection of
+// files returned by the bootstrap process and sets up an object that has an
+// instance of each.  New files are automagically picked up and exported, and
+// consumers can choose whether or not to use insulin.
+
+const files = require('./bootstrap');
+const exp   = {};
+
+files.forEach(f => {
+  // Remove the everything up to the final "/" and the ".js" extension.
+  const name = f.replace(/^.*\/([^\/]+)\.js$/, '$1');
+  exp[name]  = insulin.get(`ndm_${name}`);
+});
+
+module.exports = exp;
 

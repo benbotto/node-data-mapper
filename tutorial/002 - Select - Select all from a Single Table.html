@@ -1,0 +1,84 @@
+<div class="ndm-tutorial">
+  <p>
+    The simplest query one can perform is selecting all data from a single
+    table.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+// 1) Initialize node-data-mapper.
+// 2) Retrieve all the records from the bike_shops table.
+// 3) Print the results on the console.
+// 4) Close the DB connection.
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  // Select all columns from the bike_shops table.
+  const query = dataContext
+    .from('bike_shops')
+    .select();
+
+  // This is the query that will be executed.
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  // Executing a query returns a promise.
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    Running this code (<span class="name">$ node example/retrieve/allFromSingleTable.js</span>)
+    yields the following output.
+  </p>
+
+  <pre class="prettyprint source">
+Query:
+SELECT  `bike_shops`.`address` AS `bike_shops.address`,
+        `bike_shops`.`bikeShopID` AS `bike_shops.bikeShopID`,
+        `bike_shops`.`name` AS `bike_shops.name`
+FROM    `bike_shops` AS `bike_shops` 
+
+Result:
+{ bike_shops: 
+   [ { bikeShopID: 1,
+       address: '9107 Sunrise Blvd',
+       name: 'Bob\'s Bikes' },
+     { bikeShopID: 2,
+       address: '18271 Highway 50',
+       name: 'Zephyr Cove Cruisers' },
+     { bikeShopID: 3,
+       address: '3100 La Riviera Wy',
+       name: 'Cycle Works' } ] }
+
+  </pre>
+
+  <p>
+    In the above example, {@link DataContext#from} is called, which returns a
+    {@link FromAdapter} instance.  The notion of a {@link From} is central to
+    node-data-mapper, and a {@link FromAdapter} instance can be used for
+    selecting, updating, and deleting.  This should be fairly intuitive: When
+    using raw SQL a user can <span class="name">SELECT...FROM</span>, <span
+    class="name">UPDATE...FROM</span>, and <span
+    class="name">DELETE...FROM</span>.  One of the goals of node-data-mapper is
+    to provide an interface that closely resembles SQL, and since <span
+    class="name">FROM</span> so often occurs in queries, {@link
+    DataContext#from} is often the starting point when querying with
+    node-data-mapper.
+  </p>
+</div>

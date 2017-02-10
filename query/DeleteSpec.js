@@ -1,148 +1,113 @@
-describe('Delete test suite.', function()
-{
+describe('Delete()', function() {
   'use strict';
 
-  var Delete       = require('./Delete');
-  var From         = require('./From');
-  var Database     = require('../database/Database');
-  var MySQLEscaper = require('./MySQLEscaper');
-  var db           = new Database(require('../spec/testDB'));
-  var escaper      = new MySQLEscaper();
-  var qryExec;
+  const insulin      = require('insulin');
+  const Delete       = insulin.get('ndm_Delete');
+  const From         = insulin.get('ndm_From');
+  const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
+  const db           = insulin.get('ndm_testDB');
+  const escaper      = new MySQLEscaper();
+  let qryExec;
 
-  beforeEach(function()
-  {
-    qryExec = jasmine.createSpyObj('qryExec', ['delete']);
-  });
+  beforeEach(() => qryExec = jasmine.createSpyObj('qryExec', ['delete']));
 
-  function getFrom(meta)
-  {
+  function getFrom(meta) {
     return new From(db, escaper, qryExec, meta);
   }
 
-  describe('Delete constructor test suite.', function()
-  {
-    // Checks the basic constructor.
-    it('checks the basic constructor.', function()
-    {
-      expect(function()
-      {
+  /**
+   * Ctor.
+   */
+  describe('.constructor()', function() {
+    it('can be constructed using a From instance and no alias.', function() {
+      expect(function() {
         new Delete(getFrom('users'));
       }).not.toThrow();
+    });
 
-      expect(function()
-      {
+    it('can be constructed using a From instance and a table alias.', function() {
+      expect(function() {
         new Delete(getFrom('users'), 'users');
       }).not.toThrow();
     });
 
-    // Checks the basic getters.
-    it('checks the basic getters.', function()
-    {
-      var del = new Delete(getFrom('users'));
+    it('throws an error if the table alias is not valid.', function() {
+      expect(function() {
+        new Delete(getFrom('users'), 'foo');
+      }).toThrowError('"foo" is not a valid table alias.');
+    });
 
-      expect(del.getDatabase()).toBe(db);
-      expect(del.getEscaper()).toBe(escaper);
-      expect(del.getQueryExecuter()).toBe(qryExec);
+    it('extends Query.', function() {
+      const Query = insulin.get('ndm_Query');
+      const del   = new Delete(getFrom('users'));
+
+      expect(del instanceof Query).toBe(true);
+
+      expect(del.database).toBe(db);
+      expect(del.escaper).toBe(escaper);
+      expect(del.queryExecuter).toBe(qryExec);
     });
   });
 
-  describe('Delete toString test suite.', function()
-  {
-    // Checks the single-item delete string.
-    it('checks the single-item delete string.', function()
-    {
-      var from = getFrom('users')
-        .where({$eq: {'users.userID': 1}});
-      var del = new Delete(from);
+  /**
+   * To string.
+   */
+  describe('.toString()', function() {
+    it('returns the sql from buildQuery().', function() {
+      const query = new Delete(getFrom('users'));
 
-      expect(del.toString()).toBe
-      (
-        'DELETE  `users`\n' +
-        'FROM    `users` AS `users`\n' +
-        'WHERE   `users`.`userID` = 1'
-      );
-    });
-
-    // Checks a delete with a join.
-    it('checks a delete with a join.', function()
-    {
-      var from = getFrom('users')
-        .innerJoin({table: 'phone_numbers', parent: 'users', on: {$eq: {'users.userID':'phoneNumbers.userID'}}})
-        .where({$eq: {'users.userID': 1}});
-      var del = new Delete(from);
-
-      expect(del.toString()).toBe
-      (
-        'DELETE  `users`\n' +
-        'FROM    `users` AS `users`\n' +
-        'INNER JOIN `phone_numbers` AS `phoneNumbers` ON `users`.`userID` = `phoneNumbers`.`userID`\n' +
-        'WHERE   `users`.`userID` = 1'
-      );
-    });
-
-    // Checks that a related table can be deleted.
-    it('checks that a related table can be deleted.', function()
-    {
-      var from = getFrom('users')
-        .innerJoin({table: 'phone_numbers', parent: 'users', on: {$eq: {'users.userID':'phoneNumbers.userID'}}})
-        .where({$eq: {'users.userID': 1}});
-      var del = new Delete(from, 'phoneNumbers');
-
-      expect(del.toString()).toBe
-      (
-        'DELETE  `phoneNumbers`\n' +
-        'FROM    `users` AS `users`\n' +
-        'INNER JOIN `phone_numbers` AS `phoneNumbers` ON `users`.`userID` = `phoneNumbers`.`userID`\n' +
-        'WHERE   `users`.`userID` = 1'
-      );
+      spyOn(query, 'buildQuery').and.returnValue({sql: 'DELETE FOO1'});
+      expect(query.toString()).toBe('DELETE FOO1');
     });
   });
 
-  describe('Delete execute test suite.', function()
-  {
-    // Deletes a single model.
-    it('deletes a single model.', function()
-    {
-      var from = getFrom('users')
-        .where({$eq: {'users.userID': 1}});
-      var del      = new Delete(from);
+  /**
+   * Execute.
+   */
+  describe('.execute()', function() {
+    // MySQLDelete is used for testing because it has a concrete implementation
+    // of buildQuery().
+    const MySQLDelete = insulin.get('ndm_MySQLDelete');
+
+    it('uses the QueryExecuter.delete() method to delete.', function() {
+      const from = getFrom('users u')
+        .where({$eq: {'u.userID': ':userID'}}, {userID: 1});
+      const del      = new MySQLDelete(from);
 
       del.execute();
       expect(qryExec.delete).toHaveBeenCalled();
+      expect(qryExec.delete.calls.argsFor(0)[0]).toBe(
+        'DELETE  `u`\n' +
+        'FROM    `users` AS `u`\n' +
+        'WHERE   `u`.`userID` = :userID'
+      );
+
+      expect(qryExec.delete.calls.argsFor(0)[1]).toEqual({userID: 1});
     });
 
-    // Checks that the promise is resolved.
-    it('checks that the promise is resolved.', function()
-    {
-      var del = new Delete(getFrom('users'));
+    it('returns a promise that resolves with the result of QueryExecuter.delete().', function() {
+      const del = new MySQLDelete(getFrom('users'));
 
-      qryExec.delete.and.callFake(function(query, callback)
-      {
-        var result = {affectedRows: 42};
-        callback(null, result);
-      });
+      qryExec.delete.and.callFake((query, params, callback) =>
+        callback(null, {affectedRows: 42}));
 
-      del.execute().then(function(result)
-      {
-        expect(result.affectedRows).toBe(42);
-      });
+      del
+        .execute()
+        .then(result => expect(result.affectedRows).toBe(42))
+        .catch(() => expect(true).toBe(false))
+        .done();
     });
 
-    // Checks that the promise is rejected.
-    it('checks that the promise is rejected.', function()
-    {
-      var del = new Delete(getFrom('users'));
+    it('propagates errors from the QueryExecuter.delete() method.', function() {
+      const del = new MySQLDelete(getFrom('users'));
 
-      qryExec.delete.and.callFake(function(query, callback)
-      {
-        callback('FAIL');
-      });
+      qryExec.delete.and.callFake((q, p, cb) => cb('FAIL'));
 
-      del.execute().catch(function(err)
-      {
-        expect(err).toBe('FAIL');
-      });
+      del
+        .execute()
+        .then(() => expect(true).toBe(false))
+        .catch(err => expect(err).toBe('FAIL'))
+        .done();
     });
   });
 });

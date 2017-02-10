@@ -1,0 +1,66 @@
+<div class="ndm-tutorial">
+  <p>
+    The results of a query can be ordered using the {@link Select#orderBy}
+    method.  In its simplest form, this variadic method can be passed multiple
+    strings that correspond to fully-qualified columns names.  Or, to change
+    the order direction, objects can be supplied.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  const query = dataContext
+    .from('staff s')
+    .select('s.staffID', 's.hasStoreKeys', 's.firstName')
+    .orderBy({column: 's.hasStoreKeys', dir: 'DESC'}, 's.firstName');
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    Here's the generated query and execution result (<span class="name">$ node
+    example/retrieve/order.js</span>):
+  </p>
+
+  <pre class="prettyprint source">
+Query:
+SELECT  `s`.`staffID` AS `s.staffID`,
+        `s`.`hasStoreKeys` AS `s.hasStoreKeys`,
+        `s`.`firstName` AS `s.firstName`
+FROM    `staff` AS `s`
+ORDER BY `s`.`hasStoreKeys` DESC, `s`.`firstName` ASC 
+
+Result:
+{ staff: 
+   [ { staffID: 4, hasStoreKeys: <Buffer 01>, firstName: 'Abe' },
+     { staffID: 2, hasStoreKeys: <Buffer 01>, firstName: 'John' },
+     { staffID: 5, hasStoreKeys: <Buffer 01>, firstName: 'Sal' },
+     { staffID: 6, hasStoreKeys: <Buffer 01>, firstName: 'Valerie' },
+     { staffID: 7, hasStoreKeys: <Buffer 00>, firstName: 'Kimberly' },
+     { staffID: 8, hasStoreKeys: <Buffer 00>, firstName: 'Michael' },
+     { staffID: 1, hasStoreKeys: <Buffer 00>, firstName: 'Randy' },
+     { staffID: 3, hasStoreKeys: <Buffer 00>, firstName: 'Tina' } ] }
+  </pre>
+</div>
+

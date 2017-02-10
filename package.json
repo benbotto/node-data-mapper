@@ -1,6 +1,6 @@
 {
   "name": "node-data-mapper",
-  "version": "1.0.19",
+  "version": "1.1.17",
   "description": "An object-relational mapper for node.js using the data mapper pattern.",
   "main": "index.js",
   "scripts": {
@@ -15,16 +15,18 @@
   },
   "devDependencies": {
     "coveralls": "^2.11.6",
-    "glob": "^5.0.13",
     "grunt": "^0.4.5",
     "grunt-contrib-jshint": "^0.11.2",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-jasmine-nodejs": "^1.4.2",
-    "istanbul": "^0.4.1"
+    "grunt-jasmine-nodejs": "^1.5.4",
+    "grunt-jsdoc": "^2.1.0",
+    "istanbul": "^0.4.1",
+    "node-data-mapper-mysql": "^1.1.2"
   },
   "dependencies": {
     "deferred": "^0.7.4",
-    "moment": "^2.13.0",
-    "mysql": "^2.9.0"
+    "glob": "^7.1.1",
+    "insulin": "^1.0.7",
+    "moment": "^2.13.0"
   }
 }

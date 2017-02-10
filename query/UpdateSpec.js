@@ -1,230 +1,119 @@
-describe('Update test suite.', function()
-{
+describe('Update()', function() {
   'use strict';
 
-  var Update       = require('./Update');
-  var From         = require('./From');
-  var Database     = require('../database/Database');
-  var MySQLEscaper = require('./MySQLEscaper');
-  var db           = new Database(require('../spec/testDB'));
-  var escaper      = new MySQLEscaper();
-  var qryExec;
+  const insulin      = require('insulin');
+  const Update       = insulin.get('ndm_Update');
+  const From         = insulin.get('ndm_From');
+  const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
+  const db           = insulin.get('ndm_testDB');
+  const escaper      = new MySQLEscaper();
+  let qryExec;
 
-  beforeEach(function()
-  {
-    qryExec = jasmine.createSpyObj('qryExec', ['update']);
-  });
+  beforeEach(() => qryExec = jasmine.createSpyObj('qryExec', ['update']));
 
-  function getFrom(meta)
-  {
+  function getFrom(meta) {
     return new From(db, escaper, qryExec, meta);
   }
 
-  describe('Update constructor test suite.', function()
-  {
-    // Checks the basic constructor.
-    it('checks the basic constructor.', function()
-    {
-      expect(function()
-      {
-        new Update(getFrom('users'), {users: {first: 'Joe', last: 'Simpson'}});
-      }).not.toThrow();
+  /**
+   * Constructor.
+   */
+  describe('.constructor()', function() {
+    it('extends Query.', function() {
+      const Query = insulin.get('ndm_Query');
+      const upd   = new Update(getFrom('users u'), {'u.firstName': 'jack'});
 
-      expect(function()
-      {
-        new Update(getFrom('users'),
-        {
-          users: {first: 'Joe', last: 'Simpson'},
-          products: {description: 'Nike Shoes'}
-        });
-      }).toThrowError('Table alias products is not available to be updated.');
-
-      expect(function()
-      {
-        var from = getFrom('users')
-          .innerJoin({table: 'phone_numbers', on: {$eq: {'users.userID':'phoneNumbers.userID'}}});
-
-        new Update(from,
-        {
-          users: {first: 'Joe', last: 'Simpson'},
-          phoneNumbers: {type: 'Mobile'}
-        });
-      }).not.toThrow();
+      expect(upd instanceof Query).toBe(true);
+      expect(upd.database).toBeDefined();
+      expect(upd.escaper).toBeDefined();
+      expect(upd.queryExecuter).toBeDefined();
     });
 
-    // Checks the basic getters.
-    it('checks the basic getters.', function()
-    {
-      var upd = new Update(getFrom('users'), {users: {first: 'Joe', last: 'Simpson'}});
-
-      expect(upd.getDatabase()).toBe(db);
-      expect(upd.getEscaper()).toBe(escaper);
-      expect(upd.getQueryExecuter()).toBe(qryExec);
+    it('throws an error if a model key does not match a fully-qualified column name.', function() {
+      expect(function() {
+        new Update(getFrom('users u'), {foo: 'bar'});
+      }).toThrowError('Column "foo" is not available for updating.');
     });
   });
 
-  describe('Update toString test suite.', function()
-  {
-    // Checks an empty model.
-    it('checks an empty model.', function()
-    {
-      var upd = new Update(getFrom('users'), {users: {}});
-      expect(upd.toString()).toBe('');
-    });
+  /**
+   * To string.
+   */
+  describe('.toString()', function() {
+    it('returns the sql from buildQuery().', function() {
+      const query = new Update(db, escaper, qryExec, {});
 
-    // Checks a model that has not table aliases.
-    it('checks a model that has not table aliases.', function()
-    {
-      var upd = new Update(getFrom('users'), {});
-      expect(upd.toString()).toBe('');
-    });
+      spyOn(query, 'buildQuery').and.returnValue({sql: 'UPDATE FOO'});
 
-    // Checks a single table update.
-    it('checks a single table update.', function()
-    {
-      var upd = new Update(getFrom('users'), {users: {first: 'Joe'}});
-      expect(upd.toString()).toBe
-      (
-        'UPDATE  `users` AS `users`\n' +
-        'SET\n' +
-        "`users`.`firstName` = 'Joe'"
-      );
-
-      upd = new Update(getFrom('users'), {users: {first: 'Joe', last: 'Smith'}});
-      expect(upd.toString()).toBe
-      (
-        'UPDATE  `users` AS `users`\n' +
-        'SET\n' +
-        "`users`.`firstName` = 'Joe',\n" +
-        "`users`.`lastName` = 'Smith'"
-      );
-    });
-
-    // Checks an update with an aliased table.
-    it('checks an update with an aliased table.', function()
-    {
-      var upd = new Update(getFrom({table: 'users', as: 'u'}), {u: {first: 'Joe'}});
-      expect(upd.toString()).toBe
-      (
-        'UPDATE  `users` AS `u`\n' +
-        'SET\n' +
-        "`u`.`firstName` = 'Joe'"
-      );
-    });
-
-    // Checks an update with a WHERE clause and joins.
-    it('checks an update with a WHERE clause and joins.', function()
-    {
-      var from = getFrom('users')
-        .innerJoin({table: 'phone_numbers', on: {$eq: {'users.userID':'phoneNumbers.userID'}}})
-        .where({$eq: {'users.userID':12}});
-      var upd = new Update(from,
-        {
-          users: {first: 'Steve', last: "O'Hare"},
-          phoneNumbers: {phone: '222-333-4444', type: 'Mobile'}
-        });
-      
-      expect(upd.toString()).toBe
-      (
-        'UPDATE  `users` AS `users`\n' +
-        'INNER JOIN `phone_numbers` AS `phoneNumbers` ON `users`.`userID` = `phoneNumbers`.`userID`\n' +
-        'SET\n' +
-        "`users`.`firstName` = 'Steve',\n" +
-        "`users`.`lastName` = 'O\\'Hare',\n" +
-        "`phoneNumbers`.`type` = 'Mobile'\n" +
-        'WHERE   `users`.`userID` = 12'
-      );
-    });
-
-    // Checks an update with a WHERE clause, joins, and aliases.
-    it('checks an update with a WHERE clause, joins, and aliases.', function()
-    {
-      var from = getFrom({table: 'users', as: 'u'})
-        .innerJoin({table: 'phone_numbers', as: 'pn', on: {$eq: {'u.userID':'pn.userID'}}})
-        .where({$eq: {'u.userID':12}});
-      var upd = new Update(from,
-        {
-          u: {first: 'Steve', last: "O'Hare"},
-          pn: {phone: '222-333-4444', type: 'Mobile'}
-        });
-      
-      expect(upd.toString()).toBe
-      (
-        'UPDATE  `users` AS `u`\n' +
-        'INNER JOIN `phone_numbers` AS `pn` ON `u`.`userID` = `pn`.`userID`\n' +
-        'SET\n' +
-        "`u`.`firstName` = 'Steve',\n" +
-        "`u`.`lastName` = 'O\\'Hare',\n" +
-        "`pn`.`type` = 'Mobile'\n" +
-        'WHERE   `u`.`userID` = 12'
-      );
+      expect(query.toString()).toBe('UPDATE FOO');
     });
   });
 
-  describe('Update execute test suite.', function()
-  {
-    // Updates a single model.
-    it('updates a single model.', function()
-    {
-      var from = getFrom('users')
-        .where({$eq: {'users.userID': 1}});
-      var upd  = new Update(from, {users: {first: 'Joe', last: 'Simpson'}});
+  /**
+   * Execute.
+   */
+  describe('.execute()', function() {
+    // MySQLUpdate is used for testing because it has a concrete implementation
+    // of buildQuery, making testing convenient.
+    const MySQLUpdate = insulin.get('ndm_MySQLUpdate');
+
+    it('resolves with 0 affectedRows if there are no columns to update.', function() {
+      const upd = new MySQLUpdate(getFrom('users u'), {});
+
+      upd
+        .execute()
+        .then(res => expect(res.affectedRows).toBe(0))
+        .catch(() => expect(true).toBe(false))
+        .done();
+
+      expect(qryExec.update).not.toHaveBeenCalled();
+    });
+
+    it('uses the queryExecuter.update() method to execute the SQL.', function() {
+      const upd = new MySQLUpdate(getFrom('users u'), {'u.firstName':'joe'});
 
       upd.execute();
       expect(qryExec.update).toHaveBeenCalled();
     });
 
-    // Checks that an empty update resolves with zero affected rows.
-    it('checks that an empty update resolves with zero affected rows.', function()
-    {
-      var from = getFrom('users')
-        .where({$eq: {'users.userID': 1}});
-      var upd  = new Update(from, {users: {}});
+    it('resolves with an object containing affectedRows, as reported by the '+
+      'queryExecuter.update() method.', function() {
+      const upd = new MySQLUpdate(getFrom('users u'), {'u.firstName':'joe'});
 
-      expect(upd.toString()).toBe('');
+      qryExec.update.and.callFake((query, params, callback) =>
+        callback(null, {affectedRows: 1}));
 
-      upd.execute().then(function(result)
-      {
-        expect(result.affectedRows).toBe(0);
-      });
-
-      expect(qryExec.update).not.toHaveBeenCalled();
+      upd
+        .execute()
+        .then(res => expect(res.affectedRows).toBe(1))
+        .catch(() => expect(true).toBe(false))
+        .done();
     });
 
-    // Checks that the promise is resolved.
-    it('checks that the promise is resolved.', function()
-    {
-      var upd = new Update(getFrom('users'), {users: {first: 'Joe'}});
+    it('propagates errors from the queryExecuter.update() method.', function() {
+      const err = new Error();
+      const upd = new MySQLUpdate(getFrom('users u'), {'u.firstName':'joe'});
 
-      qryExec.update.and.callFake(function(query, callback)
-      {
-        var result = {affectedRows: 1};
-        callback(null, result);
-      });
+      qryExec.update.and.callFake((query, params, callback) => callback(err));
 
-      upd.execute().then(function(result)
-      {
-        expect(result.affectedRows).toBe(1);
-      });
-
-      expect(qryExec.update).toHaveBeenCalled();
+      upd
+        .execute()
+        .then(() => expect(true).toBe(false))
+        .catch(e => expect(e).toBe(err))
+        .done();
     });
 
-    // Checks that the promise is rejected.
-    it('checks that the promise is rejected.', function()
-    {
-      var upd = new Update(getFrom('users'), {users: {first: 'Joe'}});
-
-      qryExec.update.and.callFake(function(query, callback)
-      {
-        callback('FAIL');
+    it('passes the query parameters to the queryExecuter.update() method.', function() {
+      const from = getFrom('users u')
+        .where({$eq: {'u.userID': ':userID'}}, {userID: 12});
+      const upd  = new MySQLUpdate(from, {
+        'u.firstName': 'Joe'
       });
 
-      upd.execute().catch(function(err)
-      {
-        expect(err).toBe('FAIL');
-      });
+      qryExec.update.and.callFake((query, params) =>
+        expect(params).toEqual({userID: 12, u_firstName_0: 'Joe'}));
 
+      upd.execute();
       expect(qryExec.update).toHaveBeenCalled();
     });
   });

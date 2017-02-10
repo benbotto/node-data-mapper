@@ -1,0 +1,133 @@
+<div class="ndm-tutorial">
+  <p>
+    In the last example you may have noticed that the <span
+    class="name">hasStoreKeys</span> property, which is defined as a <span
+    class="name">BIT</span> in the database, is serialized as a <span
+    class="name">Buffer</span>.  Usually, however, it's nice to convert <span
+    class="name">BIT</span> fields to <span class="name">booleans</span>.
+    node-data-mapper allows developers to attach converters to selected columns
+    on the fly.  (Note that there's also a way to attach converters at
+    initialization time, which allows developers to, for example, convert all
+    bit-type columns to booleans.  This is convered in the Schema tutorials.)
+  </p>
+
+  <p>
+    node-data-mapper has some built-in converters in the <span
+    class="name">converter</span> directory.  Let's take a look at the
+    pre-defined {@link BooleanConverter} object:
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+/** A converter that converts buffers and numbers to booleans and back. */
+class BooleanConverter {
+  /**
+   * Convert the "bit" to a boolean.
+   * @param {number|Buffer} bit - Either an instance of a Buffer containing a 1
+   * or a 0, or a number.
+   * @return {boolean} The bit's representation as a boolean.
+   */
+  onRetrieve(bit) {
+    if (bit === null || bit === undefined || bit === '')
+      return null;
+
+    if (Buffer.isBuffer(bit))
+      return bit[0] === 1;
+
+    return bit === '1' || bit === 1;
+  }
+
+  /**
+   * Convert a boolean to a bit.
+   * @param {boolean} bool - A boolean value.
+   * @return {number} The boolean's representation as a number (1 or 0),
+   * or null if bool is null or undefined.
+   */
+  onSave(bool) {
+    if (bool === null || bool === undefined || bool === '')
+      return null;
+    return bool ? 1 : 0;
+  }
+}
+  </pre>
+
+  </p>
+    A converter is an object with two functions: <span
+    class="name">onRetrieve</span> and <span class="name">onSave</span>. Each
+    function takes in a value and transforms it.  The former transforms for
+    serialization, and the latter transforms for saving (INSERT or UPDATE).  In
+    the above code, the {@link BooleanConverter#onRetrieve} method takes a
+    <span class="name">Buffer</span> or <span class="name">Number</span>
+    instance and converts it to a boolean (or null).
+  </p>
+
+  <p>
+    The following code snippet gives an example of using the {@link
+    BooleanConverter#onRetrieve} converter on the fly.  It also uses a simple
+    in-line converter to convert <span class="name">firstName</span> to
+    uppercase.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const booleanConverter = require('node-data-mapper').booleanConverter;
+const MySQLDriver      = require('node-data-mapper-mysql').MySQLDriver;
+const driver           = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  const query = dataContext
+    .from('staff s')
+    .select(
+      's.staffID',
+      // Convert "hasStoreKeys" to boolean.
+      {column: 's.hasStoreKeys', convert: booleanConverter.onRetrieve},
+      // Convert "firstName" to upper case.
+      {column: 's.firstName',    convert: fName => fName.toUpperCase()}
+    );
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+  </pre>
+
+  <p>
+    And here is the result (<span class="name">$ node example/retrieve/adHocConverter.js</span>):
+  </p>
+
+  <pre class="prettyprint source">
+Query:
+SELECT  `s`.`staffID` AS `s.staffID`,
+        `s`.`hasStoreKeys` AS `s.hasStoreKeys`,
+        `s`.`firstName` AS `s.firstName`
+FROM    `staff` AS `s` 
+
+Result:
+{ staff: 
+   [ { staffID: 1, hasStoreKeys: false, firstName: 'RANDY' },
+     { staffID: 2, hasStoreKeys: true, firstName: 'JOHN' },
+     { staffID: 3, hasStoreKeys: false, firstName: 'TINA' },
+     { staffID: 4, hasStoreKeys: true, firstName: 'ABE' },
+     { staffID: 5, hasStoreKeys: true, firstName: 'SAL' },
+     { staffID: 6, hasStoreKeys: true, firstName: 'VALERIE' },
+     { staffID: 7, hasStoreKeys: false, firstName: 'KIMBERLY' },
+     { staffID: 8, hasStoreKeys: false, firstName: 'MICHAEL' } ] }
+  </pre>
+</div>
+

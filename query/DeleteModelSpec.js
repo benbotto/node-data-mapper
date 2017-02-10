@@ -1,90 +1,56 @@
-describe('DeleteModel test suite.', function()
-{
+describe('DeleteModel()', function() {
   'use strict';
 
-  var DeleteModel  = require('./DeleteModel');
-  var Database     = require('../database/Database');
-  var MySQLEscaper = require('./MySQLEscaper');
-  var db           = new Database(require('../spec/testDB'));
-  var escaper      = new MySQLEscaper();
-  var qryExec;
+  const insulin      = require('insulin');
+  const MySQLEscaper = insulin.get('ndm_MySQLEscaper');
+  const db           = insulin.get('ndm_testDB');
+  const escaper      = new MySQLEscaper();
+  let qryExec;
 
-  beforeEach(function()
-  {
-    qryExec = jasmine.createSpyObj('qryExec', ['delete']);
-  });
+  beforeEach(() => qryExec = jasmine.createSpyObj('qryExec', ['delete']));
 
-  describe('DeleteModel toString test suite.', function()
-  {
-    // Checks that a single-model query is correct.
-    it('checks that a single-model query is correct.', function()
-    {
-      var del = new DeleteModel(db, escaper, qryExec, {users: {ID: 1}});
+  /**
+   * Execute.
+   */
+  describe('.execute()', function() {
+    // MySQLDeleteModel is used because it has an impl of buildQuery.
+    const MySQLDeleteModel = insulin.get('ndm_MySQLDeleteModel');
 
-      expect(del.toString()).toBe
-      (
-        'DELETE  `users`\n' +
-        'FROM    `users` AS `users`\n' +
-        'WHERE   (`users`.`userID` = 1)'
-      );
-    });
+    it('can delete a single model using QueryExecuter.delete().', function() {
+      qryExec.delete.and.callFake((query, params, callback) =>
+        callback(null, {affectedRows: 1}));
 
-    // If one works, multiple will work.  A multi-model spec is in
-    // MutateModelSpec.js.
-  });
-
-  describe('DeleteModel execute test suite.', function()
-  {
-    // Deletes a single model.
-    it('deletes a single model.', function()
-    {
-      qryExec.delete.and.callFake(function(query, callback)
-      {
-        callback(null, {affectedRows: 1});
-      });
-
-      new DeleteModel(db, escaper, qryExec, {users: {ID: 14}})
+      new MySQLDeleteModel(db, escaper, qryExec, {users: {ID: 14}})
         .execute()
-        .then(function(result)
-        {
-          expect(result.affectedRows).toBe(1);
-        });
+        .then(result => expect(result.affectedRows).toBe(1))
+        .catch(() => expect(true).toBe(false))
+        .done();
 
       expect(qryExec.delete).toHaveBeenCalled();
     });
 
-    // Deletes multiple models.
-    it('deletes multiple models.', function()
-    {
-      qryExec.delete.and.callFake(function(query, callback)
-      {
-        callback(null, {affectedRows: 1});
-      });
+    it('can delete multiple models, and reports the correct number of affected rows.',
+      function() {
+      qryExec.delete.and.callFake((query, params, callback) =>
+        callback(null, {affectedRows: 1}));
 
-      new DeleteModel(db, escaper, qryExec, {users: [{ID: 14}, {ID: 33}]})
+      new MySQLDeleteModel(db, escaper, qryExec, {users: [{ID: 14}, {ID: 33}]})
         .execute()
-        .then(function(result)
-        {
-          expect(result.affectedRows).toBe(2);
-        });
+        .then(result => expect(result.affectedRows).toBe(2))
+        .catch(() => expect(true).toBe(false))
+        .done();
 
       expect(qryExec.delete.calls.count()).toBe(2);
     });
 
-    // Checks that an error can be caught.
-    it('checks that an error can be caught.', function()
-    {
-      qryExec.delete.and.callFake(function(query, callback)
-      {
-        callback('FAILURE');
-      });
+    it('propagates query execution errors.', function() {
+      qryExec.delete.and.callFake((query, params, callback) => callback('FAILURE'));
 
-      new DeleteModel(db, escaper, qryExec, {users: [{ID: 14}, {ID: 33}]})
+      new MySQLDeleteModel(db, escaper, qryExec, {users: [{ID: 14}, {ID: 33}]})
         .execute()
-        .catch(function(err)
-        {
-          expect(err).toBe('FAILURE');
-        });
+        .then(() => expect(true).toBe(false))
+        .catch(err => expect(err).toBe('FAILURE'))
+        .done();
 
       expect(qryExec.delete).toHaveBeenCalled();
     });

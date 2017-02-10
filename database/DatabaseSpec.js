@@ -1,167 +1,120 @@
-describe('Database test suite', function()
-{
+describe('Database()', function() {
   'use strict';
 
-  var Database = require('./Database');
-  var Table    = require('./Table');
-  var testDB   = require('../spec/testDB');
+  const insulin  = require('insulin');
+  const Database = insulin.get('ndm_Database');
+  const Table    = insulin.get('ndm_Table');
+  const testSchema = insulin.get('ndm_testDBSchema');
+  let   db;
 
-  describe('Database constructor test suite.', function()
-  {
-    // Checks the minimal constructor.
-    it('checks the minimal constructor.', function()
-    {
-      var db = new Database({name: 'test'});
-      expect(db.getName()).toBe('test');
-      expect(db.getTables().length).toBe(0);
+  beforeEach(function() {
+    db = new Database(testSchema);
+  });
+
+  /**
+   * Constructor.
+   */
+  describe('.constructor()', function() {
+    it('only needs a name.', function() {
+      const db = new Database({name: 'test'});
+      expect(db.name).toBe('test');
+      expect(db.tables.length).toBe(0);
     });
 
-    // Checks the constructor with no name.
-    it('checks the constructor with no name.', function()
-    {
-      var db = new Database({});
-      expect(db.getName()).toBe('');
+    it('requires a name.', function() {
+      expect(function() {
+        new Database({});
+      }).toThrowError('Database name is required.');
     });
 
-    // Checks the constructor with an array of tables.
-    it('checks the constructor with an array of tables.', function()
-    {
-      var db = new Database(testDB);
+    it('accepts an array of tables.', function() {
+      const db = new Database(testSchema);
 
-      expect(db.getName()).toBe('testDB');
-      expect(db.getTables().length).toBe(3);
-      expect(db.getTables()[0].getName()).toBe('users');
-      expect(db.getTables()[1].getName()).toBe('phone_numbers');
-      expect(db.getTables()[2].getName()).toBe('products');
+      expect(db.name).toBe('testDB');
+      expect(db.tables.length).toBe(testSchema.tables.length);
+      expect(db.tables[0].name).toBe('users');
+      expect(db.tables[1].name).toBe('phone_numbers');
+      expect(db.tables[2].name).toBe('products');
+    });
+
+    it('keeps a RelationshipStore instance in relStore.', function() {
+      const db = new Database(testSchema);
+      expect(db.relStore).toBeDefined();
     });
   });
 
-  describe('Database tables test suite.', function()
-  {
-    var db;
-
-    beforeEach(function()
-    {
-      db = new Database(testDB);
+  /**
+   * Get table by name.
+   */
+  describe('.getTableByName()', function() {
+    it('can retrieve a table by name.', function() {
+      expect(db.getTableByName('users').name).toBe('users');
+      expect(db.getTableByName('phone_numbers').mapTo).toBe('phoneNumbers');
     });
 
-    // Makes sure the tables exist.
-    it('makes sure the tables exist.', function()
-    {
-      expect(db.getTableByName('users').getName()).toBe('users');
-      expect(db.getTableByName('phone_numbers').getAlias()).toBe('phoneNumbers');
-      expect(db.getTableByAlias('phoneNumbers').getName()).toBe('phone_numbers');
-      expect(db.getTableByAlias('phoneNumbers')).toBe(db.getTableByName('phone_numbers'));
-
-      expect(db.isTableName('users')).toBe(true);
-      expect(db.isTableName('phone_numbers')).toBe(true);
-      expect(db.isTableName('foo')).toBe(false);
-      expect(db.isTableAlias('users')).toBe(true);
-      expect(db.isTableAlias('phoneNumbers')).toBe(true);
-      expect(db.isTableAlias('foo')).toBe(false);
-    });
-
-    // Adds a duplicate table.
-    it('adds a duplicate table.', function()
-    {
-      expect(function()
-      {
-        db.addTable(testDB.tables[0]);
-      }).toThrowError('Table users already exists in database testDB.');
-
-      expect(function()
-      {
-        db.addTable({name: 'foo', alias: 'users', columns: testDB.tables[0].columns});
-      }).toThrowError('Table alias users already exists in database testDB.');
-    });
-
-    // Tries to get an invalid table by name.
-    it('tries to get an invalid table by name.', function()
-    {
-      expect(function()
-      {
+    it('throws when trying to get a table using an invalid name.', function() {
+      expect(function() {
         db.getTableByName('INVALID_NAME');
       }).toThrowError('Table INVALID_NAME does not exist in database testDB.');
     });
+  });
 
-    // Tries to get an invalid table by alias.
-    it('tries to get an invalid table by alias.', function()
-    {
-      expect(function()
-      {
-        db.getTableByAlias('INVALID_ALIAS');
-      }).toThrowError('Table alias INVALID_ALIAS does not exist in database testDB.');
+  /**
+   * Get table by mapping.
+   */
+  describe('.getTableByMapping()', function() {
+    it('chan retrieve a table by mapping.', function() {
+      expect(db.getTableByMapping('phoneNumbers').name).toBe('phone_numbers');
+      expect(db.getTableByMapping('phoneNumbers')).toBe(db.getTableByName('phone_numbers'));
     });
 
-    // Makes sure that a table can be added as a Table instance.
-    it('makes sure that a table can be added as a Table instance.', function()
-    {
-      var tbl = new Table({name: 'foo', columns: [{name: 'bar', isPrimary: true}]});
+    it('throws when trying to get a table using an invalid mapping.', function() {
+      expect(function() {
+        db.getTableByMapping('INVALID_MAPPING');
+      }).toThrowError('Table mapping INVALID_MAPPING does not exist in database testDB.');
+    });
+  });
+
+  /**
+   * Is table mapping.
+   */
+  describe('.isTableMapping()', function() {
+    it('can check if a table is valid based on its mapping.', function() {
+      expect(db.isTableMapping('users')).toBe(true);
+      expect(db.isTableMapping('phoneNumbers')).toBe(true);
+      expect(db.isTableMapping('foo')).toBe(false);
+    });
+  });
+
+  /**
+   * Is table name.
+   */
+  describe('.isTablename()', function() {
+    it('can check if a table is valid based on its name.', function() {
+      expect(db.isTableName('users')).toBe(true);
+      expect(db.isTableName('phone_numbers')).toBe(true);
+      expect(db.isTableName('foo')).toBe(false);
+    });
+  });
+
+  /**
+   * Add table.
+   */
+  describe('.addTable()', function() {
+    it('prevents duplicate tables from being added.', function() {
+      expect(function() {
+        db.addTable(testSchema.tables[0]);
+      }).toThrowError('Table users already exists in database testDB.');
+
+      expect(function() {
+        db.addTable({name: 'foo', mapTo: 'users', columns: testSchema.tables[0].columns});
+      }).toThrowError('Table mapping users already exists in database testDB.');
+    });
+
+    it('allows new tables to be added.', function() {
+      const tbl = new Table({name: 'foo', columns: [{name: 'bar', isPrimary: true}]});
       expect(db.addTable(tbl)).toBe(db);
     });
   });
-
-  describe('Database toObject test suite.', function()
-  {
-    // Converts a db back to an object.
-    it('converts a db back to an object.', function()
-    {
-      var db = new Database
-      ({
-        name: 'testDB',
-        tables:
-        [
-          {
-            name: 'users',
-            columns:
-            [
-              {
-                name: 'userID',
-                alias: 'ID',
-                isPrimary: true
-              }
-            ]
-          },
-        ]
-      });
-
-      expect(db.toObject()).toEqual
-      ({
-        name: 'testDB',
-        tables:
-        [
-          {
-            name: 'users',
-            alias: 'users',
-            columns:
-            [
-              {
-                name: 'userID',
-                alias: 'ID',
-                isPrimary: true,
-                converter: {},
-                isNullable: true,
-                dataType: null,
-                maxLength: null,
-                defaultValue: null
-              }
-            ]
-          },
-        ]
-      });
-    });
-  });
-
-  describe('Database clone test tuite.', function()
-  {
-    // Clones a database.
-    it('clones a database.', function()
-    {
-      var db = new Database(testDB);
-      var clone = db.clone();
-
-      expect(db.toObject()).toEqual(clone.toObject());
-    });
-  });  
 });
 

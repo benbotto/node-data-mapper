@@ -1,141 +1,73 @@
 'use strict';
 
-var Query       = require('./Query');
-var deferred    = require('deferred');
-var MetaBuilder = require('./MetaBuilder');
-var assert      = require('../util/assert');
+require('insulin').factory('ndm_Update',
+  ['deferred', 'ndm_Query', 'ndm_assert'], ndm_UpdateProducer);
 
-/**
- * Construct a new UPDATE query.
- * @param from An instance of a From.
- * @param model A model object describing what to update.
- *        The format should be as follows.
- *        {
- *          <table-alias1>:
- *          {
- *            <column-alias1>: <column-value>,
- *            <column-aliasN>: <column-value>
- *          },
- *          <table-aliasN>:
- *          {
- *            ...
- *          }
- *        }
- */
-function Update(from, model)
-{
-  Query.call(this, from.getDatabase(), from.getEscaper(), from.getQueryExecuter());
+function ndm_UpdateProducer(deferred, Query, assert) {
+  /**
+   * A Query that represents an UPDATE.
+   * @extends Query
+   */
+  class Update extends Query {
+    /**
+     * Initialize the Query.
+     * @param {From} from - A From instance.
+     * @param {Object} model - An object containing key-value pairs.  Each key
+     * must correspond to a fully-qualified column name, as created by the
+     * Column.createFQColName() method
+     * (&lt;table-alias&gt;.&lt;column-name&gt;), and each associated value is
+     * the value to update in the database.
+     */
+    constructor(from, model) {
+      super(from.database, from.escaper, from.queryExecuter);
 
-  var metaBuilder = new MetaBuilder();
-  var dbTblAlias, meta;
+      this._from        = from;
+      this._model       = model;
+      this._paramLookup = {};
 
-  this._from    = from;
-  this._updMeta = [];
+      // Make sure each key in the model maps to a FQ column name.
+      for (let fqColName in this._model) {
+        assert(this._from._tableMetaList.isColumnAvailable(fqColName),
+          `Column "${fqColName}" is not available for updating.`);
+      }
+    }
 
-  for (var tblAlias in model)
-  {
-    assert(this._from._tableAliasLookup[tblAlias],
-      'Table alias ' + tblAlias + ' is not available to be updated.');
-    
-    // This is the alias of the table in the database which may differ from
-    // the alias that the user requested (From can have an ad-hoc "as").
-    dbTblAlias = this._from._tableAliasLookup[tblAlias].table.getAlias();
+    /**
+     * Create the UPDATE SQL statement.
+     * @return {string} The UPDATE statement, as a SQL string.
+     */
+    toString() {
+      const queryMeta = this.buildQuery();
+      return queryMeta ? queryMeta.sql : '';
+    }
 
-    // Build the meta for the object.
-    meta = metaBuilder.buildMeta(this._database, dbTblAlias, model[tblAlias]);
+    /**
+     * Execute the query.
+     * @return {Promise<object>} A promise that shall be resolved with an
+     * object containing an "affectedRows" property.  If an error occurs when
+     * executing the query, the returned promise shall be rejected with the
+     * error (unmodified).
+     */
+    execute() {
+      const defer     = deferred();
+      const queryMeta = this.buildQuery();
 
-    // Keep track of the user-defined table alias.
-    meta.tableAlias = tblAlias;
+      // If there is nothing to update, resolve the promise.
+      if (!queryMeta)
+        defer.resolve({affectedRows: 0});
+      else {
+        this.queryExecuter.update(queryMeta.sql, queryMeta.params, function(err, result) {
+          if (err)
+            defer.reject(err);
+          else
+            defer.resolve({affectedRows: result.affectedRows});
+        });
+      }
 
-    this._updMeta.push(meta);
+      return defer.promise;
+    }
   }
+
+  return Update;
 }
-
-// Update extends Query.
-Update.prototype = Object.create(Query.prototype);
-Update.prototype.constructor = Query;
-
-/**
- * Get the SET part of the query.
- */
-Update.prototype.getSetString = function()
-{
-  var set  = 'SET\n';
-  var sets = [];
-  
-  this._updMeta.forEach((meta) =>
-  {
-    var tblAlias = this._escaper.escapeProperty(meta.tableAlias);
-
-    meta.fields.forEach((field) =>
-    {
-      var colName = this._escaper.escapeProperty(field.columnName);
-      var colVal  = this._escaper.escapeLiteral(field.value);
-
-      sets.push(tblAlias + '.' + colName + ' = ' + colVal);
-    });
-  });
-
-  return sets.length ? set + sets.join(',\n') : '';
-};
-
-/**
- * Create the delete SQL.
- */
-Update.prototype.toString = function()
-{
-  var update, set, joins, where, sql;
-
-  // No tables to update.
-  if (this._updMeta.length === 0)
-    return '';
-
-  update = this._from.getFromString().replace(/^FROM  /, 'UPDATE');
-  set    = this.getSetString();
-  joins  = this._from.getJoinString();
-  where  = this._from.getWhereString();
-
-  // Table alias with no columns to update.
-  if (set === '')
-    return '';
-
-  sql = update;
-
-  if (joins)
-    sql += '\n' + joins;
-
-  sql += '\n' + set;
-
-  if (where)
-    sql += '\n' + where;
-
-  return sql;
-};
-
-/**
- * Execute the query.
- */
-Update.prototype.execute = function()
-{
-  var defer = deferred();
-  var sql   = this.toString();
-
-  // If there is nothing to update, resolve the promise.
-  if (!sql)
-    defer.resolve({affectedRows: 0});
-  else
-  {
-    this._queryExecuter.update(sql, function(err, result)
-    {
-      if (err)
-        defer.reject(err);
-      else
-        defer.resolve({affectedRows: result.affectedRows});
-    });
-  }
-
-  return defer.promise;
-};
-
-module.exports = Update;
 

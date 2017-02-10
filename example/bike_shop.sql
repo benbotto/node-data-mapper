@@ -28,6 +28,7 @@ CREATE TABLE staff
   lastName VARCHAR(255) NOT NULL,
   age INT,
   sex VARCHAR(20),
+  -- Note: intentionally not using BOOLEAN (a.k.a TINYINT(1)) for example purposes.
   hasStoreKeys BIT NOT NULL DEFAULT 0,
   hireDate DATE NOT NULL,
   bikeShopID INT NOT NULL,

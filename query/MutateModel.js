@@ -1,141 +1,129 @@
 'use strict';
 
-var From     = require('./From');
-var Query    = require('./Query');
-var traverse = require('./modelTraverse');
-var assert   = require('../util/assert');
-var deferred = require('deferred');
+require('insulin').factory('ndm_MutateModel',
+  ['deferred', 'ndm_assert', 'ndm_From', 'ndm_Query', 'ndm_Column',
+  'ndm_ModelTraverse'],
+  ndm_MutateModelProducer);
 
-/**
- * Base class for classes that mutate models by primary key (MutateModel and
- * UpdateModel).
- * @param database The database to mutate from.
- * @param escaper An instance of an Escaper matching the database type (i.e.
- *        MySQLEscaper or MSSQLEscaper).
- * @param queryExecuter A QueryExecuter instance that implements the
- *        mutate method.
- * @param model A model object to mutate.  Each key in the object should be a
- *        table alias.  The value associated with the key should be an object
- *        (or an array of objects) wherein each key corresponds to a column
- *        alias.  The primary key is required for each model.
- */
-function MutateModel(database, escaper, queryExecuter, model)
-{
-  Query.call(this, database, escaper, queryExecuter);
+function ndm_MutateModelProducer(deferred, assert, From, Query, Column, ModelTraverse) {
+  /**
+   * Base class for classes that mutate models by primary key (DeleteModel and
+   * UpdateModel).
+   * @extends Query
+   */
+  class MutateModel extends Query {
+    /**
+     * Initialize the instance.
+     * @param {Database} database - The database to mutate from.
+     * @param {Escaper} escaper - An instance of an Escaper matching the
+     * database type (e.g. MySQLEscaper).
+     * @param {QueryExecuter} queryExecuter - A QueryExecuter instance that
+     * implements the mutate (update or delete) method.
+     * @param {Object} model - A model object to mutate.  Each key in the
+     * object should map to a table.  The value associated with the key should
+     * be an object or an array of objects wherein each key maps to a column.
+     * The primary key is required for each model.
+     */
+    constructor(database, escaper, queryExecuter, model) {
+      super(database, escaper, queryExecuter);
 
-  this._modelMeta = [];
-  this._queries   = [];
+      const traverse = new ModelTraverse();
 
-  traverse.modelOnly(model, (mm) => this._modelMeta.push(mm), this._database);
+      /**
+       * An array of Query instances, one per model.
+       * @type {Query[]}
+       * @name MutateModel#queries
+       * @public
+       */
+      this.queries = [];
 
-  // Create a Query instance for each model.
-  this._modelMeta.forEach((meta) =>
-    this._queries.push(this.createQueryInstance(meta)));
-}
-
-// MutateModel extends Query.
-MutateModel.prototype = Object.create(Query.prototype);
-MutateModel.prototype.constructor = Query;
-
-/**
- * Get the array of queries.
- */
-MutateModel.prototype.getQueries = function()
-{
-  return this._queries;
-};
-
-/**
- * Create a Query instance.  Subclasses should implement this.
- * @param meta A meta object as created by the modelTraverse class.
- *        {
- *          tableAlias: <table-alias>,
- *          model:      <model>,
- *          parent:     <parent-model>
- *        }
- */
-MutateModel.prototype.createQueryInstance = function(meta)
-{
-  var table = this._database.getTableByAlias(meta.tableAlias);
-  var pk, i, from, where, wherePart, fqColName, params;
-
-  // The primary key is required to be on the model.
-  pk = table.getPrimaryKey();
-
-  for (i = 0; i < pk.length; ++i)
-  {
-    assert(meta.model[pk[i].getAlias()],
-      'Primary key not provided on model ' + meta.tableAlias + '.');
-  }
-
-  // Create a From instance for each mutation.
-  // Each part of the PK is combined together in an AND'd WHERE condition.
-  from   = new From(this._database, this._escaper, this._queryExecuter, table.getName());
-  where  = {$and: []};
-  params = {};
-
-  for (i = 0; i < pk.length; ++i)
-  {
-    fqColName = from.createFQColName(table.getAlias(), pk[i].getName());
-    wherePart = {$eq: {}};
-    wherePart.$eq[fqColName] = ':' + fqColName;
-    params[fqColName] = meta.model[pk[i].getAlias()];
-    where.$and.push(wherePart);
-  }
-
-  return from.where(where, params);
-};
-
-/**
- * Create the SQL.
- */
-MutateModel.prototype.toString = function()
-{
-  return this._queries.map(function(qry)
-  {
-    return qry.toString();
-  }).join(';\n\n');
-};
-
-/**
- * Execute the query.
- */
-MutateModel.prototype.execute = function()
-{
-  var defer = deferred();
-  var res   = {affectedRows: 0};
-  var self  = this;
-
-  // Execute one query at a time.  (Self-executing function.)
-  (function processQuery()
-  {
-    // No more queries in the queue.  Resolve the promise.
-    if (self._queries.length === 0)
-    {
-      defer.resolve(res);
-      return;
+      // Traverse the model, creating a Query instance for each.
+      traverse.modelOnly(model,
+        meta => this.queries.push(this.createQuery(meta)),
+        this.database);
     }
 
-    // Get the next query in the queue and execute it.
-    self._queries
-      .shift()
-      .execute()
-      .then(function(result)
-      {
-        // Keep track of the total affected rows.
-        res.affectedRows += result.affectedRows;
+    /**
+     * Create a Query instance.  Subclasses should specialize this method, as
+     * this only creates the From portion of the query.
+     * @param {ModelTraverse~ModelMeta} meta - A meta object as created by the
+     * modelTraverse class.
+     * @return {Query} A Query instance representing the mutation query.
+     */
+    createQuery(meta) {
+      const table  = this.database.getTableByMapping(meta.tableMapping);
+      const from   = new From(this.database, this.escaper, this.queryExecuter, table.name);
+      const where  = {$and: []};
+      const params = {};
 
-        // Recursively process the next query.
-        processQuery();
-      })
-      .catch(function(err)
-      {
-        defer.reject(err);
+      table.primaryKey.forEach(function(pk) {
+        // Each part of the PK is combined together in an AND'd WHERE condition.
+        const fqColName = Column.createFQColName(table.name, pk.name);
+        const paramName = from.paramList.createParameterName(fqColName);
+        const pkCond    = {$eq: {[fqColName]: `:${paramName}`}};
+
+        where.$and.push(pkCond);
+
+        // The primary key is required on each model.
+        assert(meta.model[pk.mapTo],
+          `Primary key not provided on model "${meta.tableMapping}."`);
+
+        params[paramName] = meta.model[pk.mapTo];
       });
-  })();
 
-  return defer.promise;
-};
+      return from.where(where, params);
+    }
 
-module.exports = MutateModel;
+    /**
+     * Create the SQL for each query.
+     * @return {string} A SQL string representing the mutation queries.
+     */
+    toString() {
+      return this.queries
+        .map(qry => qry.toString())
+        .join(';\n\n');
+    }
+
+    /**
+     * Execute the query.
+     * @return {Promise<object>} A promise that will be resolved with an
+     * object.  The object will have an affectedRows property.  If an error
+     * occurs when executing a query, the promise shall be rejected with the
+     * error unmodified.
+     */
+    execute() {
+      const defer = deferred();
+      const res   = {affectedRows: 0};
+      const self  = this;
+
+      // Execute one query at a time.  (Self-executing function.)
+      (function processQuery() {
+        // No more queries in the queue.  Resolve the promise.
+        if (self.queries.length === 0) {
+          defer.resolve(res);
+          return;
+        }
+
+        // Get the next query in the queue and execute it.
+        self.queries
+          .shift()
+          .execute()
+          .then(function(result) {
+            // Keep track of the total affected rows.
+            res.affectedRows += result.affectedRows;
+
+            // Recursively process the next query.
+            processQuery();
+          })
+          .catch(function(err) {
+            defer.reject(err);
+          });
+      })();
+
+      return defer.promise;
+    }
+  }
+
+  return MutateModel;
+}
 

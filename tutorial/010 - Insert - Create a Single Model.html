@@ -1,0 +1,74 @@
+<div class="ndm-tutorial">
+  <p>
+    Models are inserted into the database using the {@link DataContext#insert}
+    method, which takes a single object as a parameter.  Each key in the object
+    should correspond to a table mapping, and the value should be one or more
+    models.  Here's a quick example, which inserts a single <span
+    class="name">bike_shops</span> record.
+  </p>
+
+  <pre class="prettyprint source linenums">
+'use strict';
+
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
+
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  // Insert a single bike_shops record.
+  const query = dataContext
+    .insert({
+      bike_shops: {
+        name:    "Phil Billy's Bikes",
+        address: '432 Red Rider Rd.'
+      }
+    });
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  // Note that the ID is set on the model (e.g. result.bike_shops.bikeShopID).
+  console.log('Result:');
+  console.log(result);
+}
+
+  </pre>
+
+  <p>
+    The above example logs the following output (<span class="name">$ node
+    example/create/insertSingleModel.js</span>):
+  </p>
+
+  <pre class="prettyprint source linenums">
+Query:
+INSERT INTO `bike_shops` (`name`, `address`)
+VALUES (:name, :address) 
+
+Result:
+{ bike_shops: 
+   { name: 'Phil Billy\'s Bikes',
+     address: '432 Red Rider Rd.',
+     bikeShopID: 4 } }
+  </pre>
+
+  <p>
+    After a model is inserted, node-data-mapper automatically adds the primary
+    key to the model when it can.  This is possible when the underlying
+    database driver returns the inserted identifier from insert queries, which
+    generally means that the primary key will be added to models if the primary
+    key is an auto-incremented value.  In the output above, note that the <span
+    class="name">bikeShopID</span> has been added to the model.
+  </p>
+</div>
+

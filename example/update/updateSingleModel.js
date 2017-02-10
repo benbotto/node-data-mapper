@@ -1,36 +1,38 @@
 'use strict';
 
-var bikeShopDC = require('../bikeShopDataContext');
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
 
-// Updatea single model by ID.
-var query = bikeShopDC.update
-({
-  // The key is a table alias, and the value is an object (or array of objects)
-  // containing key-value pairs corresponding to column aliases.
-  bonuses:
-  {
-    // The primary key is required when updating a model.
-    bonusID: 3,
-    amount: 600,
-    reason: 'Super outstanding technical skills.'
-  }
-});
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
 
-console.log('Query:');
-console.log(query.toString(), '\n');
+function runQuery(dataContext) {
+  // Update a single model by ID.
+  const query = dataContext
+    .update({
+      bonuses: {
+        // The primary key is required when updating a model.
+        bonusID: 3,
+        amount:  600,
+        reason:  'Super outstanding technical skills.'
+      }
+    });
 
-// A promise is returned, and the result has an 'affectedRows' property.
-query.execute()
-  .then(function(result)
-  {
-    console.log('Result:');
-    console.log(result);
-  })
-  .catch(function(err)
-  {
-    console.log(err);
-  })
-  .finally(function()
-  {
-    bikeShopDC.getQueryExecuter().getConnectionPool().end();
-  });
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  // The result object will contain an affectedRows property, which is an
+  // integer that that reflects the number of updated records.
+  console.log('Result:');
+  console.log(result);
+}
+

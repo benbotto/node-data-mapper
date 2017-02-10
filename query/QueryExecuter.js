@@ -1,60 +1,93 @@
 'use strict';
 
-/**
- * A base interface for QueryExecuters.
- */
-function QueryExecuter()
-{
+require('insulin').factory('ndm_QueryExecuter', ndm_QueryExecuterProducer);
+
+function ndm_QueryExecuterProducer() {
+  /**
+   * A base interface for QueryExecuters.  Classes implementing this interface
+   * must implement select, insert, delete, and update methods.
+   */
+  class QueryExecuter {
+
+    /**
+     * A callback function that is fired after a select query is executed.
+     * @callback QueryExecuter~selectCallback
+     * @param {Error} error - An Error instance, or null if no error occurs.
+     * @param {Object[]} results - An array of results, as objects, wherein
+     * each key corresonds to a column.
+     */
+
+    /**
+     * Execute a select query.
+     * @param {string} query - The SQL to execute.
+     * @param {Object} params - An object containing query parameters for the
+     * query.  Each parameter will be preceded with a colon in query.
+     * @param {QueryExecuter~selectCallback} callback - A callback function
+     * that is called after the query is executed.
+     * @return {void}
+     */
+    select() {
+      throw new Error('QueryExecuter::select not implemented.');
+    }
+
+    /**
+     * A callback function that is fired after an insert query is executed.
+     * @callback QueryExecuter~insertCallback
+     * @param {Error} error - An Error instance, or null if no error occurs.
+     * @param {Object} result - An object that has an insertId property that
+     * corresponds to the identifier of the newly inserted record, if
+     * available.
+     */
+
+    /**
+     * Execute an insert query.
+     * @param {string} query - The SQL to execute.
+     * @param {Object} params - An object containing query parameters for the
+     * query.  Each parameter will be preceded with a colon in query.
+     * @param {QueryExecuter~insertCallback} callback - A callback function
+     * that is called after the query is executed.
+     * @return {void}
+     */
+    insert() {
+      throw new Error('QueryExecuter::insert not implemented.');
+    }
+
+    /**
+     * A callback function that is fired after an update or delete query is
+     * executed.
+     * @callback QueryExecuter~mutateCallback
+     * @param {Error} error - An Error instance, or null if no error occurs.
+     * @param {Object} result - An object that has an affectedRows property,
+     * indicating the number of rows affected (changed) by the query.
+     */
+
+    /**
+     * Execute an update query.
+     * @param {string} query - The SQL to execute.
+     * @param {Object} params - An object containing query parameters for the
+     * query.  Each parameter will be preceded with a colon in query.
+     * @param {QueryExecuter~mutateCallback} callback - A callback function
+     * that is called after the query is executed.
+     * @return {void}
+     */
+    update() {
+      throw new Error('QueryExecuter::update not implemented.');
+    }
+
+    /**
+     * Execute a delete query.
+     * @param {string} query - The SQL to execute.
+     * @param {Object} params - An object containing query parameters for the
+     * query.  Each parameter will be preceded with a colon in query.
+     * @param {QueryExecuter~mutateCallback} callback - A callback function
+     * that is called after the query is executed.
+     * @return {void}
+     */
+    delete() {
+      throw new Error('QueryExecuter::delete not implemented.');
+    }
+  }
+
+  return QueryExecuter;
 }
-
-/**
- * Execute a select query.
- * @param query The SQL to execute.  The query is expected to be escaped.
- * @param callback The callback function that is called when the query is executed.
- *        function callback(err, results)
- *        The results are an array, one entry per row, of objects
- *        that are pairs of column->value.
- */
-QueryExecuter.prototype.select = function(/*query, callback*/)
-{
-  throw new Error('QueryExecuter::select not implemented.');
-};
-
-/**
- * Execute an insert query.
- * @param query The SQL to execute.  The query is expected to be escaped.
- * @param callback The callback function that is called when the query is executed.
- *        function callback(err, result)
- *        If available, the result object should have an insertId property.
- */
-QueryExecuter.prototype.insert = function()
-{
-  throw new Error('QueryExecuter::insert not implemented.');
-};
-
-/**
- * Execute an update query.
- * @param query The SQL to execute.  The query is expected to be escaped.
- * @param callback The callback function that is called when the query is executed.
- *        function callback(err, result)
- *        The result should have an affectedRows property.
- */
-QueryExecuter.prototype.update = function()
-{
-  throw new Error('QueryExecuter::update not implemented.');
-};
-
-/**
- * Execute a delete query.
- * @param query The SQL to execute.  The query is expected to be escaped.
- * @param callback The callback function that is called when the query is executed.
- *        function callback(err, result)
- *        The result should have an affectedRows property.
- */
-QueryExecuter.prototype.delete = function()
-{
-  throw new Error('QueryExecuter::delete not implemented.');
-};
-
-module.exports = QueryExecuter;
 

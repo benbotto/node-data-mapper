@@ -1,109 +1,102 @@
 'use strict';
 
-var FromAdapter = require('../query/FromAdapter.js');
-var Insert      = require('../query/Insert.js');
-var DeleteModel = require('../query/DeleteModel.js');
-var UpdateModel = require('../query/UpdateModel.js');
+require('insulin').factory('ndm_DataContext', [], ndm_DataContextProducer);
 
-/**
- * The main interface to the ORM.  This class is expected to be extended by the
- * user (or created as a singleton).
- * @param database An instance of a Database.
- * @param escaper An instance of Escaper matching the database type (i.e.
- *        MySQLEscaper or MSSQLEscaper).
- * @param queryExecuter A QueryExecuter instance (i.e. a MySQLQueryExecuter).
- */
-function DataContext(database, escaper, queryExecuter)
-{
-  this._database      = database;
-  this._escaper       = escaper;
-  this._queryExecuter = queryExecuter;
+function ndm_DataContextProducer() {
+  /** 
+   * The main interface to the ORM, which provides access to CRUD operations.
+   * This class is expected to be extended by the user, or created as a
+   * singleton.
+   */
+  class DataContext {
+    /**
+     * Initialize the DC.
+     * @param {Database} database - A Database instance to query.
+     * @param {Escaper} escaper - An instance of an Escaper matching the
+     * database type (i.e. MySQLEscaper or MSSQLEscaper).
+     * @param {QueryExecuter} - queryExecuter A QueryExecuter instance.
+     */
+    constructor(database, escaper, queryExecuter) {
+      /**
+       * @property {Database} database - A database instance.
+       * @property {Escaper} escaper - An instance of an Escaper class that can
+       * escape query parts.
+       * @property {QueryExecuter} queryExecuter - An instance of a
+       * QueryExecuter that can execute CRUD operations.
+       */
+      this.database      = database;
+      this.escaper       = escaper;
+      this.queryExecuter = queryExecuter;
+    }
+
+    /**
+     * Create a new {@link Insert} instance.  Driver-specific DataContext
+     * implementations must implement this method.
+     * @param {Object} model - See the {@link Insert} constructor.
+     * @param {Database} [database] - An optional Database instance.  If
+     * passed, this parameter is used instead of the Database that's provided
+     * to the ctor.
+     * @return {Insert} An Insert instance.
+     */
+    insert(/*model, database*/) {
+      throw new Error('insert not implemented.');
+    }
+
+    /**
+     * Create a new {@link FromAdapter} instance, which can then be used to
+     * SELECT, DELETE, or UPDATE.
+     * @see FromAdapter
+     * @see From
+     * @param {TableMetaList~TableMeta|string} meta - See the {@link From}
+     * constructor.
+     * @param {Database} [database] - An optional Database instance.  If
+     * passed, this parameter is used instead of the Database that's provided
+     * to the ctor.
+     * @return {FromAdapter} A FromAdapter instance.
+     */
+    from(/*meta, database*/) {
+      throw new Error('from not implemented.');
+    }
+
+    /**
+     * Create a new UpdateModel instance that can be used to UPDATE a model by
+     * ID.  For complex UPDATE operations, use the {@link DataContext#from}
+     * method to obtain a {@link FromAdapter} instance, and then call {@link
+     * FromAdapter#update} on that instance.
+     * @param {Object} model - See the {@link UpdateModel} constructor.
+     * @param {Database} [database] - An optional Database instance.  If
+     * passed, this parameter is used instead of the Database that's provided
+     * to the ctor.
+     * @return {UpdateModel} A UpdateModel instance.
+     */
+    update(/*model, database*/) {
+      throw new Error('update not implemented.');
+    }
+
+    /**
+     * Create a new {@link DeleteModel} instance that can be used to delete a
+     * model by ID.  For complex DELETE operations, use the {@link
+     * DataContext#from} method to obtain a {@link FromAdapter} instance, and
+     * then call {@link FromAdapter#delete} on that instance.
+     * @param {Object} model - See the {@link DeleteModel} constructor.
+     * @param {Database} [database] - An optional Database instance.  If
+     * passed, this parameter is used instead of the Database that's provided
+     * to the ctor.
+     * @return {DeleteModel} A DeleteModel instance.
+     */
+    delete(/*model, database*/) {
+      throw new Error('delete not implemented.');
+    }
+
+    /**
+     * End the connection.
+     * @return {void}
+     */
+    end() {
+      throw new Error('end not implemented.');
+    }
+  }
+
+  return DataContext;
 }
-
-/**
- * Get the database.
- */
-DataContext.prototype.getDatabase = function()
-{
-  return this._database;
-};
-
-/**
- * Get the escaper instance.
- */
-DataContext.prototype.getEscaper = function()
-{
-  return this._escaper;
-};
-
-/**
- * Get the query executer instance.
- */
-DataContext.prototype.getQueryExecuter = function()
-{
-  return this._queryExecuter;
-};
-
-/**
- * Create a new FROM portion of a query, which can then be used to SELECT,
- * DELETE, or UPDATE.
- * @param meta A meta object describing the table to select from.  See the From
- *        constructor for details.
- * @param database An optional Database instance.  If passed, this parameter
- *        is used instead of the Database that's provided to the ctor.
- */
-DataContext.prototype.from = function(meta, database)
-{
-  database = database || this.getDatabase();
-  return new FromAdapter(database, this._escaper, this._queryExecuter, meta);
-};
-
-/**
- * Create a new INSERT query.
- * @param model A model object to insert.  Each key in the object should be a
- *        table alias.  The value associated with the key should be an object
- *        (or an array of objects) wherein each key corresponds to a column
- *        alias.
- * @param database An optional Database instance.  If passed, this parameter
- *        is used instead of the Database that's provided to the ctor.
- */
-DataContext.prototype.insert = function(model, database)
-{
-  database = database || this.getDatabase();
-  return new Insert(database, this._escaper, this._queryExecuter, model);
-};
-
-/**
- * Create a new DELETE query to delete a model by ID.  For more complex DELETE
- * statements, use the from method.
- * @param model A model object to delete.  Each key in the object should be a
- *        table alias.  The value associated with the key should be an object
- *        (or an array of objects) wherein each key corresponds to a column
- *        alias.  The primary key is required for each model.
- * @param database An optional Database instance.  If passed, this parameter
- *        is used instead of the Database that's provided to the ctor.
- */
-DataContext.prototype.delete = function(model, database)
-{
-  database = database || this.getDatabase();
-  return new DeleteModel(database, this._escaper, this._queryExecuter, model);
-};
-
-/**
- * Create a new UPDATE query to UPDATE a model by ID.  For more complex UPDATE
- * statements, use the from method.
- * @param model A model object to delete.  Each key in the object should be a
- *        table alias.  The value associated with the key should be an object
- *        wherein each key corresponds to a column alias.  The primary key is
- *        required for each model.
- * @param database An optional Database instance.  If passed, this parameter
- *        is used instead of the Database that's provided to the ctor.
- */
-DataContext.prototype.update = function(model, database)
-{
-  database = database || this.getDatabase();
-  return new UpdateModel(database, this._escaper, this._queryExecuter, model);
-};
-
-module.exports = DataContext;
 

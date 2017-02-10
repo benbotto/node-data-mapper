@@ -1,167 +1,167 @@
 'use strict';
 
-var assert = require('../util/assert');
-var Column = require('./Column');
+require('insulin')
+  .factory('ndm_Table', ['ndm_assert', 'ndm_Column', 'ndm_ForeignKey'],
+  ndm_TableProducer);
 
-/**
- * Represents a database table.
- * @param table An object containing a table definition, in the following format.
- * {
- *   name:       string,        // Required.  The name of the table.
- *   columns:    array<Column>, // An array of Columns (or object suitable for
- *                              // the Column constructor) that make up the table.
- *                              // Refer to the Column constructor for property details.
- *                              // At least one of the columns must be a primary key.
- *   alias:      string         // An optional alias for the table, used for serializing.
- *                              // Defaults to the table name.
- * }
- */
-function Table(table)
-{
-  assert(table.name, 'name is required.');
+function ndm_TableProducer(assert, Column, ForeignKey) {
+  /** Represents a database table. */
+  class Table {
+    /**
+     * Initialize the table using a schema object.
+     * @param {Object} table - An object containing a table definition.
+     * @param {string} table.name - The name of the table.
+     * @param {string} [table.mapTo=table.name] - When a resource is pulled from
+     * this table and serialized, this mapping will be used in the resulting
+     * object.
+     * @param {Column[]|object[]} table.columns - An array of Columns--or
+     * object suitable for the Column constructor--that make up the table.
+     * Refer to the Column constructor for property details.  At least one of
+     * the columns must be a primary key.
+     * @param {ForeignKey[]|object[]} table.foreignKeys - An array of
+     * ForeignKey instances, or objects suitable for the ForeignKey
+     * constructor.
+     */
+    constructor(table) {
+      assert(table.name, 'name is required.');
+      assert(table.columns && (table.columns instanceof Array) && table.columns.length !== 0,
+        'columns is required.');
 
-  this._name        = table.name;
-  this._alias       = table.alias || this._name;
-  this._columns     = [];
-  this._primaryKey  = [];
-  this._nameLookup  = {};
-  this._aliasLookup = {};
+      // Copy all the properties from table.  Anything that the user adds to the
+      // table will be preserved.
+      Object.assign(this, table);
 
-  assert(table.columns && (table.columns instanceof Array) && table.columns.length !== 0,
-    'columns is required.');
+      // Objects are used here instead of Maps for efficiency reasons.
+      this._nameLookup  = {};
+      this._mapToLookup = {};
 
-  table.columns.forEach(this.addColumn, this);
+      /**
+       * The name of the column.
+       * @type {string}
+       * @name Table#name
+       * @public
+       */
 
-  // Make sure there is at least one primary key.
-  assert(this._primaryKey.length !== 0,
-    'At least one column must be a primary key.');
+      /**
+       * The property name in the resulting normalized object.
+       * @type {string}
+       * @name Table#mapTo
+       * @default table.name
+       * @public
+       */
+      this.mapTo = this.mapTo || this.name;
+
+      /**
+       * The array of columns.
+       * @type {Column[]}
+       * @name Table#columns
+       * @public
+       */
+      this.columns = [];
+
+      /**
+       * The table's primary key.
+       * @type {Column[]}
+       * @name Table#primaryKey
+       * @public
+       */
+      this.primaryKey = [];
+
+      /**
+       * An array of ForeignKey instances describing the relationship between
+       * this table and others.
+       * @type {ForeignKey[]}
+       * @name Table#foreignKeys
+       * @public
+       */
+      if (!this.foreignKeys)
+        this.foreignKeys = [];
+      else {
+        // The table name is added explicitly.
+        this.foreignKeys = this.foreignKeys.map(fk =>
+          new ForeignKey(Object.assign({table: this.name}, fk)));
+      }
+
+      // Add all the columns.
+      table.columns.forEach(this.addColumn, this);
+
+      // Make sure there is at least one primary key.
+      assert(this.primaryKey.length !== 0,
+        'At least one column must be a primary key.');
+    }
+
+    /**
+     * Add a column.
+     * @param {Column|object} column - The Column, or a suitable schema object
+     * for the Column constructor.
+     * @return {this}
+     */
+    addColumn(column) {
+      // Either an instance of Column or an object can be used.  If an object is
+      // passed in, then a Column instance is created.
+      if (!(column instanceof Column))
+        column = new Column(column);
+
+      // Name and mapTo have to be unique.
+      assert(this._nameLookup[column.name] === undefined,
+        `Column ${column.name} already exists in table ${this.name}.`);
+      assert(this._mapToLookup[column.mapTo] === undefined,
+        `Column mapping ${column.mapTo} already exists in table ${this.name}.`);
+
+      // Store the column, and keep some lookups.
+      this.columns.push(column);
+      this._nameLookup[column.name]   = column;
+      this._mapToLookup[column.mapTo] = column;
+
+      if (column.isPrimary)
+        this.primaryKey.push(column);
+
+      return this;
+    }
+
+    /**
+     * Get a column by name.
+     * @param {string} name - The column name.
+     * @return {Column} The Column instance.
+     */
+    getColumnByName(name) {
+      assert(this._nameLookup[name] !== undefined,
+        `Column ${name} does not exist in table ${this.name}.`);
+
+      return this._nameLookup[name];
+    }
+
+    /**
+     * Check if name matches a column.
+     * @param {string} name - The column name.
+     * @return {boolean}
+     */
+    isColumnName(name) {
+      return this._nameLookup[name] !== undefined;
+    }
+
+    /**
+     * Get a column by mapping (it's mapTo property).
+     * @param {string} mapping - The column's mapTo property.
+     * @return {Column} The column instance.
+     */
+    getColumnByMapping(mapping) {
+      assert(this._mapToLookup[mapping] !== undefined,
+        `Column mapping ${mapping} does not exist in table ${this.name}.`);
+
+      return this._mapToLookup[mapping];
+    }
+
+    /**
+     * Check if mapping matches a column.
+     * @param {string} mapping - The column's mapTo property.
+     * @return {boolean}
+     */
+    isColumnMapping(mapping) {
+      return this._mapToLookup[mapping] !== undefined;
+    }
+  }
+
+  return Table;
 }
-
-/**
- * Get the name of the table.
- */
-Table.prototype.getName = function()
-{
-  return this._name;
-};
-
-/**
- * Get the table's alias.
- */
-Table.prototype.getAlias = function()
-{
-  return this._alias;
-};
-
-/**
- * Get the array of columns.
- */
-Table.prototype.getColumns = function()
-{
-  return this._columns;
-};
-
-/**
- * Get the primary key, which is of type array<Column>;
- */
-Table.prototype.getPrimaryKey = function()
-{
-  return this._primaryKey;
-};
-
-/**
- * Add a column.
- * @param column The Column, or suitable Column constructor object.
- */
-Table.prototype.addColumn = function(column)
-{
-  // Either an instance of Column or an object can be used.  If an object is
-  // passed it, then a Column instance is created.
-  if (!(column instanceof Column))
-    column = new Column(column);
-
-  assert(this._nameLookup[column.getName()] === undefined,
-    'Column ' + column.getName() + ' already exists in table ' + this.getName() + '.');
-  assert(this._aliasLookup[column.getAlias()] === undefined,
-    'Column alias ' + column.getAlias() + ' already exists in table ' + this.getName() + '.');
-
-  this._columns.push(column);
-  this._nameLookup[column.getName()]   = column;
-  this._aliasLookup[column.getAlias()] = column;
-
-  if (column.isPrimary())
-    this._primaryKey.push(column);
-
-  return this;
-};
-
-/**
- * Get a column by name.
- * @param name The column name.
- */
-Table.prototype.getColumnByName = function(name)
-{
-  assert(this._nameLookup[name],
-    'Column ' + name + ' does not exist in table ' + this.getName() + '.');
-
-  return this._nameLookup[name];
-};
-
-/**
- * Check if name is a valid column name.
- * @param name The column name.
- */
-Table.prototype.isColumnName = function(name)
-{
-  return !!this._nameLookup[name];
-};
-
-/**
- * Get a column by alias.
- * @param alias The column alias.
- */
-Table.prototype.getColumnByAlias = function(alias)
-{
-  assert(this._aliasLookup[alias],
-    'Column alias ' + alias + ' does not exist in table ' + this.getName() + '.');
-
-  return this._aliasLookup[alias];
-};
-
-/**
- * Check if alias is a valid column alias.
- * @param alias The column alias.
- */
-Table.prototype.isColumnAlias = function(alias)
-{
-  return !!this._aliasLookup[alias];
-};
-
-/**
- * Convert the Table instance to an object.
- */
-Table.prototype.toObject = function()
-{
-  var obj =
-  {
-    name:    this._name,
-    alias:   this._alias,
-    columns: []
-  };
-
-  for (var i = 0; i < this._columns.length; ++i)
-    obj.columns.push(this._columns[i].toObject());
-
-  return obj;
-};
-
-/**
- * Clone this Table.
- */
-Table.prototype.clone = function()
-{
-  return new Table(this.toObject());
-};
-
-module.exports = Table;
 

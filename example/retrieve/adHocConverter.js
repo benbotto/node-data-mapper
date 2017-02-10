@@ -1,32 +1,36 @@
 'use strict';
 
-var bikeShopDC = require('../bikeShopDataContext');
+const booleanConverter = require('node-data-mapper').booleanConverter;
+const MySQLDriver      = require('node-data-mapper-mysql').MySQLDriver;
+const driver           = new MySQLDriver(require('../bikeShopConOpts.json'));
 
-// Convert a str to upper case.
-function ucConverter(str)
-{
-  return str.toUpperCase();
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
+
+function runQuery(dataContext) {
+  const query = dataContext
+    .from('staff s')
+    .select(
+      's.staffID',
+      // Convert "hasStoreKeys" to boolean.
+      {column: 's.hasStoreKeys', convert: booleanConverter.onRetrieve},
+      // Convert "firstName" to upper case.
+      {column: 's.firstName',    convert: fName => fName.toUpperCase()}
+    );
+
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  return query
+    .execute();
 }
 
-// The firstName property will be converted to upper case.
-var query = bikeShopDC
-  .from('staff')
-  .select('staff.staffID', {column: 'staff.firstName', convert: ucConverter});
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
 
-console.log('Query:');
-console.log(query.toString(), '\n');
-
-query.execute()
-  .then(function(result)
-  {
-    console.log('Result:');
-    console.log(result);
-  })
-  .catch(function(err)
-  {
-    console.log(err);
-  })
-  .finally(function()
-  {
-    bikeShopDC.getQueryExecuter().getConnectionPool().end();
-  });

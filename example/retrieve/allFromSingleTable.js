@@ -1,28 +1,36 @@
 'use strict';
 
-var bikeShopDC = require('../bikeShopDataContext');
+const MySQLDriver = require('node-data-mapper-mysql').MySQLDriver;
+const driver      = new MySQLDriver(require('../bikeShopConOpts.json'));
 
-// Select all columns from the bike_shops table.
-var query = bikeShopDC.from('bike_shops').select();
+// 1) Initialize node-data-mapper.
+// 2) Retrieve all the records from the bike_shops table.
+// 3) Print the results on the console.
+// 4) Close the DB connection.
+driver
+  .initialize()
+  .then(runQuery)
+  .then(printResult)
+  .catch(console.error)
+  .finally(() => driver.end());
 
-// This is the query that will be executed.
-console.log('Query:');
-console.log(query.toString(), '\n');
+function runQuery(dataContext) {
+  // Select all columns from the bike_shops table.
+  const query = dataContext
+    .from('bike_shops')
+    .select();
 
-// Executing a query returns a promise, as defined by the deferred API.
-// https://www.npmjs.com/package/deferred
-query.execute()
-  .then(function(result)
-  {
-    console.log('Result:');
-    console.log(result);
-  })
-  .catch(function(err)
-  {
-    console.log(err);
-  })
-  .finally(function()
-  {
-    // Close the connection.
-    bikeShopDC.getQueryExecuter().getConnectionPool().end();
-  });
+  // This is the query that will be executed.
+  console.log('Query:');
+  console.log(query.toString(), '\n');
+
+  // Executing a query returns a promise.
+  return query
+    .execute();
+}
+
+function printResult(result) {
+  console.log('Result:');
+  console.log(result);
+}
+

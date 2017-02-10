@@ -1,249 +1,192 @@
-describe('Table test suite', function()
-{
+describe('Table()', function() {
   'use strict';
 
-  var Table  = require('./Table');
-  var Column = require('./Column');
-  var users  = require('../spec/testDB').tables[0];
+  const insulin = require('insulin');
+  const Table   = insulin.get('ndm_Table');
+  const Column  = insulin.get('ndm_Column');
+  const testDB  = insulin.get('ndm_testDBSchema');
+  const users   = testDB.tables[0];
 
-  describe('Table constructor test suite.', function()
-  {
-    // Checks that name is required.
-    it('checks that name is required.', function()
-    {
-      expect(function()
-      {
+  let usersTbl;
+
+  beforeEach(function() {
+    usersTbl = new Table(users);
+  });
+
+  /**
+   * Ctor.
+   */
+  describe('.constructor()', function() {
+    it('requires a name.', function() {
+      expect(function() {
         new Table({});
       }).toThrowError('name is required.');
     });
 
-    // Checks that the primary key is required.
-    it('checks that the primary key is required.', function()
-    {
-      expect(function()
-      {
-        new Table
-        ({
+    it('requires a primary key.', function() {
+      expect(function() {
+        new Table({
           name:    'foo',
-          columns: [{name: 'firstName', alias: 'first'}]
+          columns: [{name: 'firstName'}]
         });
       }).toThrowError('At least one column must be a primary key.');
     });
 
-    // Checks the minimal constructor.
-    it('checks the minimal constructor.', function()
-    {
-      var table = new Table(users);
-
-      expect(table.getName()).toBe('users');
-      expect(table.getAlias()).toBe('users');
-      expect(table.getPrimaryKey().length).toBe(1);
-      expect(table.getPrimaryKey()[0].getName()).toEqual(users.columns[0].name);
-    });
-
-    // Checks that columns is required.
-    it('checks that columns is required.', function()
-    {
-      expect(function()
-      {
+    it('requires columns.', function() {
+      expect(function() {
         new Table({name: 'foo'});
       }).toThrowError('columns is required.');
     });
 
-    // Checks the constructor with an alias.
-    it('checks the constructor with an alias.', function()
-    {
-      var table = new Table
-      ({
+    it('can be constructed with a name and a primary key column.', function() {
+      const table = new Table(users);
+
+      expect(table.name).toBe('users');
+      expect(table.mapTo).toBe('users');
+      expect(table.primaryKey.length).toBe(1);
+      expect(table.primaryKey[0].name).toEqual(users.columns[0].name);
+    });
+
+    it('allows a custom mapping.', function() {
+      const table = new Table({
         name:    'Test',
-        alias:   'TestAlias',
+        mapTo:   'tester',
         columns: users.columns
       });
 
-      expect(table.getName()).toBe('Test');
-      expect(table.getAlias()).toBe('TestAlias');
-      expect(table.getPrimaryKey().length).toBe(1);
-      expect(table.getPrimaryKey()[0].getName()).toBe(users.columns[0].name);
+      expect(table.name).toBe('Test');
+      expect(table.mapTo).toBe('tester');
     });
 
-    // Checks the constructor with multiple primary keys.
-    it('checks the constructor with multiple primary keys.', function()
-    {
-      var cols  = users.columns.concat({name: 'pk2', isPrimary: true});
-      var table = new Table
-      ({
+    it('supports multiple primary keys.', function() {
+      const cols  = users.columns.concat({name: 'pk2', isPrimary: true});
+      const table = new Table({
         name:    'Test',
         columns: cols
       });
 
-      expect(table.getPrimaryKey().length).toBe(2);
-      expect(table.getPrimaryKey()[0].getName()).toBe(cols[0].name);
-      expect(table.getPrimaryKey()[1].getName()).toBe(cols[3].name);
+      expect(table.primaryKey.length).toBe(2);
+      expect(table.primaryKey[0].name).toBe(cols[0].name);
+      expect(table.primaryKey[1].name).toBe(cols[3].name);
+    });
+    
+    it('stores Column instances.', function() {
+      expect(usersTbl.columns.length).toBe(3);
+      expect(usersTbl.columns[0].name).toBe('userID');
+      expect(usersTbl.columns[1].name).toBe('firstName');
+      expect(usersTbl.columns[2].name).toBe('lastName');
+    });
+
+    it('has an empty array of foreign keys by default.', function() {
+      expect(usersTbl.foreignKeys).toEqual([]);
+    });
+
+    it('converts each foreign key definition to a ForeignKey instance.', function() {
+      const phonesTbl  = new Table(testDB.tables[1]);
+      const ForeignKey = insulin.get('ndm_ForeignKey');
+      let   fk;
+
+      expect(phonesTbl.foreignKeys.length).toBe(1);
+      fk = phonesTbl.foreignKeys[0];
+      expect(fk instanceof ForeignKey).toBe(true);
+      expect(fk.column).toBe('userID');
+      expect(fk.references.table).toBe('users');
+      expect(fk.references.column).toBe('userID');
     });
   });
 
-  describe('Table columns test suite', function()
-  {
-    var usersTbl;
+  /**
+   * Get column by name.
+   */
+  describe('.getColumnByName()', function() {
+    it('allows columns to be retrieved by name.', function() {
+      const userID    = usersTbl.getColumnByName('userID');
+      const firstName = usersTbl.getColumnByName('firstName');
+      const lastName  = usersTbl.getColumnByName('lastName');
 
-    // Set up a dummy table.
-    beforeEach(function()
-    {
-      usersTbl = new Table(users);
+      expect(userID.name).toBe('userID');
+      expect(userID.mapTo).toBe('ID');
+      expect(firstName.name).toBe('firstName');
+      expect(firstName.mapTo).toBe('first');
+      expect(lastName.name).toBe('lastName');
+      expect(lastName.mapTo).toBe('last');
     });
 
-    // Checks that three columns exist.
-    it('checks that three columns exist.', function()
-    {
-      expect(usersTbl.getColumns().length).toBe(3);
-      expect(usersTbl.getColumns()[0].getName()).toBe('userID');
-      expect(usersTbl.getColumns()[1].getName()).toBe('firstName');
-      expect(usersTbl.getColumns()[2].getName()).toBe('lastName');
-    });
-
-    // Tries to add a column that already exists.
-    it('tries to add a column that already exists.', function()
-    {
-      expect(function()
-      {
-        usersTbl.addColumn(new Column({name: 'userID'}));
-      }).toThrowError('Column userID already exists in table users.');
-
-      expect(function()
-      {
-        usersTbl.addColumn(new Column({name: 'foo', alias: 'ID'}));
-      }).toThrowError('Column alias ID already exists in table users.');
-    });
-
-    // Checks that columns can be retrieved by name.
-    it('checks that columns can be retrieved by name.', function()
-    {
-      var userID    = usersTbl.getColumnByName('userID');
-      var firstName = usersTbl.getColumnByName('firstName');
-      var lastName  = usersTbl.getColumnByName('lastName');
-
-      expect(userID.getName()).toBe('userID');
-      expect(userID.getAlias()).toBe('ID');
-      expect(firstName.getName()).toBe('firstName');
-      expect(firstName.getAlias()).toBe('first');
-      expect(lastName.getName()).toBe('lastName');
-      expect(lastName.getAlias()).toBe('last');
-    });
-
-    // Tries to retrieve an invalid column by name.
-    it('tries to retrieve an invalid column by name.', function()
-    {
-      expect(function()
-      {
+    it('throws when trying to retrieve a column using an invalid name.', function() {
+      expect(function() {
         usersTbl.getColumnByName('INVALID_NAME');
       }).toThrowError('Column INVALID_NAME does not exist in table users.');
     });
+  });
 
-    // Checks that columns can be retrieved by alias.
-    it('checks that columns can be retrieved by alias.', function()
-    {
-      var userID    = usersTbl.getColumnByAlias('ID');
-      var firstName = usersTbl.getColumnByAlias('first');
-      var lastName  = usersTbl.getColumnByAlias('last');
+  /**
+   * Get column by mapping.
+   */
+  describe('.getColumnByMapping()', function() {
+    it('allows columns to be retrieved by mapping.', function() {
+      const userID    = usersTbl.getColumnByMapping('ID');
+      const firstName = usersTbl.getColumnByMapping('first');
+      const lastName  = usersTbl.getColumnByMapping('last');
 
-      expect(userID.getName()).toBe('userID');
-      expect(userID.getAlias()).toBe('ID');
-      expect(firstName.getName()).toBe('firstName');
-      expect(firstName.getAlias()).toBe('first');
-      expect(lastName.getName()).toBe('lastName');
-      expect(lastName.getAlias()).toBe('last');
+      expect(userID.name).toBe('userID');
+      expect(userID.mapTo).toBe('ID');
+      expect(firstName.name).toBe('firstName');
+      expect(firstName.mapTo).toBe('first');
+      expect(lastName.name).toBe('lastName');
+      expect(lastName.mapTo).toBe('last');
     });
 
-    // Tries to retrieve an invalid column by alias.
-    it('tries to retrieve an invalid column by alias.', function()
-    {
-      expect(function()
-      {
-        usersTbl.getColumnByAlias('INVALID_ALIAS');
-      }).toThrowError('Column alias INVALID_ALIAS does not exist in table users.');
+    it('throws when trying to retrieve a column using an invalid mapping.', function() {
+      expect(function() {
+        usersTbl.getColumnByMapping('INVALID');
+      }).toThrowError('Column mapping INVALID does not exist in table users.');
     });
+  });
 
-    // Makes sure that addColumn returns this (the table)
-    it('makes sure that addColumn returns this (the table).', function()
-    {
-      expect(usersTbl.addColumn(new Column({name: 'surname'}))).toBe(usersTbl);
-    });
-
-    // Checks the isColumnName function.
-    it('checks the isColumnName function.', function()
-    {
+  /**
+   * Is column name.
+   */
+  describe('.isColumnName()', function() {
+    it('can check if a column name matches a column.', function() {
       expect(usersTbl.isColumnName('userID')).toBe(true);
       expect(usersTbl.isColumnName('firstName')).toBe(true);
       expect(usersTbl.isColumnName('lastName')).toBe(true);
       expect(usersTbl.isColumnName('nope')).toBe(false);
     });
+  });
 
-    // Checks the isColumnAlias function.
-    it('checks the isColumnAlias function.', function()
-    {
-      expect(usersTbl.isColumnAlias('ID')).toBe(true);
-      expect(usersTbl.isColumnAlias('first')).toBe(true);
-      expect(usersTbl.isColumnAlias('last')).toBe(true);
-      expect(usersTbl.isColumnAlias('nope')).toBe(false);
+  /**
+   * Is column mapping.
+   */
+  describe('.isColumnMapping()', function() {
+    it('can check if a column mapping matches a column.', function() {
+      expect(usersTbl.isColumnMapping('ID')).toBe(true);
+      expect(usersTbl.isColumnMapping('first')).toBe(true);
+      expect(usersTbl.isColumnMapping('last')).toBe(true);
+      expect(usersTbl.isColumnMapping('nope')).toBe(false);
     });
   });
 
-  describe('Table toObject test suite.', function()
-  {
-    // Converts the users table to an object.
-    it('converts the users table to an object.', function()
-    {
-      var usersTbl = new Table(users);
-      expect(usersTbl.toObject()).toEqual
-      ({
-        name: 'users',
-        alias: 'users',
-        columns:
-        [
-          {
-            name: 'userID',
-            alias: 'ID',
-            isPrimary: true,
-            converter: {},
-            isNullable: true,
-            dataType: null,
-            maxLength: null,
-            defaultValue: null
-          },
-          {
-            name: 'firstName',
-            alias: 'first',
-            isPrimary: false,
-            converter: {},
-            isNullable: true,
-            dataType: null,
-            maxLength: null,
-            defaultValue: null
-          },
-          {
-            name: 'lastName',
-            alias: 'last',
-            isPrimary: false,
-            converter: {},
-            isNullable: true,
-            dataType: null,
-            maxLength: null,
-            defaultValue: null
-          }
-        ]
-      });
+  /**
+   * Add column.
+   */
+  describe('.addColumn()', function() {
+    it('prevents duplicate columns from being added.', function() {
+      expect(function() {
+        usersTbl.addColumn(new Column({name: 'userID'}));
+      }).toThrowError('Column userID already exists in table users.');
+
+      expect(function() {
+        usersTbl.addColumn(new Column({name: 'foo', mapTo: 'ID'}));
+      }).toThrowError('Column mapping ID already exists in table users.');
     });
-  });
 
-  describe('Table clone test suite.', function()
-  {
-    // Clones a table.
-    it('clones a table.', function()
-    {
-      var table = new Table(users);
-      var clone = table.clone();
+    it('allows calls to be chained.', function() {
+      expect(usersTbl.addColumn(new Column({name: 'surname'}))).toBe(usersTbl);
+    });
 
-      expect(table.toObject()).toEqual(clone.toObject());
+    it('allows Column instances to be added.', function() {
+      usersTbl.addColumn(new Column({name: 'foo'}));
     });
   });
 });

@@ -1,103 +1,109 @@
-describe('UpdateModel test suite.', function()
-{
+describe('UpdateModel()', function() {
   'use strict';
 
-  var UpdateModel  = require('./UpdateModel');
-  var Database     = require('../database/Database');
-  var MySQLEscaper = require('./MySQLEscaper');
-  var db           = new Database(require('../spec/testDB'));
-  var escaper      = new MySQLEscaper();
-  var qryExec;
+  // MySQLUpdateModel is used for testing because it has a concrete
+  // implementation of buildQuery(), making testing easier.
+  const insulin          = require('insulin');
+  const MySQLUpdateModel = insulin.get('ndm_MySQLUpdateModel');
+  const MySQLEscaper     = insulin.get('ndm_MySQLEscaper');
+  const db               = insulin.get('ndm_testDB');
+  const escaper          = new MySQLEscaper();
+  let qryExec;
 
-  beforeEach(function()
-  {
-    qryExec = jasmine.createSpyObj('qryExec', ['update']);
-  });
+  beforeEach(() => qryExec = jasmine.createSpyObj('qryExec', ['update']));
 
-  describe('UpdateModel toString test suite.', function()
-  {
-    // Checks that a model with nothing to update results in a blank query.
-    it('checks that a model with nothing to update results in a blank query.', function()
-    {
-      var upd = new UpdateModel(db, escaper, qryExec, {users: {ID: 1}});
+  /**
+   * To string.
+   */
+  describe('.toString()', function() {
+    it('returns a blank string if there are no properties to update.', function() {
+      const upd = new MySQLUpdateModel(db, escaper, qryExec, {users: {ID: 1}});
       expect(upd.toString()).toBe('');
     });
 
-    // Checks that a single-model query is correct.
-    it('checks that a single-model query is correct.', function()
-    {
-      var upd = new UpdateModel(db, escaper, qryExec,
-      {
-        users:
-        {
+    it('returns the correct SQL for a single model, converting the table and ' +
+      'column mappings appropriately.', function() {
+      const upd = new MySQLUpdateModel(db, escaper, qryExec, {
+        users: {
           ID:    1,
           first: 'Joe',
           last:  'Smith'
         }
       });
-      expect(upd.toString()).toBe
-      (
+
+      expect(upd.toString()).toBe(
         'UPDATE  `users` AS `users`\n' +
         'SET\n' +
-        "`users`.`firstName` = 'Joe',\n" +
-        "`users`.`lastName` = 'Smith'\n" +
-        'WHERE   (`users`.`userID` = 1)'
+        '`users`.`firstName` = :users_firstName_1,\n' +
+        '`users`.`lastName` = :users_lastName_2\n' +
+        'WHERE   (`users`.`userID` = :users_userID_0)'
+      );
+    });
+
+    it('ignores properties that do not correspond to column mappings.', function() {
+      const upd = new MySQLUpdateModel(db, escaper, qryExec, {
+        users: {
+          ID:    1,
+          first: 'Joe',
+          last:  'Smith',
+          foo :  'bar' // Ignored.
+        }
+      });
+
+      expect(upd.toString()).toBe(
+        'UPDATE  `users` AS `users`\n' +
+        'SET\n' +
+        "`users`.`firstName` = :users_firstName_1,\n" +
+        "`users`.`lastName` = :users_lastName_2\n" +
+        'WHERE   (`users`.`userID` = :users_userID_0)'
       );
     });
   });
 
-  describe('UpdateModel execute test suite.', function()
-  {
-    // Updates a single model.
-    it('updates a single model.', function()
-    {
-      qryExec.update.and.callFake(function(query, callback)
-      {
-        callback(null, {affectedRows: 1});
-      });
+  /**
+   * Execute.
+   */
+  describe('.execute()', function() {
+    it('can update a single model using the queryExecuter.update() method.', function() {
+      qryExec.update.and.callFake((query, params, callback) =>
+        callback(null, {affectedRows: 1}));
 
-      new UpdateModel(db, escaper, qryExec, {users: {ID: 14, first: 'Joe'}})
+      new MySQLUpdateModel(db, escaper, qryExec, {users: {ID: 14, first: 'Joe'}})
         .execute()
-        .then(function(result)
-        {
-          expect(result.affectedRows).toBe(1);
-        });
+        .then(result => expect(result.affectedRows).toBe(1))
+        .catch(() => expect(true).toBe(false))
+        .done();
 
       expect(qryExec.update).toHaveBeenCalled();
     });
 
-    // Updates multiple models.
-    it('updates multiple models.', function()
-    {
-      qryExec.update.and.callFake(function(query, callback)
-      {
-        callback(null, {affectedRows: 1});
-      });
+    it('can update multiple models.', function() {
+      qryExec.update.and.callFake((query, params, callback) =>
+        callback(null, {affectedRows: 1}));
 
-      new UpdateModel(db, escaper, qryExec, {users: [{ID: 14, first: 'Joe'}, {ID: 33, first: 'Sam'}]})
+      new MySQLUpdateModel(db, escaper, qryExec, {
+          users: [
+            {ID: 14, first: 'Joe'},
+            {ID: 33, first: 'Sam'}
+          ]
+        })
         .execute()
-        .then(function(result)
-        {
-          expect(result.affectedRows).toBe(2);
-        });
+        .then(result => expect(result.affectedRows).toBe(2))
+        .catch(() => expect(true).toBe(false))
+        .done();
 
       expect(qryExec.update.calls.count()).toBe(2);
     });
 
-    // Checks that an error can be caught.
-    it('checks that an error can be caught.', function()
-    {
-      qryExec.update.and.callFake(function(query, callback)
-      {
-        callback('FAILURE');
-      });
+    it('propagates errors from the queryExecuter.update() method.', function() {
+      const err = new Error();
+      qryExec.update.and.callFake((query, params, callback) => callback(err));
 
-      new UpdateModel(db, escaper, qryExec, {users: {ID: 14, first: 'Joe'}})
+      new MySQLUpdateModel(db, escaper, qryExec, {users: {ID: 14, first: 'Joe'}})
         .execute()
-        .catch(function(err)
-        {
-          expect(err).toBe('FAILURE');
-        });
+        .then(() => expect(true).toBe(false))
+        .catch(e => expect(e).toBe(err))
+        .done();
 
       expect(qryExec.update).toHaveBeenCalled();
     });

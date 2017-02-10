@@ -1,24 +1,21 @@
-There's no way to join the same table twice and use the same alias.  Consider this desired document with 'stage' repeated twice:
+Skipping a parent in a select heirarchy causes a crash.
 
-assignment: {
-  assignmentID: 1
-  item: {
-    itemID: 1,
-    stage: {
-      stageID: 1,
-      name: 'Review
-    }
-  },
-  stage: {
-    stageID: 1,
-    name: 'Review'
-  }
-}
+e.g. from companies->products->categories, just select companies and categories, but skip products in the selection.  Categories has no parent schema.
+In tutorial 8 there is an issue with the formatting of the BNF.
 
-Here the user is assigned to an item and needs to perform an action when the stage is reached, and the item is in a stage.
+Not sure how to handle schemas in MSSQL (e.g. "dbo").  database.getTableByName() is at the core of the project, and it would need to include an optional schema.
 
-Provide a short-hand end method on the DataContext and update all the examples/doc.
+Need transaction support, but it's tricky with a pool.  The user may need to run multiple queries in a transaction, and so the connection needs to somehow be tied to the request.
+
+Migrate condition builder to this project.
+
 Make the code work with node-mssql (probably need to fix parameters).
+  1) The ConditionCompiler replaces parameters with values.  That can't happen.
+  2) As is, the same parameter name can be used in multiple parts of the query with different values (e.g. :name could be used in a WHERE condition and an ON condition).  Moving parameterization responsibility to another class (e.g. a QueryExecuter) would break this.
+  3) Need to consider schema.  In MSSQL, schema can be important ([dbo].[mytable]).
+
+Views don't work.  There is no primary key.
+
 Composite keys are not supported by the Schema and will not work.  Needs impl.
 When there are two top-level schemata two DataMappers are used.  This doubles the time because two loops are needed.  Performance would be better if the DataMapper could take an array of schemata and perform the mapping in a single loop.  On the other hand, two top-level schemata is a corner case.
 It would be nice to allow multiple queries to be combinded into a single one.  With big queries, the cartisian product can be huge and it would be a performance enhancer to allow selecting from multiple related entities.
