@@ -41,8 +41,10 @@ CREATE TABLE bike_shops
 GO;
 
 INSERT INTO bike_shops(name, address) VALUES
-('Bob''s Bikes'         ,'9107 Sunrise Blvd'), 
-('Zephyr Cove Cruisers' ,'18271 Highway 50'), 
+('Bob''s Bikes'         ,'9107 Sunrise Blvd'); 
+INSERT INTO bike_shops(name, address) VALUES
+('Zephyr Cove Cruisers' ,'18271 Highway 50'); 
+INSERT INTO bike_shops(name, address) VALUES
 ('Cycle Works'          ,'3100 La Riviera Wy');
 
 
@@ -55,7 +57,7 @@ CREATE TABLE staff
   age INT,
   sex NVARCHAR(20),
   hasStoreKeys BIT NOT NULL DEFAULT 0,
-  hireDate DATE NOT NULL,
+  hireDate DATETIME NOT NULL,
   bikeShopID INT NOT NULL,
   CONSTRAINT fk_staff_bikeShopID
     FOREIGN KEY (bikeShopID) REFERENCES bike_shops(bikeShopID)
@@ -64,13 +66,20 @@ CREATE TABLE staff
 GO;
 
 INSERT INTO staff (firstName, lastName, age, sex, hasStorekeys, hireDate, bikeShopID) VALUES
-('Randy',    'Alamedo',     21, 'male',   0, '2012-01-03', 1),
-('John',     'Stovall',     54, 'male',   1, '1999-08-14', 1),
-('Tina',     'Beckenworth', 16, 'female', 0, '2006-04-30', 1),
-('Abe',      'Django',      67, 'male',   1, '2015-09-19', 2),
-('Sal',      'Green',       42, 'male',   1, '2004-01-30', 3),
-('Valerie',  'Stocking',    29, 'female', 1, '2007-11-12', 3),
-('Kimberly', 'Fenters',     18, 'female', 0, '2006-03-25', 3),
+('Randy',    'Alamedo',     21, 'male',   0, '2012-01-03', 1);
+INSERT INTO staff (firstName, lastName, age, sex, hasStorekeys, hireDate, bikeShopID) VALUES
+('John',     'Stovall',     54, 'male',   1, '1999-08-14', 1);
+INSERT INTO staff (firstName, lastName, age, sex, hasStorekeys, hireDate, bikeShopID) VALUES
+('Tina',     'Beckenworth', 16, 'female', 0, '2006-04-30', 1);
+INSERT INTO staff (firstName, lastName, age, sex, hasStorekeys, hireDate, bikeShopID) VALUES
+('Abe',      'Django',      67, 'male',   1, '2015-09-19', 2);
+INSERT INTO staff (firstName, lastName, age, sex, hasStorekeys, hireDate, bikeShopID) VALUES
+('Sal',      'Green',       42, 'male',   1, '2004-01-30', 3);
+INSERT INTO staff (firstName, lastName, age, sex, hasStorekeys, hireDate, bikeShopID) VALUES
+('Valerie',  'Stocking',    29, 'female', 1, '2007-11-12', 3);
+INSERT INTO staff (firstName, lastName, age, sex, hasStorekeys, hireDate, bikeShopID) VALUES
+('Kimberly', 'Fenters',     18, 'female', 0, '2006-03-25', 3);
+INSERT INTO staff (firstName, lastName, age, sex, hasStorekeys, hireDate, bikeShopID) VALUES
 ('Michael',  'Xavier',      22, 'male',   0, '2010-04-29', 3);
 
 
@@ -80,7 +89,7 @@ CREATE TABLE bonuses
   bonusID INT NOT NULL PRIMARY KEY IDENTITY,
   reason TEXT,
   amount DECIMAL(10, 2) NOT NULL,
-  dateGiven DATE NOT NULL,
+  dateGiven DATETIME NOT NULL,
   staffID INT NOT NULL,
   CONSTRAINT fk_bonuses_staffID
     FOREIGN KEY (staffID) REFERENCES staff(staffID)
@@ -89,8 +98,10 @@ CREATE TABLE bonuses
 GO;
 
 INSERT INTO bonuses (reason, amount, dateGiven, staffID) VALUES
-('Salesperson of the month.',      250, '2013-06-01', 1), 
-('Most supportive team member.',   600, '2009-07-07', 6), 
+('Salesperson of the month.',      250, '2013-06-01', 1);
+INSERT INTO bonuses (reason, amount, dateGiven, staffID) VALUES
+('Most supportive team member.',   600, '2009-07-07', 6);
+INSERT INTO bonuses (reason, amount, dateGiven, staffID) VALUES
 ('Outstanding mechanical skills.', 320, '2011-01-31', 8);
 
 -- Bike shops with all staff, and the bonuses (if any) for each staff member.
@@ -111,15 +122,24 @@ CREATE TABLE bikes
 GO;
 
 INSERT INTO bikes (brand, model, msrp) VALUES
-('Felt',        'F1',                6999),
-('Felt',        'Z5',                1999),
-('Specialized', 'Stump Jumber HT',   8500),
-('Specialized', 'ERA Carbon 29',     6200),
-('Stolen',      'Sinner Complete',   1850),
-('Haro',        'SDV2',              1089.99),
-('Haro',        'Leucadia DLX',      299.99),
-('Firmstrong',  'Bella Fashionista', 309.99),
-('Firmstrong',  'Black Rock',        299.99),
+('Felt',        'F1',                6999);
+INSERT INTO bikes (brand, model, msrp) VALUES
+('Felt',        'Z5',                1999);
+INSERT INTO bikes (brand, model, msrp) VALUES
+('Specialized', 'Stump Jumber HT',   8500);
+INSERT INTO bikes (brand, model, msrp) VALUES
+('Specialized', 'ERA Carbon 29',     6200);
+INSERT INTO bikes (brand, model, msrp) VALUES
+('Stolen',      'Sinner Complete',   1850);
+INSERT INTO bikes (brand, model, msrp) VALUES
+('Haro',        'SDV2',              1089.99);
+INSERT INTO bikes (brand, model, msrp) VALUES
+('Haro',        'Leucadia DLX',      299.99);
+INSERT INTO bikes (brand, model, msrp) VALUES
+('Firmstrong',  'Bella Fashionista', 309.99);
+INSERT INTO bikes (brand, model, msrp) VALUES
+('Firmstrong',  'Black Rock',        299.99);
+INSERT INTO bikes (brand, model, msrp) VALUES
 ('Firmstrong',  'Bella Classic',     279.99);
 
 
@@ -135,19 +155,18 @@ CREATE TABLE bike_shop_bikes
 );
 GO;
 
-INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES
-(1, 1),
-(1, 2),
-(1, 5),
-(1, 6),
-(1, 7),
-(2, 3),
-(2, 4),
-(3, 6),
-(3, 7),
-(3, 8),
-(3, 9),
-(3, 10);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (1, 1);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (1, 2);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (1, 5);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (1, 6);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (1, 7);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (2, 3);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (2, 4);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (3, 6);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (3, 7);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (3, 8);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (3, 9);
+INSERT INTO bike_shop_bikes (bikeShopID, bikeID) VALUES (3, 10);
 
 -- Bike shops with all the bikes sold by each.
 SELECT  *
