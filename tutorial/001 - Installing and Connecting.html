@@ -8,8 +8,13 @@
 
   <ul>
     <li>
-      mysql
+      mysql (<a href="https://github.com/mysqljs/mysql#connection-options">Connection Options</a>)
       <pre class="prettyprint source">$ npm install node-data-mapper-mysql --save</pre>
+    </li>
+
+    <li>
+      mssql (<a href="https://github.com/patriksimek/node-mssql/tree/v3.3.0#general-same-for-all-drivers">Connection Options</a>)
+      <pre class="prettyprint source">$ npm install node-data-mapper-mssql --save</pre>
     </li>
   </ul>
 
@@ -19,7 +24,8 @@
     Create a <i class="name">Driver</i> instance, and <i
     class="name">initialize()</i> node-data-mapper.  The following example use
     a <i class="name">MySQLDriver</i>; if you're using a different RDBMS,
-    substitute for <i class="name">MySQL</i> accordingly.
+    substitute for <i class="name">MySQL</i> accordingly and use connection
+    options suitable for your driver.
   </p>
 
   <pre class="prettyprint source linenums">
