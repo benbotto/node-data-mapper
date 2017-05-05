@@ -1,6 +1,7 @@
 'use strict';
 
 const insulin = require('insulin');
+const path    = require('path');
 
 // The bootstrap file lets everything register itself with the DiC, insulin,
 // and returns a list if files.  This script goes through the collection of
@@ -12,8 +13,8 @@ const files = require('./bootstrap');
 const exp   = {};
 
 files.forEach(f => {
-  // Remove the everything up to the final "/" and the ".js" extension.
-  const name = f.replace(/^.*\/([^\/]+)\.js$/, '$1');
+  // Use the file name, without the extension.
+  const name = path.basename(f, '.js');
   exp[name]  = insulin.get(`ndm_${name}`);
 });
 
