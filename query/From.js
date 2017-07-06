@@ -1,13 +1,14 @@
 'use strict';
 
 require('insulin').factory('ndm_From',
-  ['ndm_assert', 'ndm_ConditionLexer', 'ndm_ConditionParser',
-  'ndm_ConditionCompiler', 'ndm_Query', 'ndm_TableMetaList', 'ndm_Column',
-  'ndm_ParameterList'],
+  ['ndm_assert', 'ndm_ConditionError', 'ndm_ConditionLexer',
+  'ndm_ConditionParser', 'ndm_ConditionCompiler', 'ndm_Query',
+  'ndm_TableMetaList', 'ndm_Column', 'ndm_ParameterList'],
   ndm_FromProducer);
 
-function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
-  ConditionCompiler, Query, TableMetaList, Column, ParameterList) {
+function ndm_FromProducer(assert, ConditionError, ConditionLexer,
+  ConditionParser, ConditionCompiler, Query, TableMetaList, Column,
+  ParameterList) {
 
   /**
    * A From can be used to create a SELECT, DELETE, or UPDATE query.
@@ -201,9 +202,10 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
 
       // Make sure that each column in the condition is available for selection.
       columns = this._condCompiler.getColumns(tree);
+
       for (let i = 0; i < columns.length; ++i) {
-        assert(this._tableMetaList.isColumnAvailable(columns[i]),
-          `The column "${columns[i]}" is not available for a where condition.`);
+        if (!this._tableMetaList.isColumnAvailable(columns[i]))
+          throw new ConditionError(`The column "${columns[i]}" is not available for a where condition.`);
       }
 
       fromMeta.cond = this._condCompiler.compile(tree, this.paramList.params);
@@ -246,8 +248,8 @@ function ndm_FromProducer(assert, ConditionLexer, ConditionParser,
       // one of the tables in the query).
       if (on) {
         this._condCompiler.getColumns(tree).forEach(function(col) {
-          assert(this._tableMetaList.isColumnAvailable(col),
-            `The column "${col}" is not available for an on condition.`);
+          if (!this._tableMetaList.isColumnAvailable(col))
+            throw new ConditionError(`The column "${col}" is not available for an on condition.`);
         }, this);
       }
 

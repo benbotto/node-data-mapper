@@ -24,6 +24,7 @@
     "node-data-mapper-mysql": "^1.1.2"
   },
   "dependencies": {
+    "bsy-error": "^1.0.4",
     "deferred": "^0.7.4",
     "glob": "^7.1.1",
     "insulin": "^1.0.7",

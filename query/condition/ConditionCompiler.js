@@ -1,9 +1,9 @@
 'use strict';
 
 require('insulin').factory('ndm_ConditionCompiler',
-  ['ndm_assert'], ndm_ConditionCompilerProducer);
+  ['ndm_ConditionError'], ndm_ConditionCompilerProducer);
 
-function ndm_ConditionCompilerProducer(assert) {
+function ndm_ConditionCompilerProducer(ConditionError) {
   /** A class that compiles a parse tree, as created by a ConditionParser
   instance, into a SQL condition. */
   class ConditionCompiler {
@@ -63,8 +63,8 @@ function ndm_ConditionCompilerProducer(assert) {
             const paramKey = token.value.substring(1);
             const value    = params[paramKey];
 
-            assert(value !== undefined,
-              `Replacement value for parameter "${paramKey}" not present.`);
+            if (value === undefined)
+              throw new ConditionError(`Replacement value for parameter "${paramKey}" not present.`);
           }
 
           return token.value;

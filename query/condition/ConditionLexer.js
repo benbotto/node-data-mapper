@@ -1,9 +1,9 @@
 'use strict';
 
 require('insulin').factory('ndm_ConditionLexer',
-  ['ndm_assert'], ndm_ConditionLexerProducer);
+  ['ndm_ConditionError'], ndm_ConditionLexerProducer);
 
-function ndm_ConditionLexerProducer(assert) {
+function ndm_ConditionLexerProducer(ConditionError) {
   /** Class that lexicographically parses a condition into tokens. */
   class ConditionLexer {
     /**
@@ -49,14 +49,16 @@ function ndm_ConditionLexerProducer(assert) {
             break;
           case '"':
             // Move past the quote.
-            assert(++i < condStr.length, 'Expected character but found EOL.');
+            if (++i >= condStr.length) 
+              throw new ConditionError('Expected character but found EOL.');
 
             // The string immediatly after the quote, and the index of the next quote.
             str       = condStr.substring(i);
             nextQuote = str.indexOf('"');
 
             // No next quote - hit EOL.
-            assert(nextQuote !== -1, 'Expected quote but found EOL.');
+            if (nextQuote === -1)
+              throw new ConditionError('Expected quote but found EOL.');
 
             // Looks good - store the actual string and advance the token pointer.
             str = str.substring(0, nextQuote);
@@ -103,21 +105,26 @@ function ndm_ConditionLexerProducer(assert) {
             str = str.substring(0, nonNum);
             i  += nonNum - 1;
 
-            assert(!isNaN(Number(str)), `Expected number but found ${str}.`);
+            if (isNaN(Number(str)))
+              throw new ConditionError(`Expected number but found ${str}.`);
+
             addToken(true, 'number', Number(str));
             break;
 
           // Null.
           case 'n':
             str = condStr.substr(i, 4);
-            assert(str === 'null', `Expected null but found ${str}.`);
+            
+            if (str !== 'null')
+              throw new ConditionError(`Expected null but found ${str}.`);
+
             addToken(true, 'null', null);
             i += 3;
             break;
 
           // Anything else is invalid.
           default:
-            throw new Error(`Unexpected character.  Found ${curChar}.`);
+            throw new ConditionError(`Unexpected character.  Found ${curChar}.`);
         }
       }
 
