@@ -144,6 +144,12 @@ describe('ConditionCompiler()', function() {
       tokens = lexer.parse(cond);
       tree   = parser.parse(tokens);
       expect(compiler.compile(tree)).toBe('`shoeSize` IN (10)');
+
+      // Negated.
+      cond   = {$notIn: {'p.shoeSize': [10, 10.5, 11]}};
+      tokens = lexer.parse(cond);
+      tree   = parser.parse(tokens);
+      expect(compiler.compile(tree)).toBe('`p`.`shoeSize` NOT IN (10, 10.5, 11)');
     });
 
     it('compiles boolean conditions.', function() {

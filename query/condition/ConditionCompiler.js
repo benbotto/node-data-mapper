@@ -48,6 +48,11 @@ function ndm_ConditionCompilerProducer(ConditionError) {
         $or:  'OR'
       };
 
+      const inOps = {
+        $in   : 'IN',
+        $notIn: 'NOT IN'
+      };
+
       params = params || {};
 
       // Function to recursively traverse the parse tree and compile it.
@@ -92,14 +97,15 @@ function ndm_ConditionCompilerProducer(ConditionError) {
           }
 
           case 'in-comparison-operator': {
-            // <column> IN (<value> {, <value}) (ex. `shoeSize` IN (10, 10.5, 11)).
+            // <column> <in-comparison-operator> (<value> {, <value}) (ex. `shoeSize` IN (10, 10.5, 11)).
             const column = escaper.escapeFullyQualifiedColumn(tree.children[0].token.value);
+            const op     = inOps[tree.token.value];
             const kids   = tree.children
               .slice(1)
               .map(kid => getValue(kid.token, escaper))
               .join(', ');
 
-            return `${column} IN (${kids})`;
+            return `${column} ${op} (${kids})`;
           }
 
           case 'boolean-operator': {
