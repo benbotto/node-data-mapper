@@ -24,6 +24,7 @@ function ndm_ConditionLexerProducer(ConditionError) {
       const tokens  = [];
       const boolOps = ['$and', '$or'];
       const compOps = ['$eq', '$neq', '$lt', '$lte', '$gt', '$gte', '$like', '$notLike'];
+      const inOps   = ['$in', '$notIn'];
       const nullOps = ['$is', '$isnt'];
 
       let curChar = '';
@@ -69,7 +70,7 @@ function ndm_ConditionLexerProducer(ConditionError) {
               addToken(false, 'boolean-operator', str);
             else if (compOps.indexOf(str) !== -1)
               addToken(false, 'comparison-operator', str);
-            else if (str === '$in')
+            else if (inOps.indexOf(str) !== -1)
               addToken(false, 'in-comparison-operator', str);
             else if (nullOps.indexOf(str) !== -1)
               addToken(false, 'null-comparison-operator', str);

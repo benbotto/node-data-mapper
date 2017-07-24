@@ -171,6 +171,8 @@ describe('ConditionLexer()', function() {
           .toEqual([{terminal: false, type: 'comparison-operator', value: '$notLike'}]);
         expect(cl.parse('"$in"'))
           .toEqual([{terminal: false, type: 'in-comparison-operator', value: '$in'}]);
+        expect(cl.parse('"$notIn"'))
+          .toEqual([{terminal: false, type: 'in-comparison-operator', value: '$notIn'}]);
         expect(cl.parse('"$is"'))
           .toEqual([{terminal: false, type: 'null-comparison-operator', value: '$is'}]);
         expect(cl.parse('"$isnt"'))
