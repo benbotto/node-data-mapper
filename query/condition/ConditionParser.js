@@ -21,7 +21,7 @@ function ndm_ConditionParserProducer(ConditionError) {
      *   &lt;in-comparison&gt;            ::= &lt;in-comparison-operator&gt; ":" "{" &lt;column&gt; ":" "[" &lt;value&gt; {"," &lt;value&gt;} "]" "}"
      *   &lt;logical-condition&gt;        ::= &lt;boolean-operator&gt; ":" "[" &lt;condition&gt; {"," &lt;condition&gt;} "]"
      *   &lt;comparison-operator&gt;      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte" | "$like" | "$notlike"
-     *   &lt;in-comparison-operator&gt;   ::= "$in"
+     *   &lt;in-comparison-operator&gt;   ::= "$in" | "$notIn"
      *   &lt;null-comparison-operator&gt; ::= "$is" | "$isnt"
      *   &lt;boolean-operator&gt;         ::= "$and" | "$or"
      *   &lt;nullable&gt;                 ::= null | &lt;parameter&gt;
@@ -53,7 +53,7 @@ function ndm_ConditionParserProducer(ConditionError) {
 
     // <condition> ::= "{" <comparison> | <null-comparison> | <in-comparison> | <logical-condition> "}"
     _condition() {
-      var pairParts = ['comparison-operator', 'null-comparison-operator', 'in-comparison-operator', 'boolean-operator'];
+      const pairParts = ['comparison-operator', 'null-comparison-operator', 'in-comparison-operator', 'boolean-operator'];
 
       this._charTerminal('{');
       
@@ -133,7 +133,7 @@ function ndm_ConditionParserProducer(ConditionError) {
       this._matchType('comparison-operator');
     }
 
-    // <in-comparison-operator> ::= "$in"
+    // <in-comparison-operator> ::= "$in" | "$notIn"
     _inComparisonOperator() {
       this._matchType('in-comparison-operator');
     }
@@ -150,7 +150,7 @@ function ndm_ConditionParserProducer(ConditionError) {
 
     // <nullable> ::= null | <parameter>
     _nullable() {
-      var values = ['null', 'parameter'];
+      const values = ['null', 'parameter'];
       
       if (!this._tokenIn(values))
         throw new ConditionError(this._errorString('[' + values.join(' | ') + ']'));
@@ -163,7 +163,7 @@ function ndm_ConditionParserProducer(ConditionError) {
 
     // <value> ::= <parameter> | <column> | <number>
     _value() {
-      var values = ['parameter', 'column', 'number'];
+      const values = ['parameter', 'column', 'number'];
       
       if (!this._tokenIn(values))
         throw new ConditionError(this._errorString('[' + values.join(' | ') + ']'));
@@ -242,8 +242,8 @@ function ndm_ConditionParserProducer(ConditionError) {
 
     // Helper to create an error string.
     _errorString(expected) {
-      var type  = this._token ? this._token.type  : 'EOL';
-      var value = this._token ? this._token.value : 'EOL';
+      const type  = this._token ? this._token.type  : 'EOL';
+      const value = this._token ? this._token.value : 'EOL';
 
       return `At index ${this._tokenInd}.  Expected ${expected} but found type ` +
              `${type} with value ${value}.`;
@@ -251,7 +251,7 @@ function ndm_ConditionParserProducer(ConditionError) {
 
     // Helper function to add a node to the parse tree.
     _addNode() {
-      var node = {
+      const node = {
         children: [],
         parent:   this._curNode,
         token:    this._token

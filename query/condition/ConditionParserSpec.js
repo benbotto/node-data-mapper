@@ -36,6 +36,12 @@ describe('ConditionParser()', function() {
           parser.parse(lexer.parse({$in: {age: [45, 46, 47, 48, 49, 50, 51]}}));
           parser.parse(lexer.parse({$in: {name: [':name0', ':name1']}}));
           parser.parse(lexer.parse({$in: {name: ['mother.name', 'father.name']}}));
+
+          parser.parse(lexer.parse({$notIn: {age: [45]}}));
+          parser.parse(lexer.parse({$notIn: {age: [45, 46]}}));
+          parser.parse(lexer.parse({$notIn: {age: [45, 46, 47, 48, 49, 50, 51]}}));
+          parser.parse(lexer.parse({$notIn: {name: [':name0', ':name1']}}));
+          parser.parse(lexer.parse({$notIn: {name: ['mother.name', 'father.name']}}));
         }).not.toThrow();
       });
 
@@ -400,6 +406,23 @@ describe('ConditionParser()', function() {
         expect(tree.children[1].token.value).toBe(':name0');
         expect(tree.children[2].token.value).toBe(':name1');
         expect(tree.children[3].token.value).toBe(':name2');
+      });
+
+      it('returns a valid tree from a $notIn in-comparison sentence.', function() {
+        const cond   = {$notIn: {name: [':name0', ':name1', ':name2']}};
+        const tokens = lexer.parse(cond);
+        const tree   = parser.parse(tokens);
+
+        //     ________$notIn_________
+        //    /       /       \       \
+        // 'name' ':name0' ':name1' ':name2'
+        expect(tree.token.value).toBe('$notIn');
+        expect(tree.children.length).toBe(4);
+        expect(tree.children[0].token.value).toBe('name');
+        expect(tree.children[1].token.value).toBe(':name0');
+        expect(tree.children[2].token.value).toBe(':name1');
+        expect(tree.children[3].token.value).toBe(':name2');
+        
       });
 
       it('returns a valid tree from a logical-condition sentence.', function() {
