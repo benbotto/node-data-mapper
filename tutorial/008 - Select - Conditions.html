@@ -37,7 +37,7 @@ function retrieveStaffQuery(dataContext) {
 &lt;in-comparison&gt;            ::= &lt;in-comparison-operator&gt; ":" "{" &lt;column&gt; ":" "[" &lt;value&gt; {"," &lt;value&gt;} "]" "}"
 &lt;logical-condition&gt;        ::= &lt;boolean-operator&gt; ":" "[" &lt;condition&gt; {"," &lt;condition&gt;} "]"
 &lt;comparison-operator&gt;      ::= "$eq" | "$neq" | "$lt" | "$lte" | "$gt" | "$gte" | "$like" | "$notlike"
-&lt;in-comparison-operator&gt;   ::= "$in"
+&lt;in-comparison-operator&gt;   ::= "$in" | "$notIn"
 &lt;null-comparison-operator&gt; ::= "$is" | "$isnt"
 &lt;boolean-operator&gt;         ::= "$and" | "$or"
 &lt;nullable&gt;                 ::= null | &lt;parameter&gt;
