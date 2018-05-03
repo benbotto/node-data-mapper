@@ -203,6 +203,14 @@ describe('From()', function() {
         'FROM    `users` AS `users`\n' +
         'WHERE   `users`.`firstName` = :firstName');
     });
+
+    it('noops if the condition is an empty string.', function() {
+      const query = new From(db, escaper, qryExec, {table: 'users'})
+        .where({}, {});
+      expect(query.toString()).toBe(
+        'FROM    `users` AS `users`'
+      );
+    });
   });
 
   /**
@@ -314,4 +322,3 @@ describe('From()', function() {
     });
   });
 });
-
