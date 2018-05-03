@@ -45,7 +45,7 @@ function ndm_FromProducer(assert, ConditionError, ConditionLexer,
       // FROM table, and all the other tables are added via JOINs.
       this._tableMetaList = new TableMetaList(this.database);
 
-      // Add the FROM table.  
+      // Add the FROM table.
       if (typeof meta === 'string')
         this._tableMetaList.addTable(this.parseFromString(meta));
       else
@@ -188,11 +188,16 @@ function ndm_FromProducer(assert, ConditionError, ConditionLexer,
      */
     where(cond, params) {
       const fromMeta = this.getFromMeta();
-      let   tokens, tree, columns; 
+      let   tokens, tree, columns;
 
       assert(fromMeta.cond === null,
         'where already performed on query.');
-      
+
+      // Noop if cond is an empty object.
+      if (Object.keys(cond).length === 0 && cond.constructor === Object) {
+        return this;
+      }
+
       // Store the parameters in the list.
       this.paramList.addParameters(params);
 
@@ -327,7 +332,7 @@ function ndm_FromProducer(assert, ConditionError, ConditionLexer,
         const joinName  = this.escaper.escapeProperty(tblMeta.table.name);
         const joinAlias = this.escaper.escapeProperty(tblMeta.as);
         let   sql       = `${tblMeta.joinType} ${joinName} AS ${joinAlias}`;
-        
+
         if (tblMeta.cond)
           sql += ` ON ${tblMeta.cond}`;
         joins.push(sql);
@@ -380,4 +385,3 @@ function ndm_FromProducer(assert, ConditionError, ConditionLexer,
 
   return From;
 }
-
