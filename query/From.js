@@ -194,9 +194,8 @@ function ndm_FromProducer(assert, ConditionError, ConditionLexer,
         'where already performed on query.');
 
       // Noop if cond is an empty object.
-      if (Object.keys(cond).length === 0 && cond.constructor === Object) {
+      if (!cond || Object.keys(cond).length === 0 && cond.constructor === Object)
         return this;
-      }
 
       // Store the parameters in the list.
       this.paramList.addParameters(params);
@@ -385,3 +384,4 @@ function ndm_FromProducer(assert, ConditionError, ConditionLexer,
 
   return From;
 }
+

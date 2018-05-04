@@ -204,9 +204,25 @@ describe('From()', function() {
         'WHERE   `users`.`firstName` = :firstName');
     });
 
-    it('noops if the condition is an empty string.', function() {
+    it('noops if the condition is an empty object.', function() {
       const query = new From(db, escaper, qryExec, {table: 'users'})
         .where({}, {});
+      expect(query.toString()).toBe(
+        'FROM    `users` AS `users`'
+      );
+    });
+
+    it('noops if the condition is null.', function() {
+      const query = new From(db, escaper, qryExec, {table: 'users'})
+        .where(null, {});
+      expect(query.toString()).toBe(
+        'FROM    `users` AS `users`'
+      );
+    });
+
+    it('noops if the condition is undefined.', function() {
+      const query = new From(db, escaper, qryExec, {table: 'users'})
+        .where();
       expect(query.toString()).toBe(
         'FROM    `users` AS `users`'
       );
@@ -322,3 +338,4 @@ describe('From()', function() {
     });
   });
 });
+
