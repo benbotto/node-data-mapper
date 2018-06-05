@@ -166,6 +166,13 @@ describe('From()', function() {
         from.parseJoinString('uuu.phone_numbers pn');
       }).toThrowError('The parent of table "phone_numbers" ("uuu") is invalid.');
     });
+
+    it('throws an error if the child table is invalid.', function() {
+      expect(function() {
+        const from = new From(db, escaper, qryExec, {table: 'users', as: 'u'});
+        from.parseJoinString('u.invalid_table it');
+      }).toThrowError('The joined-in table "invalid_table" is invalid.');
+    });
   });
 
   /**

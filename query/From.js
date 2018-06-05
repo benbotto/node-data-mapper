@@ -122,6 +122,10 @@ function ndm_FromProducer(assert, ConditionError, ConditionLexer,
           '[<parent-table-alias>.]<table-name>[ [as ]<table-alias>].');
       }
 
+      // Make sure the joined-in table (the child) is valid.
+      assert(this.database.isTableName(meta.table),
+        `The joined-in table "${meta.table}" is invalid.`);
+
       // If there is a parent alias provided, figoure out how to join the two
       // tables.
       if (parent) {
