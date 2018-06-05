@@ -1,6 +1,6 @@
 {
   "name": "node-data-mapper",
-  "version": "1.1.26",
+  "version": "1.1.27",
   "description": "An object-relational mapper for node.js using the data mapper pattern.",
   "main": "index.js",
   "scripts": {
